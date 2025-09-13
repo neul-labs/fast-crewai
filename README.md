@@ -22,9 +22,10 @@ For detailed documentation, please see the [docs](docs/) directory.
 pip install crewai-rust
 ```
 
-### Usage
+### Usage Options
 
-**Important**: To use the Rust components, you must explicitly import and use them in your code. They do not automatically replace the standard CrewAI components.
+#### Option 1: Explicit Usage (Default)
+Import and use Rust components explicitly in your code:
 
 ```python
 from crewai_rust import RustMemoryStorage, RustToolExecutor
@@ -35,7 +36,67 @@ memory.save("Hello, World!")
 results = memory.search("Hello")
 ```
 
-To use the Rust-optimized components, you'll need to modify your CrewAI code to import and use these classes instead of the default Python implementations.
+#### Option 2: Automatic Shimming (No Code Changes Required)
+Enable Rust acceleration without modifying your existing CrewAI code:
+
+**Method A: Environment Variable**
+```bash
+export CREWAI_RUST_ACCELERATION=1
+python your_crewai_script.py
+```
+
+**Method B: Import Hook**
+```python
+import crewai
+import crewai_rust.shim  # Automatically replaces components
+
+# Your existing CrewAI code works unchanged
+from crewai import Agent, Task, Crew
+# ... rest of your code
+```
+
+**Method C: Bootstrap Script**
+```bash
+crewai-rust-bootstrap
+python your_crewai_script.py
+```
+
+**Method D: Programmatic Enable**
+```python
+import crewai
+from crewai_rust.shim import enable_rust_acceleration
+enable_rust_acceleration()
+
+# Your existing CrewAI code works unchanged
+```
+
+### Shimming Details
+
+The automatic shimming replaces the following CrewAI components with their Rust equivalents:
+
+**Memory Components:**
+- `crewai.memory.storage.RAGStorage` → `RustMemoryStorage`
+- `crewai.memory.short_term.ShortTermMemory` → `RustMemoryStorage`
+- `crewai.memory.Memory` → `RustMemoryStorage`
+- `crewai.memory.long_term.LongTermMemory` → `RustMemoryStorage`
+- `crewai.memory.entity.EntityMemory` → `RustMemoryStorage`
+
+**Tool Components:**
+- `crewai.tools.structured_tool.CrewStructuredTool` → `RustToolExecutor`
+- `crewai.tools.base_tool.BaseTool` → `RustToolExecutor`
+
+**Task Components:**
+- `crewai.task.Task` → `RustTaskExecutor`
+- `crewai.crews.crew.Crew` → `RustTaskExecutor`
+
+**Database Components:**
+- `crewai.memory.storage.ltm_sqlite_storage.LTMSQLiteStorage` → `RustSQLiteWrapper`
+- `crewai.memory.storage.kickoff_task_outputs_storage.KickoffTaskOutputsStorage` → `RustSQLiteWrapper`
+
+**Serialization Components:**
+- Event classes in `crewai.events.types.*` → `AgentMessage`
+
+All shimming is done at runtime through monkey patching and maintains full API compatibility.
 
 ## Components
 

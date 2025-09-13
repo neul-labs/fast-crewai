@@ -36,6 +36,7 @@ dev = [
 
 [project.scripts]
 crewai-rust = "crewai_rust.__main__:main"
+crewai-rust-bootstrap = "crewai_rust.bootstrap:main"
 
 [tool.setuptools_scm]
 version_scheme = "guess-next-dev"

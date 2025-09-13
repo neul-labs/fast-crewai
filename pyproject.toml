@@ -31,6 +31,7 @@ keywords = ["crewai", "rust", "performance", "ai", "agents"]
 
 [project.scripts]
 crewai-rust = "crewai_rust.__main__:main"
+crewai-rust-bootstrap = "crewai_rust.bootstrap:main"
 
 [project.urls]
 Homepage = "https://github.com/crewAI/crewai"

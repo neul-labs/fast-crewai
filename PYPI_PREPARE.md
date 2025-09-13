@@ -2,7 +2,14 @@
 
 This document summarizes the changes made to prepare the crewai-rust repository for PyPI publication.
 
-**Important Note**: Installing this package does not automatically accelerate CrewAI. Users must explicitly import and use the Rust components in their code. The components do not automatically replace the standard CrewAI components.
+**Important Note**: Installing this package does not automatically accelerate CrewAI. However, automatic shimming is now available through several methods:
+
+1. **Environment Variable**: `CREWAI_RUST_ACCELERATION=1`
+2. **Import Hook**: `import crewai_rust.shim`
+3. **Bootstrap Script**: `crewai-rust-bootstrap`
+4. **Programmatic Enable**: `enable_rust_acceleration()`
+
+Users can choose to either explicitly use the Rust components or enable automatic shimming without code changes.
 
 ## Changes Made
 
