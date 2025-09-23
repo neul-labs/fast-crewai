@@ -1,201 +1,194 @@
-# CrewAI Rust Integration
+# CrewAI Rust
 
-High-performance Rust implementations for critical CrewAI components.
+High-performance Rust acceleration for CrewAI workflows
 
-## Overview
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org/)
 
-This package provides drop-in replacements for key CrewAI components using Rust for significant performance improvements:
+CrewAI Rust provides drop-in Rust implementations for performance-critical CrewAI components, delivering significant speed improvements while maintaining 100% API compatibility.
 
-- **Memory Storage**: 10-20x faster with SIMD-accelerated operations
-- **Tool Execution**: 2-5x faster with stack safety
-- **Task Execution**: 3-5x throughput improvement with true concurrency
-- **Serialization**: 5-10x faster with zero-copy optimizations
-- **Database Operations**: 3-5x faster with connection pooling
+## Performance Improvements
 
-For detailed documentation, please see the [docs](docs/) directory.
+| Component | Performance Gain | Key Optimization |
+|-----------|------------------|------------------|
+| **Memory Storage** | 10-20x faster | SIMD-accelerated vector operations |
+| **Tool Execution** | 2-5x faster | Zero-cost error handling & stack safety |
+| **Task Execution** | 3-5x faster | True async concurrency with work-stealing |
+| **Serialization** | 5-10x faster | Zero-copy operations |
+| **Database Operations** | 3-5x faster | Connection pooling & prepared statements |
 
-## Quick Start
-
-### Installation
+## Installation
 
 ```bash
 pip install crewai-rust
 ```
 
-### Usage Options
+## Quick Start
 
-#### Option 1: Explicit Usage (Default)
-Import and use Rust components explicitly in your code:
+### Zero-Code Integration (Recommended)
+
+Accelerate existing CrewAI projects without any code changes:
+
+```python
+import crewai
+import crewai_rust.shim  # Automatically enables Rust acceleration
+
+from crewai import Agent, Task, Crew
+# Your existing CrewAI code works unchanged
+```
+
+**Alternative activation methods:**
+```bash
+# Environment variable
+export CREWAI_RUST_ACCELERATION=1
+python your_script.py
+
+# Command line
+crewai-rust-bootstrap && python your_script.py
+```
+
+### Explicit Component Usage
+
+For fine-grained control over which components use Rust:
 
 ```python
 from crewai_rust import RustMemoryStorage, RustToolExecutor
 
-# Explicitly use Rust components for performance improvements
+# Explicit Rust usage
 memory = RustMemoryStorage()
-memory.save("Hello, World!")
-results = memory.search("Hello")
+memory.save("Important data", {"priority": "high"})
+results = memory.search("data")
+
+# Mixed usage - Rust where it matters most
+crew = Crew(
+    agents=[agent],
+    tasks=[task],
+    memory_storage=RustMemoryStorage(),  # Rust acceleration
+    # Other components use standard Python
+)
 ```
 
-#### Option 2: Automatic Shimming (No Code Changes Required)
-Enable Rust acceleration without modifying your existing CrewAI code:
+## Configuration
 
-**Method A: Environment Variable**
-```bash
-export CREWAI_RUST_ACCELERATION=1
-python your_crewai_script.py
-```
-
-**Method B: Import Hook**
-```python
-import crewai
-import crewai_rust.shim  # Automatically replaces components
-
-# Your existing CrewAI code works unchanged
-from crewai import Agent, Task, Crew
-# ... rest of your code
-```
-
-**Method C: Bootstrap Script**
-```bash
-crewai-rust-bootstrap
-python your_crewai_script.py
-```
-
-**Method D: Programmatic Enable**
-```python
-import crewai
-from crewai_rust.shim import enable_rust_acceleration
-enable_rust_acceleration()
-
-# Your existing CrewAI code works unchanged
-```
-
-### Shimming Details
-
-The automatic shimming replaces the following CrewAI components with their Rust equivalents:
-
-**Memory Components:**
-- `crewai.memory.storage.RAGStorage` → `RustMemoryStorage`
-- `crewai.memory.short_term.ShortTermMemory` → `RustMemoryStorage`
-- `crewai.memory.Memory` → `RustMemoryStorage`
-- `crewai.memory.long_term.LongTermMemory` → `RustMemoryStorage`
-- `crewai.memory.entity.EntityMemory` → `RustMemoryStorage`
-
-**Tool Components:**
-- `crewai.tools.structured_tool.CrewStructuredTool` → `RustToolExecutor`
-- `crewai.tools.base_tool.BaseTool` → `RustToolExecutor`
-
-**Task Components:**
-- `crewai.task.Task` → `RustTaskExecutor`
-- `crewai.crews.crew.Crew` → `RustTaskExecutor`
-
-**Database Components:**
-- `crewai.memory.storage.ltm_sqlite_storage.LTMSQLiteStorage` → `RustSQLiteWrapper`
-- `crewai.memory.storage.kickoff_task_outputs_storage.KickoffTaskOutputsStorage` → `RustSQLiteWrapper`
-
-**Serialization Components:**
-- Event classes in `crewai.events.types.*` → `AgentMessage`
-
-All shimming is done at runtime through monkey patching and maintains full API compatibility.
-
-## Components
-
-### Memory Storage
+### Memory Storage Configuration
 
 ```python
-from crewai_rust.memory import RustMemoryStorage
+# Environment-based control
+import os
+os.environ['CREWAI_RUST_MEMORY'] = 'true'  # Force Rust
+os.environ['CREWAI_RUST_MEMORY'] = 'false' # Force Python
+os.environ['CREWAI_RUST_MEMORY'] = 'auto'  # Auto-detect (default)
 
-storage = RustMemoryStorage()
-storage.save("data", {"metadata": "value"})
-results = storage.search("data")
+# Programmatic control
+from crewai_rust import RustMemoryStorage
+storage = RustMemoryStorage(use_rust=True)
 ```
 
-### Tool Execution
+### Tool Execution Limits
 
 ```python
-from crewai_rust.tools import RustToolExecutor
+from crewai_rust import RustToolExecutor
 
-executor = RustToolExecutor(max_recursion_depth=100)
-result = executor.execute_tool("calculator", {"operation": "add", "operands": [1, 2]})
+# Configure recursion safety
+executor = RustToolExecutor(max_recursion_depth=1000)
+result = executor.execute_tool("my_tool", {"param": "value"})
 ```
 
-### Task Execution
+## Architecture
+
+CrewAI Rust works through intelligent monkey patching:
 
 ```python
-from crewai_rust.tasks import RustTaskExecutor
+# Before: Standard CrewAI
+from crewai.memory import RAGStorage          # Python implementation
+from crewai.tools import CrewStructuredTool   # Python implementation
 
-executor = RustTaskExecutor()
-tasks = ["task1", "task2", "task3"]
-results = executor.execute_concurrent_tasks(tasks)
+# After: crewai_rust.shim import
+from crewai.memory import RAGStorage          # ➜ RustMemoryStorage
+from crewai.tools import CrewStructuredTool   # ➜ RustToolExecutor
 ```
 
-### Serialization
+**Replaced Components:**
+- `RAGStorage` → `RustMemoryStorage`
+- `ShortTermMemory` → `RustMemoryStorage`
+- `LongTermMemory` → `RustMemoryStorage`
+- `CrewStructuredTool` → `RustToolExecutor`
+- `Task` → `RustTaskExecutor`
+- `LTMSQLiteStorage` → `RustSQLiteWrapper`
+
+## Benchmarks
+
+Run performance comparisons:
 
 ```python
-from crewai_rust.serialization import AgentMessage, RustSerializer
+from crewai_rust.benchmark import run_benchmarks
 
-# Single message
-message = AgentMessage("1", "sender", "recipient", "content", 1234567890)
-json_str = message.to_json()
-message2 = AgentMessage.from_json(json_str)
-
-# Batch serialization
-serializer = RustSerializer()
-messages = [{"id": "1", "sender": "agent1", "content": "Hello"}]
-json_strings = serializer.serialize_batch(messages)
+# Compare Python vs Rust implementations
+results = run_benchmarks()
+print(f"Memory operations: {results['memory_speedup']:.1f}x faster")
+print(f"Tool execution: {results['tool_speedup']:.1f}x faster")
 ```
 
-### Database Operations
+## Reliability
+
+- **Automatic Fallback**: Falls back to Python implementations if Rust is unavailable
+- **Zero Breaking Changes**: 100% API compatibility with existing CrewAI code
+- **Production Ready**: Comprehensive error handling and logging
+- **Memory Safe**: All Rust code is memory-safe by design
+
+## Debugging
+
+Check acceleration status:
 
 ```python
-from crewai_rust.database import RustSQLiteWrapper
+from crewai_rust import get_rust_status, is_rust_available
 
-db = RustSQLiteWrapper("database.db", pool_size=10)
-db.save_memory("task description", {"key": "value"}, "2023-01-01", 0.95)
-results = db.load_memories("task description", latest_n=5)
+print(f"Rust available: {is_rust_available()}")
+print(f"Status: {get_rust_status()}")
+
+# Enable detailed logging
+import crewai_rust.shim
+crewai_rust.shim.enable_rust_acceleration(verbose=True)
 ```
 
-## Development
+## Documentation
 
-### Building from Source
+- **[Quick Start Guide](docs/QUICKSTART.md)** - Get up and running in 5 minutes
+- **[Installation Guide](docs/INSTALLATION.md)** - Detailed setup instructions
+- **[Performance Guide](docs/PERFORMANCE.md)** - Benchmarks and optimization tips
+- **[Migration Guide](docs/MIGRATION.md)** - Migrating from standard CrewAI
+- **[API Reference](docs/COMPATIBILITY.md)** - Complete API compatibility reference
+- **[Architecture](docs/ARCHITECTURE.md)** - Technical implementation details
+
+## Contributing
+
+We welcome contributions! See our [Development Guide](docs/DEVELOPMENT.md) for:
+
+- Building from source
+- Running tests
+- Development setup
+- Contributing guidelines
+
+## Testing
 
 ```bash
-# Install maturin
-pip install maturin
-
-# Build in development mode
-maturin develop
-
-# Or build wheels
-maturin build --release
-```
-
-### Running Tests
-
-```bash
-# Run Python tests
+# Run all tests
 python -m pytest
 
-# Run Rust tests
-cargo test
+# Run fast tests only
+./scripts/run_tests.sh fast
 
-# Run compatibility tests
-python -m crewai_rust.run_compatibility_tests
+# Run with coverage
+./scripts/run_tests.sh coverage
 ```
 
-## Performance Improvements
+## License
 
-| Component | Improvement | Description |
-|-----------|-------------|-------------|
-| Memory Storage | 10-20x | SIMD-accelerated vector operations |
-| Tool Execution | 2-5x | Stack safety and zero-cost error handling |
-| Task Execution | 3-5x | True concurrency with work-stealing scheduler |
-| Serialization | 5-10x | Zero-copy optimizations |
-| Database Operations | 3-5x | Connection pooling and prepared statements |
+MIT License - see [LICENSE](LICENSE) for details.
 
-## Compatibility
+## Support
 
-- Full backward compatibility with existing CrewAI code
-- Automatic fallback to Python implementations when Rust is not available
-- No changes required to existing codebases
-- Maintains all existing APIs and interfaces
+- **Issues**: [GitHub Issues](https://github.com/crewAI/crewai-rust/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/crewAI/crewai-rust/discussions)
+- **Discord**: [CrewAI Community](https://discord.gg/crewai)

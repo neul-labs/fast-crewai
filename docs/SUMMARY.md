@@ -58,12 +58,12 @@ result = crew.kickoff()  # Gets 2-10x performance improvements automatically
 - **Compatibility Report Generator**: Automated analysis with scoring
 
 ### Key Compatibility Guarantees
-✅ **Zero Breaking Changes**: Existing code works unchanged
-✅ **Identical APIs**: All components have matching interfaces
-✅ **Functional Equivalence**: Rust and Python produce identical results
-✅ **Error Handling Consistency**: Same exception types and messages
-✅ **Environment Configuration**: Selective component enablement
-✅ **Graceful Fallback**: Automatic Python fallback when Rust unavailable
+- **Zero Breaking Changes**: Existing code works unchanged
+- **Identical APIs**: All components have matching interfaces
+- **Functional Equivalence**: Rust and Python produce identical results
+- **Error Handling Consistency**: Same exception types and messages
+- **Environment Configuration**: Selective component enablement
+- **Graceful Fallback**: Automatic Python fallback when Rust unavailable
 
 ## Deployment Options
 

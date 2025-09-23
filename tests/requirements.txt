@@ -1,0 +1,24 @@
+# Test dependencies for CrewAI Rust
+
+# Core testing framework
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+pytest-timeout>=2.1.0
+
+# Performance testing
+pytest-benchmark>=4.0.0
+
+# Parallel testing (optional)
+pytest-xdist>=3.0.0
+
+# Test reporting
+pytest-html>=3.1.0
+
+# CrewAI (for integration tests)
+# Note: This should be installed separately as it's optional
+# crewai>=0.28.0
+
+# Additional testing utilities
+coverage>=7.0.0
+mock>=4.0.0

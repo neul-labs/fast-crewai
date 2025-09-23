@@ -57,7 +57,7 @@ def _patch_memory_components():
     try:
         from crewai_rust.memory import RustMemoryStorage
         
-        # Patch main memory storage components
+        # Patch main memory storage components with correct module paths
         memory_patches = [
             ('crewai.memory.storage.rag_storage', 'RAGStorage', RustMemoryStorage),
             ('crewai.memory.short_term.short_term_memory', 'ShortTermMemory', RustMemoryStorage),
@@ -138,10 +138,10 @@ def _patch_database_components():
     try:
         from crewai_rust.database import RustSQLiteWrapper
         
-        # Patch database components
+        # Patch database components with correct class names
         database_patches = [
             ('crewai.memory.storage.ltm_sqlite_storage', 'LTMSQLiteStorage', RustSQLiteWrapper),
-            ('crewai.memory.storage.kickoff_task_outputs_storage', 'KickoffTaskOutputsStorage', RustSQLiteWrapper),
+            ('crewai.memory.storage.kickoff_task_outputs_storage', 'KickoffTaskOutputsSQLiteStorage', RustSQLiteWrapper),
         ]
         
         for module_path, class_name, new_class in database_patches:

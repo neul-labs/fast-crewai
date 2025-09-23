@@ -14,8 +14,8 @@ fi
 echo "Building in development mode..."
 maturin develop
 
-# Run a simple test
-echo "Running basic import test..."
-python test_package.py
+# Run tests
+echo "Running test suite..."
+python -m pytest tests/test_package_import.py -v
 
 echo "Build and test completed!"
