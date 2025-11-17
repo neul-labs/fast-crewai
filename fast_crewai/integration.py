@@ -6,14 +6,14 @@ components and the new Rust implementations.
 """
 
 from typing import Any, Dict, List, Optional
-from .memory import RustMemoryStorage
-from .tools import RustToolExecutor
-from .tasks import RustTaskExecutor
+from .memory import AcceleratedMemoryStorage
+from .tools import AcceleratedToolExecutor
+from .tasks import AcceleratedTaskExecutor
 from .serialization import AgentMessage, RustSerializer
-from .database import RustSQLiteWrapper
+from .database import AcceleratedSQLiteWrapper
 
 
-class RustMemoryIntegration:
+class AcceleratedMemoryIntegration:
     """
     Integration layer for CrewAI memory components with Rust backend.
     
@@ -42,7 +42,7 @@ class RustMemoryIntegration:
         """
         # Try to create Rust-enhanced memory
         try:
-            rust_memory = RustMemoryStorage()
+            rust_memory = AcceleratedMemoryStorage()
             return RustEnhancedMemoryProxy(rust_memory, crew, embedder_config, storage, path)
         except Exception as e:
             # Fallback to original implementation
@@ -72,7 +72,7 @@ class RustMemoryIntegration:
         try:
             # For long-term memory, we'd typically use the database wrapper
             if path:
-                rust_db = RustSQLiteWrapper(path)
+                rust_db = AcceleratedSQLiteWrapper(path)
                 return RustEnhancedLongTermMemoryProxy(rust_db, crew, embedder_config, storage, path)
         except Exception as e:
             pass
@@ -89,7 +89,7 @@ class RustEnhancedMemoryProxy:
     
     def __init__(
         self, 
-        rust_memory: RustMemoryStorage,
+        rust_memory: AcceleratedMemoryStorage,
         crew: Any = None,
         embedder_config: Optional[Dict[str, Any]] = None,
         storage: Any = None,
@@ -161,7 +161,7 @@ class RustEnhancedLongTermMemoryProxy:
     
     def __init__(
         self, 
-        rust_db: RustSQLiteWrapper,
+        rust_db: AcceleratedSQLiteWrapper,
         crew: Any = None,
         embedder_config: Optional[Dict[str, Any]] = None,
         storage: Any = None,
@@ -218,7 +218,7 @@ class RustEnhancedLongTermMemoryProxy:
             self.original_memory.reset()
 
 
-class RustToolIntegration:
+class AcceleratedToolIntegration:
     """
     Integration layer for CrewAI tool components with Rust backend.
     """
@@ -235,7 +235,7 @@ class RustToolIntegration:
             Tool executor instance (Rust-enhanced when available)
         """
         try:
-            rust_executor = RustToolExecutor(max_recursion_depth=max_iterations)
+            rust_executor = AcceleratedToolExecutor(max_recursion_depth=max_iterations)
             return rust_executor
         except Exception as e:
             # Return a compatible Python implementation
@@ -270,7 +270,7 @@ class PythonToolExecutor:
             self.iteration_count -= 1
 
 
-class RustTaskIntegration:
+class AcceleratedTaskIntegration:
     """
     Integration layer for CrewAI task components with Rust backend.
     """
@@ -284,7 +284,7 @@ class RustTaskIntegration:
             Task executor instance (Rust-enhanced when available)
         """
         try:
-            rust_executor = RustTaskExecutor()
+            rust_executor = AcceleratedTaskExecutor()
             return rust_executor
         except Exception as e:
             # Return a compatible Python implementation

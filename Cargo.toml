@@ -1,10 +1,10 @@
 [package]
-name = "crewai-accelerate"
+name = "fast-crewai"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "crewai_accelerate"
+name = "fast_crewai"
 crate-type = ["cdylib"]
 
 [dependencies]

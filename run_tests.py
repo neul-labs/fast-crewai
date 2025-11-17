@@ -91,7 +91,7 @@ def main():
         "unit": "pytest tests/test_package_import.py tests/test_memory.py tests/test_tools.py tests/test_tasks.py tests/test_shim.py -v",
         "integration": "pytest tests/test_integration.py -v",
         "performance": "pytest -m performance -v",
-        "coverage": "pytest --cov=crewai_accelerate --cov-report=html --cov-report=term",
+        "coverage": "pytest --cov=fast_crewai --cov-report=html --cov-report=term",
         "memory": "pytest tests/test_memory.py -v",
         "tools": "pytest tests/test_tools.py -v",
         "tasks": "pytest tests/test_tasks.py -v",

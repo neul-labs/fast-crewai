@@ -10,11 +10,11 @@ import json
 import random
 import string
 from typing import Any, Dict, List
-from .memory import RustMemoryStorage
-from .tools import RustToolExecutor
-from .tasks import RustTaskExecutor
+from .memory import AcceleratedMemoryStorage
+from .tools import AcceleratedToolExecutor
+from .tasks import AcceleratedTaskExecutor
 from .serialization import AgentMessage, RustSerializer
-from .database import RustSQLiteWrapper
+from .database import AcceleratedSQLiteWrapper
 
 
 class PerformanceBenchmark:
@@ -110,7 +110,7 @@ class PerformanceBenchmark:
         """Benchmark Rust memory implementation."""
         try:
             # Initialize Rust memory storage
-            rust_storage = RustMemoryStorage(use_rust=True)
+            rust_storage = AcceleratedMemoryStorage(use_rust=True)
             
             # Benchmark save operations
             start_time = time.time()
@@ -197,7 +197,7 @@ class PerformanceBenchmark:
         """Benchmark Rust tool execution."""
         try:
             # Initialize Rust tool executor
-            rust_executor = RustToolExecutor(use_rust=True, max_recursion_depth=self.iterations)
+            rust_executor = AcceleratedToolExecutor(use_rust=True, max_recursion_depth=self.iterations)
             
             start_time = time.time()
             for tool_name, args in test_tools:
@@ -447,7 +447,7 @@ class PerformanceBenchmark:
         """Benchmark Rust database operations."""
         try:
             # Initialize Rust database wrapper
-            rust_db = RustSQLiteWrapper(db_path, use_rust=True)
+            rust_db = AcceleratedSQLiteWrapper(db_path, use_rust=True)
             
             # Benchmark insert operations
             start_time = time.time()

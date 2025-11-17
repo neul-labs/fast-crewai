@@ -15,7 +15,7 @@ Contributing to CrewAI Rust - setup, building, testing, and contribution guideli
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/crewAI/crewai-rust.git
+git clone https://github.com/neul-labs/fast-crewai.git
 cd crewai-rust
 
 # 2. Install Rust (if not already installed)
@@ -34,7 +34,7 @@ pip install maturin
 maturin develop
 
 # 6. Verify installation
-python -c "import crewai_rust; print('Development setup complete')"
+python -c "import fast_crewai; print('Development setup complete')"
 ```
 
 ### IDE Setup
@@ -60,24 +60,27 @@ python -c "import crewai_rust; print('Development setup complete')"
 ## Project Structure
 
 ```
-crewai-rust/
+fast-crewai/
 ├── src/                    # Rust source code
-│   ├── lib.rs             # Main Rust library
-│   ├── memory.rs          # Memory components
-│   ├── tools.rs           # Tool execution
-│   └── tasks.rs           # Task execution
-├── crewai_rust/           # Python package
+│   └── lib.rs             # Main Rust library
+├── fast_crewai/           # Python package
 │   ├── __init__.py        # Package initialization
 │   ├── shim.py            # Monkey patching system
 │   ├── memory.py          # Python memory wrapper
 │   ├── tools.py           # Python tool wrapper
-│   └── tasks.py           # Python task wrapper
+│   ├── tasks.py           # Python task wrapper
+│   ├── serialization.py   # Serialization utilities
+│   ├── database.py        # Database wrappers
+│   └── utils.py           # Utility functions
 ├── tests/                 # Test suite
 │   ├── test_memory.py     # Memory tests
 │   ├── test_tools.py      # Tool tests
+│   ├── test_tasks.py      # Task tests
 │   └── test_integration.py # Integration tests
+├── test_integration.py    # Standalone integration example
+├── test_all_patches.py    # Patch validation test
 ├── docs/                  # Documentation
-├── examples/              # Usage examples
+├── scripts/               # Build and test scripts
 ├── Cargo.toml            # Rust dependencies
 ├── pyproject.toml        # Python project config
 └── README.md
@@ -144,7 +147,7 @@ python -m pytest -v
 python -m pytest tests/test_memory.py
 
 # Run with coverage
-python -m pytest --cov=crewai_rust
+python -m pytest --cov=fast_crewai
 
 # Run Rust tests
 cargo test
@@ -157,7 +160,7 @@ cargo test
 **Python Unit Tests** (`tests/test_memory.py`):
 ```python
 import pytest
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 def test_memory_save_and_search():
     storage = RustMemoryStorage()
@@ -188,7 +191,7 @@ mod tests {
 **CrewAI Integration** (`tests/test_integration.py`):
 ```python
 def test_crewai_integration():
-    import crewai_rust.shim
+    import fast_crewai.shim
     from crewai import Agent, Task, Crew
 
     agent = Agent(role="Tester", goal="Test", backstory="Testing")
@@ -205,7 +208,7 @@ def test_crewai_integration():
 ```python
 import time
 import pytest
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 @pytest.mark.performance
 def test_memory_performance():
@@ -230,7 +233,7 @@ def test_memory_performance():
 ```python
 def test_api_compatibility():
     """Ensure Rust components maintain CrewAI API compatibility."""
-    from crewai_rust import RustMemoryStorage
+    from fast_crewai import RustMemoryStorage
     from crewai.memory.storage.rag_storage import RAGStorage
 
     # Test same interface
@@ -255,7 +258,7 @@ def test_api_compatibility():
 
 2. **Make Changes**
    - Edit Rust code in `src/`
-   - Edit Python wrappers in `crewai_rust/`
+   - Edit Python wrappers in `fast_crewai/`
    - Add tests for new functionality
 
 3. **Build and Test**
@@ -271,8 +274,8 @@ def test_api_compatibility():
    cargo fmt
 
    # Format Python code
-   black crewai_rust/ tests/
-   isort crewai_rust/ tests/
+   black fast_crewai/ tests/
+   isort fast_crewai/ tests/
    ```
 
 5. **Run Linting**
@@ -281,8 +284,8 @@ def test_api_compatibility():
    cargo clippy
 
    # Python linting
-   flake8 crewai_rust/ tests/
-   mypy crewai_rust/
+   flake8 fast_crewai/ tests/
+   mypy fast_crewai/
    ```
 
 ### Debugging
@@ -294,8 +297,8 @@ def test_api_compatibility():
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-import crewai_rust.shim
-crewai_rust.shim.enable_rust_acceleration(verbose=True)
+import fast_crewai.shim
+fast_crewai.shim.enable_rust_acceleration(verbose=True)
 ```
 
 #### Rust Debugging
@@ -449,7 +452,7 @@ def save(self, value: Any, metadata: Optional[Dict[str, Any]] = None) -> None:
 
    # No linting errors
    cargo clippy
-   flake8 crewai_rust/
+   flake8 fast_crewai/
    ```
 
 5. **Commit with Good Messages**
@@ -496,7 +499,7 @@ def save(self, value: Any, metadata: Optional[Dict[str, Any]] = None) -> None:
    maturin build --release
 
    # Test release build
-   pip install target/wheels/crewai_rust-*.whl
+   pip install target/wheels/fast_crewai-*.whl
    python -m pytest
    ```
 

@@ -7,20 +7,20 @@ for working with the Rust components.
 
 import os
 from typing import Optional
-from . import HAS_RUST_IMPLEMENTATION
+from ._constants import HAS_ACCELERATION_IMPLEMENTATION
 
 
-def is_rust_available() -> bool:
+def is_acceleration_available() -> bool:
     """
     Check if the Rust implementation is available.
     
     Returns:
         True if Rust components are available, False otherwise
     """
-    return HAS_RUST_IMPLEMENTATION
+    return HAS_ACCELERATION_IMPLEMENTATION
 
 
-def get_rust_status() -> dict:
+def get_acceleration_status() -> dict:
     """
     Get detailed status information about Rust components.
     
@@ -28,18 +28,18 @@ def get_rust_status() -> dict:
         Dictionary with status information for each component
     """
     status = {
-        'available': HAS_RUST_IMPLEMENTATION,
+        'available': HAS_ACCELERATION_IMPLEMENTATION,
         'components': {}
     }
     
-    if HAS_RUST_IMPLEMENTATION:
+    if HAS_ACCELERATION_IMPLEMENTATION:
         try:
             from ._core import (
-                RustMemoryStorage,
-                RustToolExecutor,
-                RustTaskExecutor,
+                AcceleratedMemoryStorage,
+                AcceleratedToolExecutor,
+                AcceleratedTaskExecutor,
                 AgentMessage,
-                RustSQLiteWrapper
+                AcceleratedSQLiteWrapper
             )
             status['components'] = {
                 'memory': True,
@@ -60,19 +60,19 @@ def get_rust_status() -> dict:
             
             # This is a simplified check - in practice, you'd want more detailed checking
             try:
-                from ._core import RustMemoryStorage
+                from ._core import AcceleratedMemoryStorage
                 status['components']['memory'] = True
             except ImportError:
                 pass
                 
             try:
-                from ._core import RustToolExecutor
+                from ._core import AcceleratedToolExecutor
                 status['components']['tools'] = True
             except ImportError:
                 pass
                 
             try:
-                from ._core import RustTaskExecutor
+                from ._core import AcceleratedTaskExecutor
                 status['components']['tasks'] = True
             except ImportError:
                 pass
@@ -84,7 +84,7 @@ def get_rust_status() -> dict:
                 pass
                 
             try:
-                from ._core import RustSQLiteWrapper
+                from ._core import AcceleratedSQLiteWrapper
                 status['components']['database'] = True
             except ImportError:
                 pass
@@ -92,7 +92,7 @@ def get_rust_status() -> dict:
     return status
 
 
-def configure_rust_components(
+def configure_accelerated_components(
     memory: Optional[bool] = None,
     tools: Optional[bool] = None,
     tasks: Optional[bool] = None,
@@ -110,19 +110,19 @@ def configure_rust_components(
         database: Whether to use Rust database operations
     """
     if memory is not None:
-        os.environ['CREWAI_RUST_MEMORY'] = 'true' if memory else 'false'
+        os.environ['FAST_CREWAI_MEMORY'] = 'true' if memory else 'false'
     
     if tools is not None:
-        os.environ['CREWAI_RUST_TOOLS'] = 'true' if tools else 'false'
+        os.environ['FAST_CREWAI_TOOLS'] = 'true' if tools else 'false'
     
     if tasks is not None:
-        os.environ['CREWAI_RUST_TASKS'] = 'true' if tasks else 'false'
+        os.environ['FAST_CREWAI_TASKS'] = 'true' if tasks else 'false'
     
     if serialization is not None:
-        os.environ['CREWAI_RUST_SERIALIZATION'] = 'true' if serialization else 'false'
+        os.environ['FAST_CREWAI_SERIALIZATION'] = 'true' if serialization else 'false'
     
     if database is not None:
-        os.environ['CREWAI_RUST_DATABASE'] = 'true' if database else 'false'
+        os.environ['FAST_CREWAI_DATABASE'] = 'true' if database else 'false'
 
 
 def get_performance_improvements() -> dict:
@@ -225,10 +225,10 @@ def get_environment_info() -> dict:
         Dictionary with environment configuration information
     """
     return {
-        'CREWAI_RUST_MEMORY': os.getenv('CREWAI_RUST_MEMORY', 'auto'),
-        'CREWAI_RUST_TOOLS': os.getenv('CREWAI_RUST_TOOLS', 'auto'),
-        'CREWAI_RUST_TASKS': os.getenv('CREWAI_RUST_TASKS', 'auto'),
-        'CREWAI_RUST_SERIALIZATION': os.getenv('CREWAI_RUST_SERIALIZATION', 'auto'),
-        'CREWAI_RUST_DATABASE': os.getenv('CREWAI_RUST_DATABASE', 'auto'),
-        'rust_available': HAS_RUST_IMPLEMENTATION
+        'FAST_CREWAI_MEMORY': os.getenv('FAST_CREWAI_MEMORY', 'auto'),
+        'FAST_CREWAI_TOOLS': os.getenv('FAST_CREWAI_TOOLS', 'auto'),
+        'FAST_CREWAI_TASKS': os.getenv('FAST_CREWAI_TASKS', 'auto'),
+        'FAST_CREWAI_SERIALIZATION': os.getenv('FAST_CREWAI_SERIALIZATION', 'auto'),
+        'FAST_CREWAI_DATABASE': os.getenv('FAST_CREWAI_DATABASE', 'auto'),
+        'rust_available': HAS_ACCELERATION_IMPLEMENTATION
     }

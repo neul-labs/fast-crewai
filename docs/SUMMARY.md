@@ -74,23 +74,23 @@ Simply install the package and enable acceleration:
 
 ```bash
 pip install crewai-rust
-import crewai_rust.shim  # Enable automatic acceleration
+import fast_crewai.shim  # Enable automatic acceleration
 ```
 
 ### 2. Selective Enablement
 Control which components use Rust:
 
 ```bash
-export CREWAI_RUST_MEMORY=true
-export CREWAI_RUST_TOOLS=true
-export CREWAI_RUST_TASKS=false  # Keep on Python for debugging
+export FAST_CREWAI_MEMORY=true
+export FAST_CREWAI_TOOLS=true
+export FAST_CREWAI_TASKS=false  # Keep on Python for debugging
 ```
 
 ### 3. Programmatic Configuration
 Configure at runtime:
 
 ```python
-from crewai_rust.utils import configure_rust_components
+from fast_crewai.utils import configure_rust_components
 
 configure_rust_components(
     memory=True,      # Enable Rust memory

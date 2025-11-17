@@ -23,7 +23,7 @@ result = crew.kickoff()
 
 **After:**
 ```python
-import crewai_rust.shim  # Add this one line
+import fast_crewai.shim  # Add this one line
 
 from crewai import Agent, Task, Crew
 
@@ -40,7 +40,7 @@ Set once in your deployment environment:
 
 ```bash
 # In your .env file or deployment config
-CREWAI_RUST_ACCELERATION=1
+FAST_CREWAI_ACCELERATION=1
 
 # No code changes needed
 python your_existing_script.py
@@ -52,7 +52,7 @@ Migrate specific components for fine-grained control:
 
 ```python
 from crewai import Agent, Task, Crew
-from crewai_rust import RustMemoryStorage, RustToolExecutor
+from fast_crewai import RustMemoryStorage, RustToolExecutor
 
 # Option A: Replace memory storage
 crew = Crew(
@@ -62,7 +62,7 @@ crew = Crew(
 )
 
 # Option B: Replace tool executor (if using custom tools)
-from crewai_rust.tools import RustToolExecutor
+from fast_crewai.tools import RustToolExecutor
 executor = RustToolExecutor(max_recursion_depth=1000)
 
 # Option C: Mixed approach - accelerate bottlenecks
@@ -103,7 +103,7 @@ results = storage.search("query", limit=10)  # Slow similarity search
 **Solution:** Zero-code acceleration
 
 ```python
-import crewai_rust.shim  # Automatic acceleration
+import fast_crewai.shim  # Automatic acceleration
 
 from crewai.memory import Memory
 from crewai.memory.storage import RAGStorage
@@ -134,7 +134,7 @@ def complex_calculation(data: str) -> str:
 **Solution:** Automatic tool acceleration
 
 ```python
-import crewai_rust.shim  # Accelerates tool execution
+import fast_crewai.shim  # Accelerates tool execution
 
 from crewai.tools import tool
 
@@ -162,7 +162,7 @@ result = crew.kickoff()  # Slow for independent tasks
 **Solution:** Enhanced concurrency
 
 ```python
-import crewai_rust.shim  # Enables true async execution
+import fast_crewai.shim  # Enables true async execution
 
 from crewai import Crew
 
@@ -181,18 +181,18 @@ result = crew.kickoff()  # 3-5x faster with better concurrency
 ```python
 # Enable Rust for specific components only
 import os
-os.environ['CREWAI_RUST_MEMORY'] = 'true'
-os.environ['CREWAI_RUST_TOOLS'] = 'false'  # Keep Python tools during testing
-os.environ['CREWAI_RUST_TASKS'] = 'true'
+os.environ['FAST_CREWAI_MEMORY'] = 'true'
+os.environ['FAST_CREWAI_TOOLS'] = 'false'  # Keep Python tools during testing
+os.environ['FAST_CREWAI_TASKS'] = 'true'
 
-import crewai_rust.shim
+import fast_crewai.shim
 ```
 
 ### Fallback Configuration
 
 ```python
 # Automatic fallback if Rust fails
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 storage = RustMemoryStorage(use_rust=None)  # Auto-detect
 print(f"Using: {storage.implementation}")  # "rust" or "python"
@@ -203,7 +203,7 @@ print(f"Using: {storage.implementation}")  # "rust" or "python"
 ```python
 # Track performance improvements
 import time
-from crewai_rust import get_performance_metrics
+from fast_crewai import get_performance_metrics
 
 # Before migration
 start = time.time()
@@ -229,7 +229,7 @@ print(f"Memory ops/sec: {metrics['memory_ops_per_sec']}")
 
 ```python
 # Test that results remain consistent
-import crewai_rust.shim
+import fast_crewai.shim
 from crewai import Agent, Task, Crew
 
 def test_migration_compatibility():
@@ -251,7 +251,7 @@ test_migration_compatibility()
 
 ```python
 # Benchmark your specific workflow
-from crewai_rust.benchmark import benchmark_workflow
+from fast_crewai.benchmark import benchmark_workflow
 
 def your_workflow():
     # Your specific CrewAI workflow
@@ -271,7 +271,7 @@ print(f"Memory improvement: {results['memory_speedup']:.1f}x")
 
 ```python
 # Check if Rust acceleration is available
-from crewai_rust import is_rust_available, get_rust_status
+from fast_crewai import is_rust_available, get_rust_status
 
 if not is_rust_available():
     print("Rust not available - using Python fallback")
@@ -284,7 +284,7 @@ else:
 
 ```python
 # Verify which implementation is being used
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 storage = RustMemoryStorage()
 if storage.implementation != "rust":
@@ -296,8 +296,8 @@ if storage.implementation != "rust":
 
 ```python
 # Enable verbose logging to track what's happening
-import crewai_rust.shim
-crewai_rust.shim.enable_rust_acceleration(verbose=True)
+import fast_crewai.shim
+fast_crewai.shim.enable_rust_acceleration(verbose=True)
 
 # This will show which components are being replaced
 ```
@@ -309,13 +309,13 @@ If you encounter issues, easily rollback:
 ```python
 # Disable Rust acceleration
 import os
-os.environ['CREWAI_RUST_ACCELERATION'] = '0'
+os.environ['FAST_CREWAI_ACCELERATION'] = '0'
 
 # Or remove the shim import
-# import crewai_rust.shim  # Comment out this line
+# import fast_crewai.shim  # Comment out this line
 
 # Or disable specific components
-from crewai_rust.shim import disable_rust_acceleration
+from fast_crewai.shim import disable_rust_acceleration
 disable_rust_acceleration()
 ```
 
@@ -325,7 +325,7 @@ disable_rust_acceleration()
 
 - [ ] Backup your current working code
 - [ ] Install CrewAI Rust: `pip install crewai-rust`
-- [ ] Test installation: `python -c "import crewai_rust; print('OK')"`
+- [ ] Test installation: `python -c "import fast_crewai; print('OK')"`
 - [ ] Review current performance baseline
 
 ### During Migration
@@ -350,7 +350,7 @@ disable_rust_acceleration()
 Always begin with the shim import for maximum compatibility:
 
 ```python
-import crewai_rust.shim  # Safest migration path
+import fast_crewai.shim  # Safest migration path
 ```
 
 ### 2. Test Incrementally
@@ -358,15 +358,15 @@ import crewai_rust.shim  # Safest migration path
 ```python
 # Test one component at a time in development
 import os
-os.environ['CREWAI_RUST_MEMORY'] = 'true'  # Start with memory
-os.environ['CREWAI_RUST_TOOLS'] = 'false'  # Add tools later
+os.environ['FAST_CREWAI_MEMORY'] = 'true'  # Start with memory
+os.environ['FAST_CREWAI_TOOLS'] = 'false'  # Add tools later
 ```
 
 ### 3. Monitor Performance
 
 ```python
 # Track improvements over time
-from crewai_rust import get_performance_improvements
+from fast_crewai import get_performance_improvements
 improvements = get_performance_improvements()
 print(f"Memory: {improvements['memory']}x faster")
 ```
@@ -378,7 +378,7 @@ print(f"Memory: {improvements['memory']}x faster")
 USE_RUST_ACCELERATION = os.environ.get('USE_RUST', 'true') == 'true'
 
 if USE_RUST_ACCELERATION:
-    import crewai_rust.shim
+    import fast_crewai.shim
 ```
 
 ## Next Steps

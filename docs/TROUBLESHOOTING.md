@@ -62,7 +62,7 @@ sudo apt install build-essential python3-dev
 
 **Check implementation:**
 ```python
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 storage = RustMemoryStorage()
 print(f"Implementation: {storage.implementation}")
 
@@ -72,8 +72,8 @@ if storage.implementation != "rust":
 
 **Enable verbose logging:**
 ```python
-import crewai_rust.shim
-crewai_rust.shim.enable_rust_acceleration(verbose=True)
+import fast_crewai.shim
+fast_crewai.shim.enable_rust_acceleration(verbose=True)
 ```
 
 ### Memory Issues
@@ -142,21 +142,21 @@ print(f"Thread limit: {threading.active_count()}")
 
 **Check environment:**
 ```python
-from crewai_rust.utils import get_environment_info
+from fast_crewai.utils import get_environment_info
 print(get_environment_info())
 ```
 
 **Set variables correctly:**
 ```bash
 # Correct format
-export CREWAI_RUST_MEMORY=true
-export CREWAI_RUST_TOOLS=true
-export CREWAI_RUST_ACCELERATION=1
+export FAST_CREWAI_MEMORY=true
+export FAST_CREWAI_TOOLS=true
+export FAST_CREWAI_ACCELERATION=1
 ```
 
 **Programmatic configuration:**
 ```python
-from crewai_rust.utils import configure_rust_components
+from fast_crewai.utils import configure_rust_components
 configure_rust_components(memory=True, tools=True, tasks=False)
 ```
 
@@ -165,15 +165,15 @@ configure_rust_components(memory=True, tools=True, tasks=False)
 **Automatic shimming not working:**
 ```python
 # Check if shimming is enabled
-import crewai_rust.shim
-result = crewai_rust.shim.enable_rust_acceleration(verbose=True)
+import fast_crewai.shim
+result = fast_crewai.shim.enable_rust_acceleration(verbose=True)
 print(f"Shimming enabled: {result}")
 ```
 
 **Manual shimming:**
 ```python
 # Import shim before other imports
-import crewai_rust.shim
+import fast_crewai.shim
 from crewai import Agent, Task, Crew
 ```
 
@@ -186,14 +186,14 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 # Enable verbose Rust acceleration
-import crewai_rust.shim
-crewai_rust.shim.enable_rust_acceleration(verbose=True)
+import fast_crewai.shim
+fast_crewai.shim.enable_rust_acceleration(verbose=True)
 ```
 
 ### Check Component Status
 
 ```python
-from crewai_rust.utils import get_rust_status, is_rust_available
+from fast_crewai.utils import get_rust_status, is_rust_available
 
 print(f"Rust available: {is_rust_available()}")
 print(f"Status: {get_rust_status()}")
@@ -203,7 +203,7 @@ print(f"Status: {get_rust_status()}")
 
 ```python
 import time
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 # Time individual operations
 storage = RustMemoryStorage()
@@ -304,13 +304,13 @@ When reporting issues, include:
 
 1. **Environment information:**
 ```python
-from crewai_rust.utils import get_environment_info
+from fast_crewai.utils import get_environment_info
 print(get_environment_info())
 ```
 
 2. **Rust status:**
 ```python
-from crewai_rust.utils import get_rust_status
+from fast_crewai.utils import get_rust_status
 print(get_rust_status())
 ```
 
@@ -332,8 +332,8 @@ pip list | grep crew
 
 ### Community Resources
 
-- **GitHub Issues**: [Report bugs and request features](https://github.com/crewAI/crewai-rust/issues)
-- **GitHub Discussions**: [Ask questions and share solutions](https://github.com/crewAI/crewai-rust/discussions)
+- **GitHub Issues**: [Report bugs and request features](https://github.com/neul-labs/fast-crewai/issues)
+- **GitHub Discussions**: [Ask questions and share solutions](https://github.com/neul-labs/fast-crewai/discussions)
 - **Discord**: [CrewAI Community](https://discord.gg/crewai)
 
 ## Best Practices
@@ -341,7 +341,7 @@ pip list | grep crew
 ### Error Handling
 
 ```python
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 try:
     storage = RustMemoryStorage()
@@ -364,7 +364,7 @@ with RustSQLiteWrapper("db.db", pool_size=10) as db:
 
 ```python
 import time
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 def benchmark_operation():
     storage = RustMemoryStorage()

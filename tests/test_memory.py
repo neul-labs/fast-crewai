@@ -13,13 +13,13 @@ class TestAcceleratedMemoryStorage:
 
     def test_import_memory_storage(self):
         """Test that we can import AcceleratedMemoryStorage."""
-        from crewai_accelerate import AcceleratedMemoryStorage
+        from fast_crewai import AcceleratedMemoryStorage
         storage = AcceleratedMemoryStorage()
         assert storage is not None
 
     def test_memory_save_basic(self):
         """Test basic save functionality."""
-        from crewai_accelerate import AcceleratedMemoryStorage
+        from fast_crewai import AcceleratedMemoryStorage
 
         storage = AcceleratedMemoryStorage()
         storage.save("test data", {"key": "value"})
@@ -29,7 +29,7 @@ class TestAcceleratedMemoryStorage:
 
     def test_memory_search_basic(self):
         """Test basic search functionality."""
-        from crewai_accelerate import AcceleratedMemoryStorage
+        from fast_crewai import AcceleratedMemoryStorage
 
         storage = AcceleratedMemoryStorage()
         storage.save("test document about AI", {"topic": "AI"})
@@ -40,7 +40,7 @@ class TestAcceleratedMemoryStorage:
 
     def test_memory_implementation_detection(self):
         """Test that we can detect which implementation is being used."""
-        from crewai_accelerate import AcceleratedMemoryStorage
+        from fast_crewai import AcceleratedMemoryStorage
 
         storage = AcceleratedMemoryStorage()
         assert hasattr(storage, 'implementation')
@@ -48,7 +48,7 @@ class TestAcceleratedMemoryStorage:
 
     def test_memory_with_complex_metadata(self):
         """Test memory storage with complex metadata."""
-        from crewai_accelerate import AcceleratedMemoryStorage
+        from fast_crewai import AcceleratedMemoryStorage
 
         storage = AcceleratedMemoryStorage()
 
@@ -69,7 +69,7 @@ class TestAcceleratedMemoryStorage:
 
     def test_memory_performance_basic(self):
         """Basic performance test for memory operations."""
-        from crewai_accelerate import AcceleratedMemoryStorage
+        from fast_crewai import AcceleratedMemoryStorage
 
         storage = AcceleratedMemoryStorage()
 
@@ -93,7 +93,7 @@ class TestAcceleratedMemoryStorage:
 
     def test_memory_fallback_behavior(self):
         """Test fallback behavior when Rust is not available."""
-        from crewai_accelerate import AcceleratedMemoryStorage
+        from fast_crewai import AcceleratedMemoryStorage
 
         # Test with explicit Python fallback
         storage = AcceleratedMemoryStorage(use_rust=False)
@@ -112,7 +112,7 @@ class TestMemoryIntegration:
         """Test that CrewAI memory imports work after shimming."""
         try:
             # Import shim first
-            import crewai_accelerate.shim
+            import fast_crewai.shim
 
             # Then try to import CrewAI memory components
             from crewai.memory.storage.rag_storage import RAGStorage
@@ -128,7 +128,7 @@ class TestMemoryIntegration:
     def test_memory_component_replacement(self):
         """Test that memory components are properly replaced by shim."""
         try:
-            import crewai_accelerate.shim
+            import fast_crewai.shim
             from crewai.memory.storage.rag_storage import RAGStorage
 
             # Try to create storage - should use Rust implementation if available
@@ -149,7 +149,7 @@ class TestMemoryEdgeCases:
 
     def test_memory_empty_search(self):
         """Test search with empty storage."""
-        from crewai_accelerate import AcceleratedMemoryStorage
+        from fast_crewai import AcceleratedMemoryStorage
 
         storage = AcceleratedMemoryStorage()
         results = storage.search("nonexistent", limit=5)
@@ -158,7 +158,7 @@ class TestMemoryEdgeCases:
 
     def test_memory_large_document(self):
         """Test with large document content."""
-        from crewai_accelerate import AcceleratedMemoryStorage
+        from fast_crewai import AcceleratedMemoryStorage
 
         storage = AcceleratedMemoryStorage()
 
@@ -171,7 +171,7 @@ class TestMemoryEdgeCases:
 
     def test_memory_special_characters(self):
         """Test with special characters and unicode."""
-        from crewai_accelerate import AcceleratedMemoryStorage
+        from fast_crewai import AcceleratedMemoryStorage
 
         storage = AcceleratedMemoryStorage()
 
@@ -183,7 +183,7 @@ class TestMemoryEdgeCases:
 
     def test_memory_json_serialization(self):
         """Test that metadata can be properly serialized."""
-        from crewai_accelerate import AcceleratedMemoryStorage
+        from fast_crewai import AcceleratedMemoryStorage
 
         storage = AcceleratedMemoryStorage()
 

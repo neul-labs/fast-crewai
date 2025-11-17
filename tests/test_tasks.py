@@ -13,20 +13,20 @@ class TestRustTaskExecutor:
 
     def test_import_task_executor(self):
         """Test that we can import RustTaskExecutor."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
         executor = RustTaskExecutor()
         assert executor is not None
 
     def test_task_executor_creation(self):
         """Test creating task executor."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         executor = RustTaskExecutor()
         assert executor is not None
 
     def test_concurrent_task_execution_basic(self):
         """Test basic concurrent task execution."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         executor = RustTaskExecutor()
 
@@ -43,7 +43,7 @@ class TestRustTaskExecutor:
 
     def test_task_performance_basic(self):
         """Basic performance test for task execution."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         executor = RustTaskExecutor()
 
@@ -58,7 +58,7 @@ class TestRustTaskExecutor:
 
     def test_task_empty_list(self):
         """Test task execution with empty task list."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         executor = RustTaskExecutor()
 
@@ -72,7 +72,7 @@ class TestRustTaskExecutor:
 
     def test_task_single_item(self):
         """Test task execution with single task."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         executor = RustTaskExecutor()
 
@@ -92,7 +92,7 @@ class TestTaskIntegration:
         """Test that CrewAI task imports work after shimming."""
         try:
             # Import shim first
-            import crewai_rust.shim
+            import fast_crewai.shim
 
             # Then try to import CrewAI task components
             from crewai.task import Task
@@ -107,7 +107,7 @@ class TestTaskIntegration:
     def test_task_shimming_behavior(self):
         """Test that task components are properly shimmed."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai.task import Task
 
             # Should be able to use Task class
@@ -121,7 +121,7 @@ class TestTaskIntegration:
     def test_crew_integration(self):
         """Test integration with CrewAI Crew class."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai import Agent, Task, Crew
 
             # Create minimal crew for testing
@@ -152,7 +152,7 @@ class TestTaskConcurrency:
 
     def test_task_thread_safety(self):
         """Test that task executor is thread-safe."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         results = []
         errors = []
@@ -181,7 +181,7 @@ class TestTaskConcurrency:
 
     def test_task_large_list(self):
         """Test task execution with large task list."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         executor = RustTaskExecutor()
 
@@ -205,7 +205,7 @@ class TestTaskConcurrency:
 
     def test_task_concurrent_access(self):
         """Test concurrent access to the same executor."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         executor = RustTaskExecutor()
         results = []
@@ -240,7 +240,7 @@ class TestTaskPerformance:
 
     def test_task_executor_creation_performance(self):
         """Test performance of task executor creation."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         start_time = time.time()
 
@@ -258,7 +258,7 @@ class TestTaskPerformance:
 
     def test_task_list_processing_performance(self):
         """Test performance of task list processing."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         executor = RustTaskExecutor()
 
@@ -287,7 +287,7 @@ class TestTaskEdgeCases:
 
     def test_task_with_none_values(self):
         """Test task execution with None values."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         executor = RustTaskExecutor()
 
@@ -302,7 +302,7 @@ class TestTaskEdgeCases:
 
     def test_task_with_empty_strings(self):
         """Test task execution with empty strings."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         executor = RustTaskExecutor()
 
@@ -315,7 +315,7 @@ class TestTaskEdgeCases:
 
     def test_task_with_unicode_strings(self):
         """Test task execution with unicode task names."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         executor = RustTaskExecutor()
 

@@ -9,7 +9,7 @@ import unittest
 import tempfile
 import os
 import json
-from crewai_rust import (
+from fast_crewai import (
     HAS_RUST_IMPLEMENTATION,
     RustMemoryStorage,
     RustToolExecutor,
@@ -17,12 +17,12 @@ from crewai_rust import (
     AgentMessage,
     RustSQLiteWrapper
 )
-from crewai_rust.memory import RustMemoryStorage as MemoryStorage
-from crewai_rust.tools import RustToolExecutor as ToolExecutor
-from crewai_rust.tasks import RustTaskExecutor as TaskExecutor
-from crewai_rust.serialization import AgentMessage as SerializableMessage
-from crewai_rust.database import RustSQLiteWrapper as DatabaseWrapper
-from crewai_rust.utils import (
+from fast_crewai.memory import RustMemoryStorage as MemoryStorage
+from fast_crewai.tools import RustToolExecutor as ToolExecutor
+from fast_crewai.tasks import RustTaskExecutor as TaskExecutor
+from fast_crewai.serialization import AgentMessage as SerializableMessage
+from fast_crewai.database import RustSQLiteWrapper as DatabaseWrapper
+from fast_crewai.utils import (
     is_rust_available,
     get_rust_status,
     configure_rust_components,
@@ -222,7 +222,7 @@ class TestSerialization(unittest.TestCase):
 
     def test_batch_serialization(self):
         """Test batch serialization."""
-        from crewai_rust.serialization import RustSerializer
+        from fast_crewai.serialization import RustSerializer
         serializer = RustSerializer()
         
         messages = [
@@ -331,27 +331,27 @@ class TestEnvironmentConfiguration(unittest.TestCase):
     def test_configure_rust_components(self):
         """Test configuring Rust components."""
         # Save original environment
-        original_memory = os.environ.get('CREWAI_RUST_MEMORY')
-        original_tools = os.environ.get('CREWAI_RUST_TOOLS')
+        original_memory = os.environ.get('FAST_CREWAI_MEMORY')
+        original_tools = os.environ.get('FAST_CREWAI_TOOLS')
         
         try:
             # Configure components
             configure_rust_components(memory=True, tools=False)
             
             # Check environment variables
-            self.assertEqual(os.environ.get('CREWAI_RUST_MEMORY'), 'true')
-            self.assertEqual(os.environ.get('CREWAI_RUST_TOOLS'), 'false')
+            self.assertEqual(os.environ.get('FAST_CREWAI_MEMORY'), 'true')
+            self.assertEqual(os.environ.get('FAST_CREWAI_TOOLS'), 'false')
         finally:
             # Restore original environment
             if original_memory is not None:
-                os.environ['CREWAI_RUST_MEMORY'] = original_memory
-            elif 'CREWAI_RUST_MEMORY' in os.environ:
-                del os.environ['CREWAI_RUST_MEMORY']
+                os.environ['FAST_CREWAI_MEMORY'] = original_memory
+            elif 'FAST_CREWAI_MEMORY' in os.environ:
+                del os.environ['FAST_CREWAI_MEMORY']
                 
             if original_tools is not None:
-                os.environ['CREWAI_RUST_TOOLS'] = original_tools
-            elif 'CREWAI_RUST_TOOLS' in os.environ:
-                del os.environ['CREWAI_RUST_TOOLS']
+                os.environ['FAST_CREWAI_TOOLS'] = original_tools
+            elif 'FAST_CREWAI_TOOLS' in os.environ:
+                del os.environ['FAST_CREWAI_TOOLS']
 
 
 class TestIntegration(unittest.TestCase):

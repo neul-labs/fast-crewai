@@ -1,7 +1,7 @@
 include README.md
 include LICENSE
 include pyproject.toml
-recursive-include crewai_rust *.py
+recursive-include fast_crewai *.py
 recursive-include docs *
 recursive-include examples *
 global-exclude __pycache__

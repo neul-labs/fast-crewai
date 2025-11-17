@@ -9,12 +9,12 @@ import os
 import json
 import sqlite3
 from typing import Any, Dict, List, Optional, Union
-from . import HAS_RUST_IMPLEMENTATION
+from ._constants import HAS_ACCELERATION_IMPLEMENTATION
 
 # Try to import the Rust implementation
-if HAS_RUST_IMPLEMENTATION:
+if HAS_ACCELERATION_IMPLEMENTATION:
     try:
-        from ._core import RustSQLiteWrapper as _RustSQLiteWrapper
+        from ._core import AcceleratedSQLiteWrapper as _AcceleratedSQLiteWrapper
         _RUST_AVAILABLE = True
     except ImportError:
         _RUST_AVAILABLE = False
@@ -22,7 +22,7 @@ else:
     _RUST_AVAILABLE = False
 
 
-class RustSQLiteWrapper:
+class AcceleratedSQLiteWrapper:
     """
     High-performance SQLite wrapper using Rust backend.
     
@@ -53,7 +53,7 @@ class RustSQLiteWrapper:
         # Check if Rust implementation should be used
         if use_rust is None:
             # Check environment variable
-            env_setting = os.getenv('CREWAI_RUST_DATABASE', 'auto').lower()
+            env_setting = os.getenv('FAST_CREWAI_DATABASE', 'auto').lower()
             if env_setting == 'true':
                 self._use_rust = True
             elif env_setting == 'false':
@@ -66,7 +66,7 @@ class RustSQLiteWrapper:
         # Initialize the appropriate implementation
         if self._use_rust:
             try:
-                self._wrapper = _RustSQLiteWrapper(db_path, pool_size)
+                self._wrapper = _AcceleratedSQLiteWrapper(db_path, pool_size)
                 self._implementation = "rust"
             except Exception as e:
                 # Fallback to Python implementation
@@ -331,4 +331,4 @@ class RustSQLiteWrapper:
     
     def __repr__(self) -> str:
         """String representation of the wrapper."""
-        return f"RustSQLiteWrapper(implementation={self.implementation}, db_path={self.db_path})"
+        return f"AcceleratedSQLiteWrapper(implementation={self.implementation}, db_path={self.db_path})"

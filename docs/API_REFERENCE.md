@@ -9,7 +9,7 @@ Complete API documentation for CrewAI Rust components.
 High-performance memory storage with TF-IDF similarity search.
 
 ```python
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 storage = RustMemoryStorage()
 ```
@@ -45,7 +45,7 @@ storage = RustMemoryStorage()
 Stack-safe tool execution with recursion limits.
 
 ```python
-from crewai_rust import RustToolExecutor
+from fast_crewai import RustToolExecutor
 
 executor = RustToolExecutor(max_recursion_depth=1000)
 ```
@@ -66,7 +66,7 @@ executor = RustToolExecutor(max_recursion_depth=1000)
 Concurrent task execution using Tokio runtime.
 
 ```python
-from crewai_rust import RustTaskExecutor
+from fast_crewai import RustTaskExecutor
 
 executor = RustTaskExecutor()
 ```
@@ -83,7 +83,7 @@ executor = RustTaskExecutor()
 Zero-copy serialization for agent messages.
 
 ```python
-from crewai_rust import AgentMessage
+from fast_crewai import AgentMessage
 
 message = AgentMessage("1", "sender", "recipient", "content", 1234567890)
 ```
@@ -117,7 +117,7 @@ message = AgentMessage("1", "sender", "recipient", "content", 1234567890)
 High-performance SQLite wrapper with connection pooling.
 
 ```python
-from crewai_rust import RustSQLiteWrapper
+from fast_crewai import RustSQLiteWrapper
 
 db = RustSQLiteWrapper("database.db", pool_size=10)
 ```
@@ -147,7 +147,7 @@ db = RustSQLiteWrapper("database.db", pool_size=10)
 ### Configuration
 
 ```python
-from crewai_rust.utils import (
+from fast_crewai.utils import (
     is_rust_available,
     get_rust_status,
     configure_rust_components,
@@ -179,13 +179,13 @@ from crewai_rust.utils import (
 ### Automatic Acceleration
 
 ```python
-import crewai_rust.shim
+import fast_crewai.shim
 
 # Enable automatic Rust acceleration
-crewai_rust.shim.enable_rust_acceleration(verbose=True)
+fast_crewai.shim.enable_rust_acceleration(verbose=True)
 
 # Disable acceleration
-crewai_rust.shim.disable_rust_acceleration()
+fast_crewai.shim.disable_rust_acceleration()
 ```
 
 **`enable_rust_acceleration(verbose: bool = False) -> bool`**
@@ -202,14 +202,14 @@ Control component behavior through environment variables:
 
 ```bash
 # Enable/disable specific components
-export CREWAI_RUST_MEMORY=true
-export CREWAI_RUST_TOOLS=true
-export CREWAI_RUST_TASKS=false
-export CREWAI_RUST_SERIALIZATION=true
-export CREWAI_RUST_DATABASE=true
+export FAST_CREWAI_MEMORY=true
+export FAST_CREWAI_TOOLS=true
+export FAST_CREWAI_TASKS=false
+export FAST_CREWAI_SERIALIZATION=true
+export FAST_CREWAI_DATABASE=true
 
 # Enable automatic acceleration
-export CREWAI_RUST_ACCELERATION=1
+export FAST_CREWAI_ACCELERATION=1
 ```
 
 ## Error Handling
@@ -217,7 +217,7 @@ export CREWAI_RUST_ACCELERATION=1
 All components provide graceful fallback:
 
 ```python
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 storage = RustMemoryStorage()
 
@@ -260,7 +260,7 @@ else:
 ### Basic Usage
 
 ```python
-from crewai_rust import RustMemoryStorage, RustToolExecutor
+from fast_crewai import RustMemoryStorage, RustToolExecutor
 
 # Memory storage
 storage = RustMemoryStorage()
@@ -275,7 +275,7 @@ result = executor.execute_tool("calculator", '{"operation": "add", "operands": [
 ### CrewAI Integration
 
 ```python
-import crewai_rust.shim  # Enable automatic acceleration
+import fast_crewai.shim  # Enable automatic acceleration
 from crewai import Agent, Task, Crew
 
 # Your existing CrewAI code now uses Rust components
@@ -289,7 +289,7 @@ result = crew.kickoff()  # Now accelerated with Rust
 
 ```python
 import time
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 # Benchmark memory operations
 storage = RustMemoryStorage()

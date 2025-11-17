@@ -13,25 +13,25 @@ class TestShimImport:
 
     def test_shim_module_import(self):
         """Test that we can import the shim module."""
-        import crewai_rust.shim
+        import fast_crewai.shim
         assert True  # Should not raise exception
 
     def test_shim_functions_available(self):
         """Test that shim functions are available."""
-        from crewai_rust.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_rust_acceleration
 
         assert callable(enable_rust_acceleration)
 
     def test_shim_enable_function(self):
         """Test the enable_rust_acceleration function."""
-        from crewai_rust.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_rust_acceleration
 
         result = enable_rust_acceleration()
         assert isinstance(result, (int, type(None)))
 
     def test_shim_enable_with_verbose(self):
         """Test shim enable with verbose output."""
-        from crewai_rust.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_rust_acceleration
 
         result = enable_rust_acceleration(verbose=True)
         assert isinstance(result, (int, type(None)))
@@ -39,7 +39,7 @@ class TestShimImport:
     def test_shim_disable_function(self):
         """Test the disable_rust_acceleration function if available."""
         try:
-            from crewai_rust.shim import disable_rust_acceleration
+            from fast_crewai.shim import disable_rust_acceleration
             result = disable_rust_acceleration()
             assert isinstance(result, (int, type(None)))
         except ImportError:
@@ -52,60 +52,60 @@ class TestEnvironmentVariableActivation:
 
     def test_environment_variable_detection(self):
         """Test that environment variable is properly detected."""
-        original = os.environ.get('CREWAI_RUST_ACCELERATION')
+        original = os.environ.get('FAST_CREWAI_ACCELERATION')
 
         try:
             # Test with environment variable set
-            os.environ['CREWAI_RUST_ACCELERATION'] = '1'
+            os.environ['FAST_CREWAI_ACCELERATION'] = '1'
 
             # Import should work regardless
-            import crewai_rust.shim
+            import fast_crewai.shim
             assert True
 
         finally:
             # Restore original environment
             if original is None:
-                os.environ.pop('CREWAI_RUST_ACCELERATION', None)
+                os.environ.pop('FAST_CREWAI_ACCELERATION', None)
             else:
-                os.environ['CREWAI_RUST_ACCELERATION'] = original
+                os.environ['FAST_CREWAI_ACCELERATION'] = original
 
     def test_environment_variable_values(self):
         """Test different environment variable values."""
-        original = os.environ.get('CREWAI_RUST_ACCELERATION')
+        original = os.environ.get('FAST_CREWAI_ACCELERATION')
 
         test_values = ['1', 'true', 'TRUE', 'yes', 'YES', 'on', 'ON']
 
         try:
             for value in test_values:
-                os.environ['CREWAI_RUST_ACCELERATION'] = value
+                os.environ['FAST_CREWAI_ACCELERATION'] = value
 
                 # Should be able to import without error
-                from crewai_rust.shim import enable_rust_acceleration
+                from fast_crewai.shim import enable_rust_acceleration
                 result = enable_rust_acceleration()
                 assert isinstance(result, (int, type(None)))
 
         finally:
             if original is None:
-                os.environ.pop('CREWAI_RUST_ACCELERATION', None)
+                os.environ.pop('FAST_CREWAI_ACCELERATION', None)
             else:
-                os.environ['CREWAI_RUST_ACCELERATION'] = original
+                os.environ['FAST_CREWAI_ACCELERATION'] = original
 
     def test_environment_variable_disabled(self):
         """Test behavior when environment variable is disabled."""
-        original = os.environ.get('CREWAI_RUST_ACCELERATION')
+        original = os.environ.get('FAST_CREWAI_ACCELERATION')
 
         try:
-            os.environ['CREWAI_RUST_ACCELERATION'] = '0'
+            os.environ['FAST_CREWAI_ACCELERATION'] = '0'
 
             # Should still be able to import
-            import crewai_rust.shim
+            import fast_crewai.shim
             assert True
 
         finally:
             if original is None:
-                os.environ.pop('CREWAI_RUST_ACCELERATION', None)
+                os.environ.pop('FAST_CREWAI_ACCELERATION', None)
             else:
-                os.environ['CREWAI_RUST_ACCELERATION'] = original
+                os.environ['FAST_CREWAI_ACCELERATION'] = original
 
 
 class TestCrewAICompatibility:
@@ -151,7 +151,7 @@ class TestCrewAICompatibility:
         """Test shim behavior with different import orders."""
         try:
             # Test: shim first, then CrewAI
-            import crewai_rust.shim
+            import fast_crewai.shim
             import crewai
             assert True
 
@@ -161,7 +161,7 @@ class TestCrewAICompatibility:
     def test_memory_component_shimming(self):
         """Test that memory components are properly shimmed."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai.memory.storage.rag_storage import RAGStorage
 
             # Should be able to access the class
@@ -177,7 +177,7 @@ class TestCrewAICompatibility:
     def test_tool_component_shimming(self):
         """Test that tool components are properly shimmed."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai.tools.structured_tool import CrewStructuredTool
 
             # Should be able to access the class
@@ -193,7 +193,7 @@ class TestShimInternals:
     def test_monkey_patch_function_exists(self):
         """Test that internal monkey patch function exists."""
         try:
-            from crewai_rust.shim import _monkey_patch_class
+            from fast_crewai.shim import _monkey_patch_class
             assert callable(_monkey_patch_class)
         except ImportError:
             # Internal function might not be exposed
@@ -202,7 +202,7 @@ class TestShimInternals:
     def test_original_classes_backup(self):
         """Test that original classes are backed up."""
         try:
-            from crewai_rust.shim import _original_classes
+            from fast_crewai.shim import _original_classes
             assert isinstance(_original_classes, dict)
         except ImportError:
             # Internal variable might not be exposed
@@ -210,7 +210,7 @@ class TestShimInternals:
 
     def test_shim_status_tracking(self):
         """Test that shim status is properly tracked."""
-        from crewai_rust.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_rust_acceleration
 
         # Enable shimming
         result = enable_rust_acceleration()
@@ -220,7 +220,7 @@ class TestShimInternals:
 
     def test_multiple_shim_enable_calls(self):
         """Test that multiple enable calls are safe."""
-        from crewai_rust.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_rust_acceleration
 
         # Call multiple times
         result1 = enable_rust_acceleration()
@@ -234,7 +234,7 @@ class TestShimInternals:
 
     def test_shim_with_missing_modules(self):
         """Test shim behavior when target modules are missing."""
-        from crewai_rust.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_rust_acceleration
 
         # Should handle missing modules gracefully
         result = enable_rust_acceleration()
@@ -260,7 +260,7 @@ class TestShimErrorHandling:
                     del sys.modules[module]
 
             # Shim should handle missing modules gracefully
-            from crewai_rust.shim import enable_rust_acceleration
+            from fast_crewai.shim import enable_rust_acceleration
             result = enable_rust_acceleration()
             assert isinstance(result, (int, type(None)))
 
@@ -271,7 +271,7 @@ class TestShimErrorHandling:
 
     def test_shim_with_attribute_errors(self):
         """Test shim behavior with attribute errors."""
-        from crewai_rust.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_rust_acceleration
 
         # Should handle attribute errors gracefully
         result = enable_rust_acceleration()
@@ -280,7 +280,7 @@ class TestShimErrorHandling:
     def test_shim_restoration_safety(self):
         """Test that shim restoration is safe."""
         try:
-            from crewai_rust.shim import disable_rust_acceleration
+            from fast_crewai.shim import disable_rust_acceleration
             result = disable_rust_acceleration()
             assert isinstance(result, (int, type(None)))
         except ImportError:
@@ -294,7 +294,7 @@ class TestShimPerformance:
     def test_shim_enable_performance(self):
         """Test that shim enabling is reasonably fast."""
         import time
-        from crewai_rust.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_rust_acceleration
 
         start_time = time.time()
         for i in range(10):
@@ -311,9 +311,9 @@ class TestShimPerformance:
         start_time = time.time()
         for i in range(10):
             # Import in a way that forces reload
-            if 'crewai_rust.shim' in sys.modules:
-                del sys.modules['crewai_rust.shim']
-            import crewai_rust.shim
+            if 'fast_crewai.shim' in sys.modules:
+                del sys.modules['fast_crewai.shim']
+            import fast_crewai.shim
         end_time = time.time()
 
         # Should be fast

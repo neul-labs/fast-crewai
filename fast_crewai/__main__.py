@@ -62,18 +62,18 @@ Commands:
 def status_cmd(verbose=False):
     """Check Rust component status."""
     try:
-        import crewai_rust
+        import fast_crewai
         print("CrewAI Rust Integration Status")
         print("=============================")
-        print(f"Version: {crewai_rust.__version__}")
-        print(f"Rust Implementation Available: {crewai_rust.HAS_RUST_IMPLEMENTATION}")
+        print(f"Version: {fast_crewai.__version__}")
+        print(f"Rust Implementation Available: {fast_crewai.HAS_ACCELERATION_IMPLEMENTATION}")
         
         if verbose:
             print("")
             print("Environment Variables:")
             import os
-            rust_accel = os.environ.get('CREWAI_RUST_ACCELERATION', '')
-            print(f"  CREWAI_RUST_ACCELERATION: {rust_accel or '(not set)'}")
+            rust_accel = os.environ.get('FAST_CREWAI_ACCELERATION', '')
+            print(f"  FAST_CREWAI_ACCELERATION: {rust_accel or '(not set)'}")
     except ImportError:
         print("CrewAI Rust Integration: Not Available")
         print("Please ensure the package was built correctly with maturin.")
@@ -85,8 +85,8 @@ def env_cmd(verbose=False):
     import os
     print("Environment Configuration")
     print("========================")
-    rust_accel = os.environ.get('CREWAI_RUST_ACCELERATION', '')
-    print(f"CREWAI_RUST_ACCELERATION: {rust_accel or '(not set)'}")
+    rust_accel = os.environ.get('FAST_CREWAI_ACCELERATION', '')
+    print(f"FAST_CREWAI_ACCELERATION: {rust_accel or '(not set)'}")
     
     if verbose:
         print("")
@@ -103,13 +103,13 @@ def bench_cmd(verbose=False):
 def info_cmd(verbose=False):
     """Show performance improvement information."""
     try:
-        import crewai_rust
+        import fast_crewai
         print("CrewAI Rust Integration")
         print("======================")
-        print(f"Version: {crewai_rust.__version__}")
-        print(f"Rust Implementation Available: {crewai_rust.HAS_RUST_IMPLEMENTATION}")
+        print(f"Version: {fast_crewai.__version__}")
+        print(f"Rust Implementation Available: {fast_crewai.HAS_ACCELERATION_IMPLEMENTATION}")
         
-        if crewai_rust.HAS_RUST_IMPLEMENTATION:
+        if fast_crewai.HAS_ACCELERATION_IMPLEMENTATION:
             print("\nPerformance Improvements:")
             print("  - Memory Storage: 10-20x faster")
             print("  - Tool Execution: 2-5x faster")
@@ -118,9 +118,9 @@ def info_cmd(verbose=False):
             print("  - Database Operations: 3-5x faster")
             
             print("\nUsage Options:")
-            print("  1. Explicit import: from crewai_rust import RustMemoryStorage")
-            print("  2. Auto-shim: export CREWAI_RUST_ACCELERATION=1")
-            print("  3. Import hook: import crewai_rust.shim")
+            print("  1. Explicit import: from fast_crewai import AcceleratedMemoryStorage")
+            print("  2. Auto-shim: export FAST_CREWAI_ACCELERATION=1")
+            print("  3. Import hook: import fast_crewai.shim")
         else:
             print("\nRust implementation not available.")
             print("Please ensure the package was built correctly with maturin.")

@@ -50,7 +50,7 @@ case "${1:-all}" in
         ;;
     "coverage")
         echo "Running tests with coverage report"
-        run_tests "pytest --cov=crewai_accelerate --cov-report=html --cov-report=term" "Coverage Tests"
+        run_tests "pytest --cov=fast_crewai --cov-report=html --cov-report=term" "Coverage Tests"
         ;;
     "memory")
         echo "Running memory component tests"

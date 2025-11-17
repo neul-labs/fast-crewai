@@ -14,19 +14,19 @@ class TestShimIntegration:
 
     def test_shim_import(self):
         """Test that we can import the shim module."""
-        import crewai_rust.shim
+        import fast_crewai.shim
         assert True  # Import should not crash
 
     def test_shim_enable_function(self):
         """Test the enable_rust_acceleration function."""
-        from crewai_rust.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_rust_acceleration
 
         result = enable_rust_acceleration()
         assert isinstance(result, (int, type(None)))
 
     def test_shim_with_verbose(self):
         """Test shim with verbose output."""
-        from crewai_rust.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_rust_acceleration
 
         result = enable_rust_acceleration(verbose=True)
         assert isinstance(result, (int, type(None)))
@@ -34,7 +34,7 @@ class TestShimIntegration:
     def test_shim_disable_function(self):
         """Test the disable_rust_acceleration function."""
         try:
-            from crewai_rust.shim import disable_rust_acceleration
+            from fast_crewai.shim import disable_rust_acceleration
             result = disable_rust_acceleration()
             assert isinstance(result, (int, type(None)))
         except ImportError:
@@ -56,7 +56,7 @@ class TestCrewAICompatibility:
     def test_crewai_with_shim_imports(self):
         """Test CrewAI imports work after shim activation."""
         try:
-            import crewai_rust.shim  # Activate shim
+            import fast_crewai.shim  # Activate shim
             import crewai
             from crewai import Agent, Task, Crew
             assert True
@@ -66,7 +66,7 @@ class TestCrewAICompatibility:
     def test_memory_component_shimming(self):
         """Test that memory components are properly shimmed."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai.memory.storage.rag_storage import RAGStorage
 
             # Should be able to create storage instance
@@ -79,7 +79,7 @@ class TestCrewAICompatibility:
     def test_tool_component_shimming(self):
         """Test that tool components are properly shimmed."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai.tools.base_tool import BaseTool
             from crewai.tools.structured_tool import CrewStructuredTool
 
@@ -93,7 +93,7 @@ class TestCrewAICompatibility:
     def test_task_component_shimming(self):
         """Test that task components are properly shimmed."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai.task import Task
             from crewai.crew import Crew
 
@@ -111,7 +111,7 @@ class TestEndToEndWorkflow:
     def test_simple_crew_workflow(self):
         """Test a simple crew workflow with Rust acceleration."""
         try:
-            import crewai_rust.shim  # Enable acceleration
+            import fast_crewai.shim  # Enable acceleration
             from crewai import Agent, Task, Crew
 
             # Create a simple agent
@@ -153,7 +153,7 @@ class TestEndToEndWorkflow:
     def test_memory_enabled_workflow(self):
         """Test workflow with memory enabled."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai import Agent, Task, Crew
 
             agent = Agent(
@@ -187,7 +187,7 @@ class TestEndToEndWorkflow:
     def test_tool_integration_workflow(self):
         """Test workflow with custom tools."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai import Agent, Task, Crew, tool
 
             @tool
@@ -229,7 +229,7 @@ class TestPerformanceIntegration:
     def test_workflow_performance_basic(self):
         """Basic performance test for workflows."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai import Agent, Task, Crew
 
             # Time crew creation
@@ -261,7 +261,7 @@ class TestPerformanceIntegration:
     def test_memory_performance_integration(self):
         """Test memory performance in integrated workflow."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai import Agent, Task, Crew
 
             agent = Agent(
@@ -300,7 +300,7 @@ class TestFallbackBehavior:
 
     def test_rust_availability_detection(self):
         """Test detection of Rust availability."""
-        from crewai_rust import is_rust_available, get_rust_status
+        from fast_crewai import is_rust_available, get_rust_status
 
         # Should be able to check availability
         available = is_rust_available()
@@ -312,7 +312,7 @@ class TestFallbackBehavior:
 
     def test_fallback_to_python(self):
         """Test graceful fallback to Python implementations."""
-        from crewai_rust import RustMemoryStorage
+        from fast_crewai import RustMemoryStorage
 
         # Test explicit Python fallback
         storage = RustMemoryStorage(use_rust=False)
@@ -325,7 +325,7 @@ class TestFallbackBehavior:
 
     def test_mixed_implementation_usage(self):
         """Test using both Rust and Python implementations."""
-        from crewai_rust import RustMemoryStorage
+        from fast_crewai import RustMemoryStorage
 
         # Create one with Rust (if available)
         rust_storage = RustMemoryStorage(use_rust=True)

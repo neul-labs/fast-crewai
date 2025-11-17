@@ -1,7 +1,7 @@
 #!/bin/bash
-# Script to build and test the crewai-accelerate package
+# Script to build and test the fast-crewai package
 
-echo "Building crewai-accelerate package with maturin..."
+echo "Building fast-crewai package with maturin..."
 
 # Check if maturin is installed
 if ! command -v maturin &> /dev/null

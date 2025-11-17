@@ -8,26 +8,26 @@ import pytest
 class TestPackageImport:
     """Test basic package import functionality."""
 
-    def test_import_crewai_accelerate(self):
+    def test_import_fast_crewai(self):
         """Test that we can import the main package."""
-        import crewai_accelerate
-        assert crewai_accelerate is not None
+        import fast_crewai
+        assert fast_crewai is not None
 
     def test_package_version(self):
         """Test that package has version information."""
-        import crewai_accelerate
-        assert hasattr(crewai_accelerate, '__version__')
-        assert isinstance(crewai_accelerate.__version__, str)
+        import fast_crewai
+        assert hasattr(fast_crewai, '__version__')
+        assert isinstance(fast_crewai.__version__, str)
 
     def test_acceleration_implementation_flag(self):
         """Test that package has acceleration implementation flag."""
-        import crewai_accelerate
-        assert hasattr(crewai_accelerate, 'HAS_ACCELERATION_IMPLEMENTATION')
-        assert isinstance(crewai_accelerate.HAS_ACCELERATION_IMPLEMENTATION, bool)
+        import fast_crewai
+        assert hasattr(fast_crewai, 'HAS_ACCELERATION_IMPLEMENTATION')
+        assert isinstance(fast_crewai.HAS_ACCELERATION_IMPLEMENTATION, bool)
 
     def test_acceleration_availability_functions(self):
         """Test acceleration availability detection functions."""
-        from crewai_accelerate import is_acceleration_available, get_acceleration_status
+        from fast_crewai import is_acceleration_available, get_acceleration_status
 
         # Should be able to call these functions
         available = is_acceleration_available()
@@ -38,7 +38,7 @@ class TestPackageImport:
 
     def test_main_component_imports(self):
         """Test that we can import main components."""
-        from crewai_accelerate import (
+        from fast_crewai import (
             AcceleratedMemoryStorage,
             AcceleratedToolExecutor,
             AcceleratedTaskExecutor
@@ -51,7 +51,7 @@ class TestPackageImport:
     def test_serialization_imports(self):
         """Test that we can import serialization components."""
         try:
-            from crewai_accelerate import AcceleratedMessage
+            from fast_crewai import AcceleratedMessage
             assert AcceleratedMessage is not None
         except ImportError:
             # Serialization components might not be available
@@ -60,7 +60,7 @@ class TestPackageImport:
     def test_database_imports(self):
         """Test that we can import database components."""
         try:
-            from crewai_accelerate import AcceleratedSQLiteWrapper
+            from fast_crewai import AcceleratedSQLiteWrapper
             assert AcceleratedSQLiteWrapper is not None
         except ImportError:
             # Database components might not be available
@@ -72,7 +72,7 @@ class TestComponentAvailability:
 
     def test_memory_component_creation(self):
         """Test that memory components can be created."""
-        from crewai_rust import RustMemoryStorage
+        from fast_crewai import RustMemoryStorage
 
         storage = RustMemoryStorage()
         assert storage is not None
@@ -80,21 +80,21 @@ class TestComponentAvailability:
 
     def test_tool_component_creation(self):
         """Test that tool components can be created."""
-        from crewai_rust import RustToolExecutor
+        from fast_crewai import RustToolExecutor
 
         executor = RustToolExecutor()
         assert executor is not None
 
     def test_task_component_creation(self):
         """Test that task components can be created."""
-        from crewai_rust import RustTaskExecutor
+        from fast_crewai import RustTaskExecutor
 
         executor = RustTaskExecutor()
         assert executor is not None
 
     def test_component_methods_exist(self):
         """Test that components have expected methods."""
-        from crewai_rust import RustMemoryStorage, RustToolExecutor
+        from fast_crewai import RustMemoryStorage, RustToolExecutor
 
         # Memory storage methods
         storage = RustMemoryStorage()
@@ -112,7 +112,7 @@ class TestEnvironmentInfo:
     def test_environment_info_function(self):
         """Test environment information retrieval."""
         try:
-            from crewai_rust import get_environment_info
+            from fast_crewai import get_environment_info
             info = get_environment_info()
             assert isinstance(info, dict)
         except ImportError:
@@ -122,7 +122,7 @@ class TestEnvironmentInfo:
     def test_performance_metrics_function(self):
         """Test performance metrics retrieval."""
         try:
-            from crewai_rust import get_performance_metrics
+            from fast_crewai import get_performance_metrics
             metrics = get_performance_metrics()
             assert isinstance(metrics, dict)
         except ImportError:
@@ -131,7 +131,7 @@ class TestEnvironmentInfo:
 
     def test_rust_status_details(self):
         """Test detailed Rust status information."""
-        from crewai_rust import get_rust_status
+        from fast_crewai import get_rust_status
 
         status = get_rust_status()
         assert isinstance(status, str)

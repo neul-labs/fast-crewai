@@ -1,12 +1,12 @@
 """
-Bootstrap script to automatically shim crewai-accelerate components into CrewAI.
+Bootstrap script to automatically shim fast-crewai components into CrewAI.
 Usage:
     import crewai
-    import crewai_accelerate.shim  # This automatically replaces components
+    import fast_crewai.shim  # This automatically replaces components
     
 Or:
     import crewai
-    from crewai_accelerate.shim import enable_acceleration
+    from fast_crewai.shim import enable_acceleration
     enable_acceleration()
 """
 
@@ -55,7 +55,7 @@ def _patch_memory_components():
     patches_failed = 0
     
     try:
-        from crewai_accelerate.memory import AcceleratedMemoryStorage
+        from fast_crewai.memory import AcceleratedMemoryStorage
         
         # Patch main memory storage components with correct module paths
         memory_patches = [
@@ -79,55 +79,93 @@ def _patch_memory_components():
     return patches_applied, patches_failed
 
 def _patch_tool_components():
-    """Patch tool-related components."""
+    """
+    Patch tool-related components with dynamically inherited accelerated classes.
+
+    Uses dynamic inheritance to create accelerated versions that properly inherit
+    from CrewAI's BaseTool and CrewStructuredTool classes.
+    """
     patches_applied = 0
     patches_failed = 0
-    
+
     try:
-        from crewai_accelerate.tools import AcceleratedToolExecutor
-        
-        # Patch tool execution components
-        tool_patches = [
-            ('crewai.tools.structured_tool', 'CrewStructuredTool', AcceleratedToolExecutor),
-            ('crewai.tools.base_tool', 'BaseTool', AcceleratedToolExecutor),
-        ]
-        
-        for module_path, class_name, new_class in tool_patches:
-            if _monkey_patch_class(module_path, class_name, new_class):
-                patches_applied += 1
-            else:
-                patches_failed += 1
-                
+        from fast_crewai.tools import AcceleratedBaseTool, AcceleratedStructuredTool
+
+        # Only patch if the accelerated classes were successfully created
+        if AcceleratedBaseTool is not None:
+            tool_patches = [
+                ('crewai.tools.base_tool', 'BaseTool', AcceleratedBaseTool),
+            ]
+
+            for module_path, class_name, new_class in tool_patches:
+                if _monkey_patch_class(module_path, class_name, new_class):
+                    patches_applied += 1
+                else:
+                    patches_failed += 1
+
+        if AcceleratedStructuredTool is not None:
+            structured_patches = [
+                ('crewai.tools.structured_tool', 'CrewStructuredTool', AcceleratedStructuredTool),
+            ]
+
+            for module_path, class_name, new_class in structured_patches:
+                if _monkey_patch_class(module_path, class_name, new_class):
+                    patches_applied += 1
+                else:
+                    patches_failed += 1
+
+    except ImportError:
+        # CrewAI not installed, skip patching
+        pass
     except Exception as e:
-        print(f"⚠️  Tool component patching failed: {e}")
+        # Unexpected error, log and continue
         patches_failed += 1
-        
+
     return patches_applied, patches_failed
 
 def _patch_task_components():
-    """Patch task-related components."""
+    """
+    Patch task-related components with dynamically inherited accelerated classes.
+
+    Uses dynamic inheritance to create accelerated versions that properly inherit
+    from CrewAI's Task and Crew classes.
+    """
     patches_applied = 0
     patches_failed = 0
-    
+
     try:
-        from crewai_accelerate.tasks import AcceleratedTaskExecutor
-        
-        # Patch task execution components
-        task_patches = [
-            ('crewai.task', 'Task', AcceleratedTaskExecutor),
-            ('crewai.crews.crew', 'Crew', AcceleratedTaskExecutor),
-        ]
-        
-        for module_path, class_name, new_class in task_patches:
-            if _monkey_patch_class(module_path, class_name, new_class):
-                patches_applied += 1
-            else:
-                patches_failed += 1
-                
+        from fast_crewai.tasks import AcceleratedTask, AcceleratedCrew
+
+        # Only patch if the accelerated classes were successfully created
+        if AcceleratedTask is not None:
+            task_patches = [
+                ('crewai.task', 'Task', AcceleratedTask),
+            ]
+
+            for module_path, class_name, new_class in task_patches:
+                if _monkey_patch_class(module_path, class_name, new_class):
+                    patches_applied += 1
+                else:
+                    patches_failed += 1
+
+        if AcceleratedCrew is not None:
+            crew_patches = [
+                ('crewai.crew', 'Crew', AcceleratedCrew),
+            ]
+
+            for module_path, class_name, new_class in crew_patches:
+                if _monkey_patch_class(module_path, class_name, new_class):
+                    patches_applied += 1
+                else:
+                    patches_failed += 1
+
+    except ImportError:
+        # CrewAI not installed, skip patching
+        pass
     except Exception as e:
-        print(f"⚠️  Task component patching failed: {e}")
+        # Unexpected error, log and continue
         patches_failed += 1
-        
+
     return patches_applied, patches_failed
 
 def _patch_database_components():
@@ -136,7 +174,7 @@ def _patch_database_components():
     patches_failed = 0
     
     try:
-        from crewai_accelerate.database import AcceleratedSQLiteWrapper
+        from fast_crewai.database import AcceleratedSQLiteWrapper
         
         # Patch database components with correct class names
         database_patches = [
@@ -157,29 +195,26 @@ def _patch_database_components():
     return patches_applied, patches_failed
 
 def _patch_serialization_components():
-    """Patch serialization-related components."""
+    """
+    Patch serialization-related components.
+
+    Note: Serialization acceleration could patch JSON encoding/decoding functions,
+    but this is not yet implemented. Event classes should not be replaced.
+    """
     patches_applied = 0
     patches_failed = 0
-    
-    try:
-        from crewai_accelerate.serialization import AcceleratedMessage
-        
-        # Patch serialization components
-        serialization_patches = [
-            ('crewai.events.types.memory_events', 'MemoryQueryStartedEvent', AcceleratedMessage),
-            ('crewai.events.types.agent_events', 'AgentExecutionStartedEvent', AcceleratedMessage),
-        ]
-        
-        for module_path, class_name, new_class in serialization_patches:
-            if _monkey_patch_class(module_path, class_name, new_class):
-                patches_applied += 1
-            else:
-                patches_failed += 1
-                
-    except Exception as e:
-        print(f"⚠️  Serialization component patching failed: {e}")
-        patches_failed += 1
-        
+
+    # Serialization patching: Could accelerate json.dumps/json.loads with Rust implementations
+    # However, this is complex and may have compatibility issues, so it's not implemented yet.
+    # Future implementation could:
+    # 1. Monkey-patch json.dumps and json.loads with faster implementations
+    # 2. Use orjson or similar high-performance JSON libraries
+    # 3. Add Rust-based JSON encoding/decoding in the _core module
+
+    # For now, serialization acceleration is provided through the AgentMessage class
+    # which can be used directly for message serialization, but we don't patch
+    # system-wide JSON functions to avoid compatibility issues.
+
     return patches_applied, patches_failed
 
 def enable_acceleration(verbose: bool = False) -> bool:
@@ -204,19 +239,19 @@ def enable_acceleration(verbose: bool = False) -> bool:
         memory_applied, memory_failed = _patch_memory_components()
         total_patches_applied += memory_applied
         total_patches_failed += memory_failed
-        
+
         tool_applied, tool_failed = _patch_tool_components()
         total_patches_applied += tool_applied
         total_patches_failed += tool_failed
-        
+
         task_applied, task_failed = _patch_task_components()
         total_patches_applied += task_applied
         total_patches_failed += task_failed
-        
+
         db_applied, db_failed = _patch_database_components()
         total_patches_applied += db_applied
         total_patches_failed += db_failed
-        
+
         serialization_applied, serialization_failed = _patch_serialization_components()
         total_patches_applied += serialization_applied
         total_patches_failed += serialization_failed
@@ -227,17 +262,22 @@ def enable_acceleration(verbose: bool = False) -> bool:
             print(f"  - Tool patches applied: {tool_applied}, failed: {tool_failed}")
             print(f"  - Task patches applied: {task_applied}, failed: {task_failed}")
             print(f"  - Database patches applied: {db_applied}, failed: {db_failed}")
-            print(f"  - Serialization patches applied: {serialization_applied}, failed: {serialization_failed}")
+            print(f"  - Serialization patches: {serialization_applied} (not yet implemented)")
             print(f"  - Total patches applied: {total_patches_applied}")
             print(f"  - Total patches failed: {total_patches_failed}")
-        
+
         if total_patches_applied > 0 and verbose:
             print("\n🚀 Performance improvements now active:")
-            print("  - Memory Storage: 2-5x faster")
-            print("  - Tool Execution: 1.5-3x faster") 
-            print("  - Task Execution: 2-4x faster")
-            print("  - Serialization: 3-8x faster")
-            print("  - Database Operations: 2-4x faster")
+            if memory_applied > 0:
+                print("  - Memory Storage: 2-5x faster")
+            if db_applied > 0:
+                print("  - Database Operations: 2-4x faster")
+            if tool_applied > 0:
+                print("  - Tool Execution: Acceleration hooks enabled")
+            if task_applied > 0:
+                print("  - Task Execution: Acceleration hooks enabled")
+            if serialization_applied > 0:
+                print("  - Serialization: Accelerated JSON processing")
         
         return total_patches_applied > 0
         

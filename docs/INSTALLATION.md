@@ -7,14 +7,14 @@ Comprehensive installation instructions for CrewAI Accelerate.
 ### Via pip (Recommended)
 
 ```bash
-pip install crewai-accelerate
+pip install fast-crewai
 ```
 
 ### Via pip with extras
 
 ```bash
 # Include development dependencies
-pip install crewai-accelerate[dev]
+pip install fast-crewai[dev]
 ```
 
 ## Development Installation
@@ -41,7 +41,7 @@ cargo --version
 
 ```bash
 # Clone the repository
-git clone https://github.com/crewAI/crewai-rust.git
+git clone https://github.com/neul-labs/fast-crewai.git
 cd crewai-rust
 
 # Install maturin (Rust-Python bridge)
@@ -94,9 +94,9 @@ pip install crewai-rust
 ```python
 # Test basic import
 try:
-    import crewai_accelerate
+    import fast_crewai
     print("CrewAI Accelerate installed successfully")
-    print(f"Version: {crewai_accelerate.__version__}")
+    print(f"Version: {fast_crewai.__version__}")
 except ImportError as e:
     print(f"Installation failed: {e}")
 ```
@@ -105,14 +105,14 @@ except ImportError as e:
 
 ```python
 # Test acceleration
-from crewai_accelerate import is_acceleration_available, get_acceleration_status
+from fast_crewai import is_acceleration_available, get_acceleration_status
 
 if is_acceleration_available():
     print("✅ Acceleration available")
     print(f"Status: {get_acceleration_status()}")
 
     # Test memory component
-    from crewai_accelerate import AcceleratedMemoryStorage
+    from fast_crewai import AcceleratedMemoryStorage
     memory = AcceleratedMemoryStorage()
     print(f"Memory implementation: {memory.implementation}")
     
@@ -146,7 +146,7 @@ cargo test
 
 ```python
 # Test all components quickly
-from crewai_accelerate import (
+from fast_crewai import (
     AcceleratedMemoryStorage, 
     AcceleratedToolExecutor, 
     AcceleratedTaskExecutor,
@@ -185,20 +185,20 @@ print("✅ All components working!")
 
 ```bash
 # Enable automatic acceleration
-export CREWAI_ACCELERATE_ACCELERATION=1
+export FAST_CREWAI_ACCELERATION=1
 
 # Force specific component usage
-export CREWAI_ACCELERATE_MEMORY=true
-export CREWAI_ACCELERATE_TOOLS=true
-export CREWAI_ACCELERATE_TASKS=true
+export FAST_CREWAI_MEMORY=true
+export FAST_CREWAI_TOOLS=true
+export FAST_CREWAI_TASKS=true
 
 # Disable specific components
-export CREWAI_ACCELERATE_MEMORY=false
+export FAST_CREWAI_MEMORY=false
 ```
 
 ### Configuration File
 
-Create `~/.crewai-accelerate/config.toml`:
+Create `~/.fast-crewai/config.toml`:
 
 ```toml
 [acceleration]
@@ -226,8 +226,8 @@ thread_pool_size = 4
 
 ```bash
 # Accelerated extension not built properly
-pip uninstall crewai-accelerate
-pip install --no-cache-dir crewai-accelerate
+pip uninstall fast-crewai
+pip install --no-cache-dir fast-crewai
 
 # If still failing, build from source
 pip install maturin
@@ -238,7 +238,7 @@ maturin develop
 
 ```python
 # Check implementation being used
-from crewai_accelerate import AcceleratedMemoryStorage
+from fast_crewai import AcceleratedMemoryStorage
 storage = AcceleratedMemoryStorage()
 print(f"Implementation: {storage.implementation}")
 
@@ -253,7 +253,7 @@ if storage.implementation != "accelerated":
 # Install Visual C++ Build Tools
 # Restart terminal and try again
 pip install --upgrade setuptools wheel
-pip install crewai-accelerate
+pip install fast-crewai
 ```
 
 **4. Version Conflicts**
@@ -278,19 +278,19 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 # Enable verbose acceleration
-import crewai_accelerate.shim
-crewai_accelerate.shim.enable_acceleration(verbose=True)
+import fast_crewai.shim
+fast_crewai.shim.enable_acceleration(verbose=True)
 
 # Check detailed status
-from crewai_accelerate.utils import get_acceleration_status, get_environment_info
+from fast_crewai.utils import get_acceleration_status, get_environment_info
 print("Acceleration status:", get_acceleration_status())
 print("Environment:", get_environment_info())
 ```
 
 ### Getting Help
 
-- **Issues**: [GitHub Issues](https://github.com/crewAI/crewai-accelerate/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/crewAI/crewai-accelerate/discussions)
+- **Issues**: [GitHub Issues](https://github.com/neul-labs/fast-crewai/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/neul-labs/fast-crewai/discussions)
 - **Discord**: [CrewAI Community](https://discord.gg/crewai)
 
 ## Next Steps

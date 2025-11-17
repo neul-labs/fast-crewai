@@ -22,7 +22,7 @@ This package provides drop-in replacements for key CrewAI components using Rust 
 ### Installation
 
 ```bash
-pip install crewai-accelerate
+pip install fast-crewai
 ```
 
 ## Usage
@@ -33,14 +33,14 @@ The package provides Rust components that can be used explicitly or through auto
 
 ```python
 # Method 1: Explicit usage
-from crewai_accelerate import AcceleratedMemoryStorage, AcceleratedToolExecutor
+from fast_crewai import AcceleratedMemoryStorage, AcceleratedToolExecutor
 
 memory = AcceleratedMemoryStorage()
 memory.save("Hello, World!")
 results = memory.search("Hello", limit=5)
 
 # Method 2: Automatic shimming (recommended)
-import crewai_accelerate.shim  # This enables automatic replacement
+import fast_crewai.shim  # This enables automatic replacement
 from crewai import Agent, Task, Crew
 
 # Your existing CrewAI code now uses accelerated components automatically
@@ -52,23 +52,23 @@ Control which components use Rust implementations:
 
 ```bash
 # Enable all accelerated components
-export CREWAI_ACCELERATE_MEMORY=true
-export CREWAI_ACCELERATE_TOOLS=true
-export CREWAI_ACCELERATE_TASKS=true
-export CREWAI_ACCELERATE_SERIALIZATION=true
-export CREWAI_ACCELERATE_DATABASE=true
+export FAST_CREWAI_MEMORY=true
+export FAST_CREWAI_TOOLS=true
+export FAST_CREWAI_TASKS=true
+export FAST_CREWAI_SERIALIZATION=true
+export FAST_CREWAI_DATABASE=true
 
 # Or disable specific components
-export CREWAI_ACCELERATE_MEMORY=false
+export FAST_CREWAI_MEMORY=false
 
 # Auto-detect (default)
-export CREWAI_ACCELERATE_MEMORY=auto
+export FAST_CREWAI_MEMORY=auto
 ```
 
 ### Programmatic Configuration
 
 ```python
-from crewai_accelerate.utils import configure_accelerated_components
+from fast_crewai.utils import configure_accelerated_components
 
 # Enable specific components
 configure_accelerated_components(
@@ -80,7 +80,7 @@ configure_accelerated_components(
 )
 
 # Check which components are available
-from crewai_accelerate.utils import is_acceleration_available, get_acceleration_status
+from fast_crewai.utils import is_acceleration_available, get_acceleration_status
 print(f"Acceleration available: {is_acceleration_available()}")
 print(f"Status: {get_acceleration_status()}")
 ```
@@ -92,7 +92,7 @@ print(f"Status: {get_acceleration_status()}")
 High-performance memory storage with thread-safe operations:
 
 ```python
-from crewai_accelerate import AcceleratedMemoryStorage
+from fast_crewai import AcceleratedMemoryStorage
 
 storage = AcceleratedMemoryStorage()
 storage.save("data", {"metadata": "value"})
@@ -104,7 +104,7 @@ results = storage.search("data", limit=5)
 Stack-safe tool execution engine with recursion limits:
 
 ```python
-from crewai_accelerate import AcceleratedToolExecutor
+from fast_crewai import AcceleratedToolExecutor
 
 executor = AcceleratedToolExecutor(max_recursion_depth=100)
 result = executor.execute_tool("calculator", '{"operation": "add", "operands": [1, 2]}')
@@ -115,7 +115,7 @@ result = executor.execute_tool("calculator", '{"operation": "add", "operands": [
 Concurrent task execution framework:
 
 ```python
-from crewai_accelerate import AcceleratedTaskExecutor
+from fast_crewai import AcceleratedTaskExecutor
 
 executor = AcceleratedTaskExecutor()
 tasks = ["task1", "task2", "task3"]
@@ -127,7 +127,7 @@ results = executor.execute_concurrent_tasks(tasks)
 Zero-copy serialization for agent messages:
 
 ```python
-from crewai_accelerate import AcceleratedMessage
+from fast_crewai import AcceleratedMessage
 
 # Single message
 message = AcceleratedMessage("1", "sender", "recipient", "content", 1234567890)
@@ -140,7 +140,7 @@ message2 = AcceleratedMessage.from_json(json_str)
 High-performance SQLite wrapper with connection pooling:
 
 ```python
-from crewai_accelerate import AcceleratedSQLiteWrapper
+from fast_crewai import AcceleratedSQLiteWrapper
 
 db = AcceleratedSQLiteWrapper("database.db", pool_size=10)
 # Database operations are available through execute_query, execute_update, execute_batch
@@ -152,7 +152,7 @@ results = db.execute_query("SELECT * FROM long_term_memories", {})
 ### Drop-in Memory Replacement
 
 ```python
-import crewai_accelerate.shim  # Enable automatic acceleration
+import fast_crewai.shim  # Enable automatic acceleration
 from crewai import Crew, Agent, Task
 
 # Create a crew with automatic acceleration
@@ -165,7 +165,7 @@ result = crew.kickoff()  # Now uses accelerated components automatically
 ### Performance Monitoring
 
 ```python
-from crewai_accelerate.utils import get_acceleration_status, get_performance_improvements
+from fast_crewai.utils import get_acceleration_status, get_performance_improvements
 
 # Check which components are available
 status = get_acceleration_status()
@@ -195,7 +195,7 @@ python -m pytest tests/test_integration.py -v
 
 ```bash
 # Check if acceleration components are available
-python -c "from crewai_accelerate import is_acceleration_available; print(f'Acceleration available: {is_acceleration_available()}')"
+python -c "from fast_crewai import is_acceleration_available; print(f'Acceleration available: {is_acceleration_available()}')"
 ```
 
 ## Benchmarking
@@ -204,7 +204,7 @@ Run performance benchmarks to see improvements:
 
 ```python
 # Run basic performance test
-from crewai_accelerate import AcceleratedMemoryStorage
+from fast_crewai import AcceleratedMemoryStorage
 import time
 
 # Test memory performance
@@ -274,7 +274,7 @@ cargo test
 3. Verify package installation
 
 ```python
-from crewai_rust.utils import get_rust_status
+from fast_crewai.utils import get_rust_status
 status = get_rust_status()
 print(status)
 ```
@@ -286,5 +286,5 @@ print(status)
 3. Ensure Rust components are being used
 
 ```bash
-python -m crewai_rust bench --verbose
+python -m fast_crewai bench --verbose
 ```

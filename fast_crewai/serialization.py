@@ -8,10 +8,10 @@ systems with zero-copy optimizations and performance improvements.
 import os
 import json
 from typing import Any, Dict, Optional
-from . import HAS_RUST_IMPLEMENTATION
+from ._constants import HAS_ACCELERATION_IMPLEMENTATION
 
 # Try to import the Rust implementation
-if HAS_RUST_IMPLEMENTATION:
+if HAS_ACCELERATION_IMPLEMENTATION:
     try:
         from ._core import AgentMessage as _AgentMessage
         _RUST_AVAILABLE = True
@@ -61,7 +61,7 @@ class AgentMessage:
         # Check if Rust implementation should be used
         if use_rust is None:
             # Check environment variable
-            env_setting = os.getenv('CREWAI_RUST_SERIALIZATION', 'auto').lower()
+            env_setting = os.getenv('FAST_CREWAI_SERIALIZATION', 'auto').lower()
             if env_setting == 'true':
                 self._use_rust = True
             elif env_setting == 'false':
@@ -130,7 +130,7 @@ class AgentMessage:
         # Check if Rust implementation should be used
         if use_rust is None:
             # Check environment variable
-            env_setting = os.getenv('CREWAI_RUST_SERIALIZATION', 'auto').lower()
+            env_setting = os.getenv('FAST_CREWAI_SERIALIZATION', 'auto').lower()
             if env_setting == 'true':
                 use_rust = True
             elif env_setting == 'false':
@@ -193,7 +193,7 @@ class RustSerializer:
         # Check if Rust implementation should be used
         if use_rust is None:
             # Check environment variable
-            env_setting = os.getenv('CREWAI_RUST_SERIALIZATION', 'auto').lower()
+            env_setting = os.getenv('FAST_CREWAI_SERIALIZATION', 'auto').lower()
             if env_setting == 'true':
                 self._use_rust = True
             elif env_setting == 'false':
@@ -290,3 +290,7 @@ class RustSerializer:
             data = json.loads(json_str)
             deserialized_messages.append(data)
         return deserialized_messages
+
+
+# Alias for consistency with other modules
+AcceleratedMessage = AgentMessage

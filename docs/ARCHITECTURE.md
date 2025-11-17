@@ -23,7 +23,7 @@ CrewAI Rust uses a **hybrid architecture** combining Python's flexibility with R
 
 ### 1. Monkey Patching System
 
-**Location**: `crewai_rust/shim.py`
+**Location**: `fast_crewai/shim.py`
 
 The shim system intelligently replaces CrewAI components at import time:
 
@@ -86,7 +86,7 @@ impl RustMemoryStorage {
 
 ### 3. Fallback Mechanism
 
-**Location**: `crewai_rust/memory.py`, `crewai_rust/tools.py`, etc.
+**Location**: `fast_crewai/memory.py`, `fast_crewai/tools.py`, etc.
 
 Each component implements automatic fallback:
 
@@ -157,7 +157,7 @@ pub fn search(&self, query: &str, limit: usize) -> PyResult<Vec<String>> {
 
 ### Python Wrapper
 
-**Python Layer** (`crewai_rust/memory.py:71-103`):
+**Python Layer** (`fast_crewai/memory.py:71-103`):
 ```python
 def save(self, value: Any, metadata: Optional[Dict[str, Any]] = None) -> None:
     if self._use_rust:
@@ -468,7 +468,7 @@ Python Implementation:     Rust Implementation:
 **Build Configuration** (`Cargo.toml:7-8`):
 ```toml
 [lib]
-name = "crewai_rust"
+name = "fast_crewai"
 crate-type = ["cdylib"]  # Dynamic library for Python
 ```
 

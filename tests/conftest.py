@@ -31,7 +31,7 @@ def pytest_configure(config):
 def rust_available():
     """Check if Rust acceleration is available."""
     try:
-        from crewai_rust import is_rust_available
+        from fast_crewai import is_rust_available
         return is_rust_available()
     except ImportError:
         return False
@@ -51,12 +51,12 @@ def crewai_available():
 def clean_environment():
     """Provide a clean environment for testing."""
     # Store original environment
-    original_env = os.environ.get('CREWAI_RUST_ACCELERATION')
+    original_env = os.environ.get('FAST_CREWAI_ACCELERATION')
     original_modules = {}
 
     # Modules that might be affected by testing
     test_modules = [
-        'crewai_rust.shim',
+        'fast_crewai.shim',
         'crewai.memory.storage.rag_storage',
         'crewai.tools.structured_tool',
         'crewai.task',
@@ -71,9 +71,9 @@ def clean_environment():
 
     # Restore environment
     if original_env is None:
-        os.environ.pop('CREWAI_RUST_ACCELERATION', None)
+        os.environ.pop('FAST_CREWAI_ACCELERATION', None)
     else:
-        os.environ['CREWAI_RUST_ACCELERATION'] = original_env
+        os.environ['FAST_CREWAI_ACCELERATION'] = original_env
 
     # Restore modules
     for module, mod_obj in original_modules.items():
@@ -83,21 +83,21 @@ def clean_environment():
 @pytest.fixture
 def memory_storage():
     """Provide a memory storage instance for testing."""
-    from crewai_rust import RustMemoryStorage
+    from fast_crewai import RustMemoryStorage
     return RustMemoryStorage()
 
 
 @pytest.fixture
 def tool_executor():
     """Provide a tool executor instance for testing."""
-    from crewai_rust import RustToolExecutor
+    from fast_crewai import RustToolExecutor
     return RustToolExecutor()
 
 
 @pytest.fixture
 def task_executor():
     """Provide a task executor instance for testing."""
-    from crewai_rust import RustTaskExecutor
+    from fast_crewai import RustTaskExecutor
     return RustTaskExecutor()
 
 
@@ -150,11 +150,11 @@ def pytest_runtest_setup(item):
     # Skip tests that require Rust if it's not available
     if item.get_closest_marker("rust_required"):
         try:
-            from crewai_rust import is_rust_available
+            from fast_crewai import is_rust_available
             if not is_rust_available():
                 pytest.skip("Rust acceleration not available")
         except ImportError:
-            pytest.skip("crewai_rust package not available")
+            pytest.skip("fast_crewai package not available")
 
     # Skip integration tests if CrewAI is not available
     if item.get_closest_marker("integration"):

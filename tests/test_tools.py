@@ -13,13 +13,13 @@ class TestRustToolExecutor:
 
     def test_import_tool_executor(self):
         """Test that we can import RustToolExecutor."""
-        from crewai_rust import RustToolExecutor
+        from fast_crewai import RustToolExecutor
         executor = RustToolExecutor()
         assert executor is not None
 
     def test_tool_executor_creation(self):
         """Test creating tool executor with different configurations."""
-        from crewai_rust import RustToolExecutor
+        from fast_crewai import RustToolExecutor
 
         # Default configuration
         executor1 = RustToolExecutor()
@@ -31,7 +31,7 @@ class TestRustToolExecutor:
 
     def test_tool_execution_basic(self):
         """Test basic tool execution."""
-        from crewai_rust import RustToolExecutor
+        from fast_crewai import RustToolExecutor
 
         executor = RustToolExecutor()
 
@@ -46,7 +46,7 @@ class TestRustToolExecutor:
 
     def test_tool_recursion_safety(self):
         """Test that tool executor handles recursion safely."""
-        from crewai_rust import RustToolExecutor
+        from fast_crewai import RustToolExecutor
 
         executor = RustToolExecutor(max_recursion_depth=100)
 
@@ -56,7 +56,7 @@ class TestRustToolExecutor:
 
     def test_tool_error_handling(self):
         """Test error handling in tool execution."""
-        from crewai_rust import RustToolExecutor
+        from fast_crewai import RustToolExecutor
 
         executor = RustToolExecutor()
 
@@ -70,7 +70,7 @@ class TestRustToolExecutor:
 
     def test_tool_performance_basic(self):
         """Basic performance test for tool execution."""
-        from crewai_rust import RustToolExecutor
+        from fast_crewai import RustToolExecutor
 
         executor = RustToolExecutor()
 
@@ -91,7 +91,7 @@ class TestToolIntegration:
         """Test that CrewAI tool imports work after shimming."""
         try:
             # Import shim first
-            import crewai_rust.shim
+            import fast_crewai.shim
 
             # Then try to import CrewAI tool components
             from crewai.tools.base_tool import BaseTool
@@ -106,7 +106,7 @@ class TestToolIntegration:
     def test_tool_decorator_integration(self):
         """Test integration with CrewAI tool decorator."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai import tool
 
             @tool
@@ -123,7 +123,7 @@ class TestToolIntegration:
     def test_tool_shimming_behavior(self):
         """Test that tool components are properly shimmed."""
         try:
-            import crewai_rust.shim
+            import fast_crewai.shim
             from crewai.tools.structured_tool import CrewStructuredTool
 
             # Should be able to use CrewStructuredTool
@@ -140,7 +140,7 @@ class TestToolEdgeCases:
 
     def test_tool_with_invalid_recursion_depth(self):
         """Test tool executor with invalid recursion depth."""
-        from crewai_rust import RustToolExecutor
+        from fast_crewai import RustToolExecutor
 
         # Test with zero recursion depth
         try:
@@ -160,7 +160,7 @@ class TestToolEdgeCases:
 
     def test_tool_with_complex_arguments(self):
         """Test tool execution with complex argument structures."""
-        from crewai_rust import RustToolExecutor
+        from fast_crewai import RustToolExecutor
 
         executor = RustToolExecutor()
 
@@ -187,7 +187,7 @@ class TestToolEdgeCases:
 
     def test_tool_concurrent_usage(self):
         """Test that tool executor can be used concurrently."""
-        from crewai_rust import RustToolExecutor
+        from fast_crewai import RustToolExecutor
         import threading
 
         executor = RustToolExecutor()
@@ -223,7 +223,7 @@ class TestToolPerformance:
 
     def test_tool_creation_performance(self):
         """Test performance of tool executor creation."""
-        from crewai_rust import RustToolExecutor
+        from fast_crewai import RustToolExecutor
 
         start_time = time.time()
 
@@ -241,7 +241,7 @@ class TestToolPerformance:
 
     def test_tool_argument_serialization_performance(self):
         """Test performance of argument serialization."""
-        from crewai_rust import RustToolExecutor
+        from fast_crewai import RustToolExecutor
 
         executor = RustToolExecutor()
 

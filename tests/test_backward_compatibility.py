@@ -11,11 +11,11 @@ import sys
 from typing import Any, Dict, List, Optional
 from unittest.mock import patch, MagicMock
 
-# Add the crewai_rust directory to the path for testing
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'crewai_rust'))
+# Add the fast_crewai directory to the path for testing
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'fast_crewai'))
 
 try:
-    from crewai_rust import HAS_RUST_IMPLEMENTATION
+    from fast_crewai import HAS_RUST_IMPLEMENTATION
     RUST_AVAILABLE = HAS_RUST_IMPLEMENTATION
 except ImportError:
     RUST_AVAILABLE = False
@@ -28,12 +28,12 @@ class TestBackwardCompatibility(unittest.TestCase):
         # Clear any existing environment variables that might affect tests
         self.original_env = {}
         env_vars = [
-            'CREWAI_RUST_ACCELERATION',
-            'CREWAI_RUST_MEMORY',
-            'CREWAI_RUST_TOOLS',
-            'CREWAI_RUST_TASKS',
-            'CREWAI_RUST_SERIALIZATION',
-            'CREWAI_RUST_DATABASE'
+            'FAST_CREWAI_ACCELERATION',
+            'FAST_CREWAI_MEMORY',
+            'FAST_CREWAI_TOOLS',
+            'FAST_CREWAI_TASKS',
+            'FAST_CREWAI_SERIALIZATION',
+            'FAST_CREWAI_DATABASE'
         ]
         
         for var in env_vars:
@@ -47,30 +47,30 @@ class TestBackwardCompatibility(unittest.TestCase):
         for var, value in self.original_env.items():
             os.environ[var] = value
 
-    def test_import_crewai_rust(self):
-        """Test that crewai_rust can be imported without errors."""
+    def test_import_fast_crewai(self):
+        """Test that fast_crewai can be imported without errors."""
         try:
-            import crewai_rust
-            self.assertTrue(hasattr(crewai_rust, '__version__'))
-            self.assertTrue(hasattr(crewai_rust, 'HAS_RUST_IMPLEMENTATION'))
+            import fast_crewai
+            self.assertTrue(hasattr(fast_crewai, '__version__'))
+            self.assertTrue(hasattr(fast_crewai, 'HAS_RUST_IMPLEMENTATION'))
         except ImportError as e:
-            self.fail(f"Failed to import crewai_rust: {e}")
+            self.fail(f"Failed to import fast_crewai: {e}")
 
     def test_rust_availability_flag(self):
         """Test that HAS_RUST_IMPLEMENTATION is properly defined."""
-        import crewai_rust
-        self.assertIsInstance(crewai_rust.HAS_RUST_IMPLEMENTATION, bool)
+        import fast_crewai
+        self.assertIsInstance(fast_crewai.HAS_RUST_IMPLEMENTATION, bool)
 
     def test_environment_variable_handling(self):
         """Test that environment variables are handled correctly."""
         # Test with environment variable set to 'true'
-        os.environ['CREWAI_RUST_ACCELERATION'] = '1'
+        os.environ['FAST_CREWAI_ACCELERATION'] = '1'
         
         try:
             # Re-import to test environment variable handling
             import importlib
-            import crewai_rust
-            importlib.reload(crewai_rust)
+            import fast_crewai
+            importlib.reload(fast_crewai)
         except Exception as e:
             # This is expected if Rust components aren't available
             pass
@@ -80,7 +80,7 @@ class TestBackwardCompatibility(unittest.TestCase):
         if not RUST_AVAILABLE:
             # Test that components fall back to Python implementations
             try:
-                from crewai_rust.memory import RustMemoryStorage
+                from fast_crewai.memory import RustMemoryStorage
                 storage = RustMemoryStorage()
                 self.assertEqual(storage.implementation, "python")
             except Exception as e:
@@ -99,7 +99,7 @@ class TestBackwardCompatibility(unittest.TestCase):
         
         for component in components:
             try:
-                from crewai_rust import component
+                from fast_crewai import component
                 self.assertTrue(True)  # Import successful
             except ImportError:
                 # This is expected if Rust components aren't available
@@ -108,7 +108,7 @@ class TestBackwardCompatibility(unittest.TestCase):
     def test_utility_functions(self):
         """Test that utility functions work correctly."""
         try:
-            from crewai_rust.utils import is_rust_available, get_rust_status
+            from fast_crewai.utils import is_rust_available, get_rust_status
             self.assertIsInstance(is_rust_available(), bool)
             self.assertIsInstance(get_rust_status(), dict)
         except ImportError:
@@ -118,8 +118,8 @@ class TestBackwardCompatibility(unittest.TestCase):
     def test_shim_import(self):
         """Test that the shim module can be imported."""
         try:
-            import crewai_rust.shim
-            self.assertTrue(hasattr(crewai_rust.shim, 'enable_rust_acceleration'))
+            import fast_crewai.shim
+            self.assertTrue(hasattr(fast_crewai.shim, 'enable_rust_acceleration'))
         except ImportError:
             # This is expected if shim module isn't available
             pass
@@ -127,7 +127,7 @@ class TestBackwardCompatibility(unittest.TestCase):
     def test_memory_storage_compatibility(self):
         """Test that memory storage maintains API compatibility."""
         try:
-            from crewai_rust.memory import RustMemoryStorage
+            from fast_crewai.memory import RustMemoryStorage
             
             # Test basic functionality
             storage = RustMemoryStorage()
@@ -153,7 +153,7 @@ class TestBackwardCompatibility(unittest.TestCase):
     def test_tool_executor_compatibility(self):
         """Test that tool executor maintains API compatibility."""
         try:
-            from crewai_rust.tools import RustToolExecutor
+            from fast_crewai.tools import RustToolExecutor
             
             # Test basic functionality
             executor = RustToolExecutor(max_recursion_depth=10)
@@ -169,7 +169,7 @@ class TestBackwardCompatibility(unittest.TestCase):
     def test_task_executor_compatibility(self):
         """Test that task executor maintains API compatibility."""
         try:
-            from crewai_rust.tasks import RustTaskExecutor
+            from fast_crewai.tasks import RustTaskExecutor
             
             # Test basic functionality
             executor = RustTaskExecutor()
@@ -187,7 +187,7 @@ class TestBackwardCompatibility(unittest.TestCase):
     def test_serialization_compatibility(self):
         """Test that serialization maintains API compatibility."""
         try:
-            from crewai_rust.serialization import AgentMessage
+            from fast_crewai.serialization import AgentMessage
             
             # Test basic functionality
             message = AgentMessage(
@@ -215,7 +215,7 @@ class TestBackwardCompatibility(unittest.TestCase):
         """Test that database operations maintain API compatibility."""
         try:
             import tempfile
-            from crewai_rust.database import RustSQLiteWrapper
+            from fast_crewai.database import RustSQLiteWrapper
             
             # Test basic functionality
             with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as tmp:
@@ -276,7 +276,7 @@ class TestBackwardCompatibility(unittest.TestCase):
     def test_error_handling(self):
         """Test that error handling works correctly."""
         try:
-            from crewai_rust.memory import RustMemoryStorage
+            from fast_crewai.memory import RustMemoryStorage
             
             # Test with invalid parameters
             storage = RustMemoryStorage()
@@ -292,7 +292,7 @@ class TestBackwardCompatibility(unittest.TestCase):
     def test_configuration_utilities(self):
         """Test configuration utilities."""
         try:
-            from crewai_rust.utils import configure_rust_components, get_environment_info
+            from fast_crewai.utils import configure_rust_components, get_environment_info
             
             # Test configure_rust_components
             configure_rust_components(memory=True, tools=False)
@@ -300,7 +300,7 @@ class TestBackwardCompatibility(unittest.TestCase):
             # Test get_environment_info
             env_info = get_environment_info()
             self.assertIsInstance(env_info, dict)
-            self.assertIn('CREWAI_RUST_MEMORY', env_info)
+            self.assertIn('FAST_CREWAI_MEMORY', env_info)
             
         except ImportError:
             # This is expected if Rust components aren't available
@@ -309,7 +309,7 @@ class TestBackwardCompatibility(unittest.TestCase):
     def test_performance_utilities(self):
         """Test performance utilities."""
         try:
-            from crewai_rust.utils import get_performance_improvements, benchmark_comparison
+            from fast_crewai.utils import get_performance_improvements, benchmark_comparison
             
             # Test get_performance_improvements
             improvements = get_performance_improvements()

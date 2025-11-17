@@ -9,12 +9,12 @@ import os
 import json
 import time
 from typing import Any, Dict, List, Optional
-from . import HAS_RUST_IMPLEMENTATION
+from ._constants import HAS_ACCELERATION_IMPLEMENTATION
 
 # Try to import the Rust implementation
-if HAS_RUST_IMPLEMENTATION:
+if HAS_ACCELERATION_IMPLEMENTATION:
     try:
-        from ._core import RustMemoryStorage as _RustMemoryStorage
+        from ._core import AcceleratedMemoryStorage as _AcceleratedMemoryStorage
         _RUST_AVAILABLE = True
     except ImportError:
         _RUST_AVAILABLE = False
@@ -22,7 +22,7 @@ else:
     _RUST_AVAILABLE = False
 
 
-class RustMemoryStorage:
+class AcceleratedMemoryStorage:
     """
     High-performance memory storage using Rust backend.
     
@@ -43,7 +43,7 @@ class RustMemoryStorage:
         # Check if Rust implementation should be used
         if use_rust is None:
             # Check environment variable
-            env_setting = os.getenv('CREWAI_RUST_MEMORY', 'auto').lower()
+            env_setting = os.getenv('FAST_CREWAI_MEMORY', 'auto').lower()
             if env_setting == 'true':
                 self._use_rust = True
             elif env_setting == 'false':
@@ -56,7 +56,7 @@ class RustMemoryStorage:
         # Initialize the appropriate implementation
         if self._use_rust:
             try:
-                self._storage = _RustMemoryStorage()
+                self._storage = _AcceleratedMemoryStorage()
                 self._implementation = "rust"
             except Exception as e:
                 # Fallback to Python implementation
@@ -202,7 +202,7 @@ class RustMemoryStorage:
             try:
                 # Rust implementation doesn't currently have a reset method
                 # so we'll recreate the storage
-                self._storage = _RustMemoryStorage()
+                self._storage = _AcceleratedMemoryStorage()
             except Exception as e:
                 # Fallback to Python implementation on error
                 print(f"Warning: Rust memory reset failed, using Python fallback: {e}")
@@ -228,4 +228,4 @@ class RustMemoryStorage:
     
     def __repr__(self) -> str:
         """String representation of the storage."""
-        return f"RustMemoryStorage(implementation={self.implementation}, items={len(self)})"
+        return f"AcceleratedMemoryStorage(implementation={self.implementation}, items={len(self)})"

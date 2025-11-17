@@ -8,9 +8,9 @@ To use these components, you must explicitly import and use them in your code.
 They do not automatically replace the standard CrewAI components.
 
 However, automatic shimming is available through:
-1. Environment variable: CREWAI_ACCELERATE_ACCELERATION=1
-2. Import hook: import crewai_accelerate.shim
-3. Bootstrap script: crewai-accelerate-bootstrap
+1. Environment variable: FAST_CREWAI_ACCELERATION=1
+2. Import hook: import fast_crewai.shim
+3. Bootstrap script: fast-crewai-bootstrap
 
 The components automatically fall back to Python implementations when
 acceleration is not available, ensuring zero breaking changes.
@@ -24,7 +24,7 @@ __author__ = "CrewAI"
 
 # Auto-enable acceleration if environment variable is set
 # Note: We do this after defining __version__ to avoid circular imports
-if os.environ.get('CREWAI_ACCELERATE_ACCELERATION') == '1':
+if os.environ.get('FAST_CREWAI_ACCELERATION') == '1':
     try:
         # Import locally to avoid circular imports
         def _enable_acceleration():
@@ -82,7 +82,7 @@ except ImportError:
 from .memory import AcceleratedMemoryStorage
 from .tools import AcceleratedToolExecutor
 from .tasks import AcceleratedTaskExecutor
-from .serialization import AcceleratedMessage
+from .serialization import AgentMessage, RustSerializer
 from .database import AcceleratedSQLiteWrapper
 
 # Import utility functions
@@ -106,7 +106,8 @@ __all__ = [
     "AcceleratedMemoryStorage",
     "AcceleratedToolExecutor",
     "AcceleratedTaskExecutor",
-    "AcceleratedMessage",
+    "AgentMessage",
+    "RustSerializer",
     "AcceleratedSQLiteWrapper",
     "is_acceleration_available",
     "get_acceleration_status",

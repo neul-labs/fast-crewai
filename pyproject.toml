@@ -3,7 +3,7 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "crewai-accelerate"
+name = "fast-crewai"
 requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -30,18 +30,15 @@ authors = [
 keywords = ["crewai", "acceleration", "performance", "ai", "agents", "optimization"]
 
 [project.scripts]
-crewai-accelerate = "crewai_accelerate.__main__:main"
-crewai-accelerate-bootstrap = "crewai_accelerate.bootstrap:main"
+fast-crewai = "fast_crewai.__main__:main"
+fast-crewai-bootstrap = "fast_crewai.bootstrap:main"
 
 [project.urls]
-Homepage = "https://github.com/crewAI/crewai"
-Documentation = "https://github.com/crewAI/crewai/blob/main/docs/crewai-accelerate/README.md"
-Repository = "https://github.com/crewAI/crewai"
-"Bug Tracker" = "https://github.com/crewAI/crewai/issues"
+Homepage = "https://github.com/neul-labs/fast-crewai"
+Documentation = "https://github.com/neul-labs/fast-crewai/blob/main/docs/README.md"
+Repository = "https://github.com/neul-labs/fast-crewai"
+"Bug Tracker" = "https://github.com/neul-labs/fast-crewai/issues"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
-module-name = "crewai_accelerate._core"
-
-[tool.maturin.targets]
-crewai_accelerate = { path = "src/lib.rs" }
+module-name = "fast_crewai._core"

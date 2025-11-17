@@ -20,7 +20,7 @@ Comprehensive benchmarks and optimization strategies for CrewAI Rust.
 
 ```python
 # Simple performance test
-from crewai_rust import RustMemoryStorage, RustToolExecutor, RustTaskExecutor, AgentMessage
+from fast_crewai import RustMemoryStorage, RustToolExecutor, RustTaskExecutor, AgentMessage
 import time
 
 def benchmark_memory():
@@ -74,7 +74,7 @@ benchmark_serialization()
 
 ```python
 import time
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 # Benchmark memory operations
 def benchmark_memory():
@@ -110,7 +110,7 @@ benchmark_memory()
 
 **Optimal Usage:**
 ```python
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 # Large batch operations
 storage = RustMemoryStorage()
@@ -144,8 +144,8 @@ storage = RustMemoryStorage(
 
 # Environment tuning
 import os
-os.environ['CREWAI_RUST_MEMORY_THREADS'] = '4'  # Parallel processing
-os.environ['CREWAI_RUST_MEMORY_BATCH_SIZE'] = '100'  # Batch operations
+os.environ['FAST_CREWAI_MEMORY_THREADS'] = '4'  # Parallel processing
+os.environ['FAST_CREWAI_MEMORY_BATCH_SIZE'] = '100'  # Batch operations
 ```
 
 ## Tool Execution Optimization
@@ -153,7 +153,7 @@ os.environ['CREWAI_RUST_MEMORY_BATCH_SIZE'] = '100'  # Batch operations
 ### Recursion Safety
 
 ```python
-from crewai_rust import RustToolExecutor
+from fast_crewai import RustToolExecutor
 
 # Configure for deep tool chains
 executor = RustToolExecutor(max_recursion_depth=10000)
@@ -187,7 +187,7 @@ for tool, args in zip(tools, args_list):
 ### Concurrent Task Design
 
 ```python
-from crewai_rust import RustTaskExecutor
+from fast_crewai import RustTaskExecutor
 
 executor = RustTaskExecutor()
 
@@ -207,8 +207,8 @@ results = executor.execute_concurrent_tasks(tasks)
 ```python
 # Environment tuning for task execution
 import os
-os.environ['CREWAI_RUST_TASK_THREADS'] = '8'  # Match CPU cores
-os.environ['CREWAI_RUST_TASK_QUEUE_SIZE'] = '1000'
+os.environ['FAST_CREWAI_TASK_THREADS'] = '8'  # Match CPU cores
+os.environ['FAST_CREWAI_TASK_QUEUE_SIZE'] = '1000'
 ```
 
 ## Serialization Optimization
@@ -216,7 +216,7 @@ os.environ['CREWAI_RUST_TASK_QUEUE_SIZE'] = '1000'
 ### Efficient Message Handling
 
 ```python
-from crewai_rust.serialization import AgentMessage, RustSerializer
+from fast_crewai.serialization import AgentMessage, RustSerializer
 
 # Batch serialization for best performance
 serializer = RustSerializer()
@@ -234,7 +234,7 @@ json_strings = serializer.serialize_batch(messages)
 ### Connection Pool Optimization
 
 ```python
-from crewai_rust.database import RustSQLiteWrapper
+from fast_crewai.database import RustSQLiteWrapper
 
 # Configure connection pool
 db = RustSQLiteWrapper(
@@ -260,7 +260,7 @@ for task, metadata, date, score in memories:
 ```python
 import time
 from crewai import Agent, Task, Crew
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 
 # Test with and without Rust acceleration
 def test_crewai_performance():
@@ -274,7 +274,7 @@ def test_crewai_performance():
     python_time = time.time() - start
     
     # Test with Rust acceleration
-    import crewai_rust.shim  # Enable acceleration
+    import fast_crewai.shim  # Enable acceleration
     
     start = time.time()
     crew = Crew(agents=[agent], tasks=[task])
@@ -295,7 +295,7 @@ test_crewai_performance()
 ### Performance Monitoring
 
 ```python
-from crewai_rust.utils import get_performance_improvements, get_rust_status
+from fast_crewai.utils import get_performance_improvements, get_rust_status
 
 # Get expected performance improvements
 improvements = get_performance_improvements()
@@ -312,7 +312,7 @@ print(f"Components: {status['components']}")
 
 ### High Impact Optimizations
 
-- [ ] Enable Rust acceleration: `import crewai_rust.shim`
+- [ ] Enable Rust acceleration: `import fast_crewai.shim`
 - [ ] Use batch operations for memory storage
 - [ ] Configure appropriate recursion limits for tools
 - [ ] Design tasks for parallel execution
@@ -320,7 +320,7 @@ print(f"Components: {status['components']}")
 
 ### Environment Tuning
 
-- [ ] Set `CREWAI_RUST_ACCELERATION=1`
+- [ ] Set `FAST_CREWAI_ACCELERATION=1`
 - [ ] Configure thread counts for your CPU
 - [ ] Adjust batch sizes for your memory constraints
 - [ ] Enable appropriate logging levels
@@ -338,12 +338,12 @@ print(f"Components: {status['components']}")
 
 ```python
 # Check what's actually being used
-from crewai_rust import get_environment_info
+from fast_crewai import get_environment_info
 info = get_environment_info()
 print(info)
 
 # Verify Rust components are active
-from crewai_rust import RustMemoryStorage
+from fast_crewai import RustMemoryStorage
 storage = RustMemoryStorage()
 assert storage.implementation == "rust", "Using Python fallback!"
 ```
@@ -352,7 +352,7 @@ assert storage.implementation == "rust", "Using Python fallback!"
 
 ```python
 import cProfile
-import crewai_rust.shim
+import fast_crewai.shim
 
 def your_workflow():
     # Your CrewAI code here
