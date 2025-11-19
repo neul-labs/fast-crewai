@@ -18,6 +18,11 @@ help:
 	@echo "  test-fast         - Run fast tests only"
 	@echo "  test-coverage     - Run tests with coverage report"
 	@echo "  test-compatibility- Test compatibility with CrewAI"
+	@echo "  test-comparison   - Compare CrewAI performance with/without Fast-CrewAI"
+	@echo "  test-comparison-keep - Compare performance (keeping environment)"
+	@echo "  test-comparison-extensive - Extensive comparison (1000 iterations)"
+	@echo "  benchmark         - Run performance benchmarks"
+	@echo "  benchmark-keep    - Run benchmarks (keeping environment)"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  lint              - Run linting checks"
@@ -60,6 +65,26 @@ test-compatibility:
 test-compatibility-keep:
 	@echo "Running CrewAI compatibility tests (keeping environment)..."
 	./scripts/test_crewai_compatibility.sh --keep-env
+
+test-comparison:
+	@echo "Running CrewAI vs Fast-CrewAI performance comparison..."
+	./scripts/test_crewai_comparison.sh
+
+test-comparison-keep:
+	@echo "Running CrewAI vs Fast-CrewAI performance comparison (keeping environment)..."
+	./scripts/test_crewai_comparison.sh --keep-env
+
+test-comparison-extensive:
+	@echo "Running extensive CrewAI vs Fast-CrewAI performance comparison (1000 iterations)..."
+	./scripts/test_crewai_comparison.sh --iterations 1000 --keep-env
+
+benchmark:
+	@echo "Running Fast-CrewAI benchmarks..."
+	./scripts/test_benchmarking.sh
+
+benchmark-keep:
+	@echo "Running Fast-CrewAI benchmarks (keeping environment)..."
+	./scripts/test_benchmarking.sh --keep-env
 
 # Code quality
 lint:

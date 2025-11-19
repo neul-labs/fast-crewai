@@ -65,15 +65,39 @@ class PerformanceBenchmark:
         
         # Benchmark Rust implementation
         rust_results = self._benchmark_rust_memory(test_data, search_queries)
-        
+
         # Calculate improvements
         improvements = {}
         for key in python_results:
-            if key in rust_results and rust_results[key] > 0:
-                improvements[key] = python_results[key] / rust_results[key]
+            if key in rust_results:
+                if key == 'operations_per_second':
+                    # Handle operations_per_second which can be dict or float
+                    if isinstance(python_results[key], dict) and isinstance(rust_results[key], dict):
+                        # Both are dicts (e.g., memory, serialization, database)
+                        improvements[key] = {}
+                        for op_key in python_results[key]:
+                            if op_key in rust_results[key] and isinstance(rust_results[key][op_key], (int, float)) and rust_results[key][op_key] > 0:
+                                improvements[key][op_key] = python_results[key][op_key] / rust_results[key][op_key]
+                            else:
+                                improvements[key][op_key] = float('inf')
+                    elif isinstance(python_results[key], (int, float)) and isinstance(rust_results[key], (int, float)):
+                        # Both are numbers (e.g., tools)
+                        if rust_results[key] > 0:
+                            improvements[key] = python_results[key] / rust_results[key]
+                        else:
+                            improvements[key] = float('inf')
+                    else:
+                        improvements[key] = float('inf')
+                elif isinstance(python_results[key], (int, float)) and isinstance(rust_results[key], (int, float)):
+                    if rust_results[key] > 0:
+                        improvements[key] = python_results[key] / rust_results[key]
+                    else:
+                        improvements[key] = float('inf')
+                else:
+                    improvements[key] = float('inf')
             else:
                 improvements[key] = float('inf')
-        
+
         return {
             'python': python_results,
             'rust': rust_results,
@@ -161,15 +185,39 @@ class PerformanceBenchmark:
         
         # Benchmark Rust implementation
         rust_results = self._benchmark_rust_tools(test_tools)
-        
+
         # Calculate improvements
         improvements = {}
         for key in python_results:
-            if key in rust_results and rust_results[key] > 0:
-                improvements[key] = python_results[key] / rust_results[key]
+            if key in rust_results:
+                if key == 'operations_per_second':
+                    # Handle operations_per_second which can be dict or float
+                    if isinstance(python_results[key], dict) and isinstance(rust_results[key], dict):
+                        # Both are dicts (e.g., memory, serialization, database)
+                        improvements[key] = {}
+                        for op_key in python_results[key]:
+                            if op_key in rust_results[key] and isinstance(rust_results[key][op_key], (int, float)) and rust_results[key][op_key] > 0:
+                                improvements[key][op_key] = python_results[key][op_key] / rust_results[key][op_key]
+                            else:
+                                improvements[key][op_key] = float('inf')
+                    elif isinstance(python_results[key], (int, float)) and isinstance(rust_results[key], (int, float)):
+                        # Both are numbers (e.g., tools)
+                        if rust_results[key] > 0:
+                            improvements[key] = python_results[key] / rust_results[key]
+                        else:
+                            improvements[key] = float('inf')
+                    else:
+                        improvements[key] = float('inf')
+                elif isinstance(python_results[key], (int, float)) and isinstance(rust_results[key], (int, float)):
+                    if rust_results[key] > 0:
+                        improvements[key] = python_results[key] / rust_results[key]
+                    else:
+                        improvements[key] = float('inf')
+                else:
+                    improvements[key] = float('inf')
             else:
                 improvements[key] = float('inf')
-        
+
         return {
             'python': python_results,
             'rust': rust_results,
@@ -243,11 +291,35 @@ class PerformanceBenchmark:
         # Calculate improvements
         improvements = {}
         for key in python_results:
-            if key in rust_results and rust_results[key] > 0:
-                improvements[key] = python_results[key] / rust_results[key]
+            if key in rust_results:
+                if key == 'operations_per_second':
+                    # Handle operations_per_second which can be dict or float
+                    if isinstance(python_results[key], dict) and isinstance(rust_results[key], dict):
+                        # Both are dicts (e.g., memory, serialization, database)
+                        improvements[key] = {}
+                        for op_key in python_results[key]:
+                            if op_key in rust_results[key] and isinstance(rust_results[key][op_key], (int, float)) and rust_results[key][op_key] > 0:
+                                improvements[key][op_key] = python_results[key][op_key] / rust_results[key][op_key]
+                            else:
+                                improvements[key][op_key] = float('inf')
+                    elif isinstance(python_results[key], (int, float)) and isinstance(rust_results[key], (int, float)):
+                        # Both are numbers (e.g., tools)
+                        if rust_results[key] > 0:
+                            improvements[key] = python_results[key] / rust_results[key]
+                        else:
+                            improvements[key] = float('inf')
+                    else:
+                        improvements[key] = float('inf')
+                elif isinstance(python_results[key], (int, float)) and isinstance(rust_results[key], (int, float)):
+                    if rust_results[key] > 0:
+                        improvements[key] = python_results[key] / rust_results[key]
+                    else:
+                        improvements[key] = float('inf')
+                else:
+                    improvements[key] = float('inf')
             else:
                 improvements[key] = float('inf')
-        
+
         return {
             'python': python_results,
             'rust': rust_results,
@@ -365,15 +437,39 @@ class PerformanceBenchmark:
             
             # Benchmark Rust implementation
             rust_results = self._benchmark_rust_database(rust_db_path, test_data)
-            
+
             # Calculate improvements
             improvements = {}
             for key in python_results:
-                if key in rust_results and rust_results[key] > 0:
-                    improvements[key] = python_results[key] / rust_results[key]
+                if key in rust_results:
+                    if key == 'operations_per_second':
+                        # Handle operations_per_second which can be dict or float
+                        if isinstance(python_results[key], dict) and isinstance(rust_results[key], dict):
+                            # Both are dicts (e.g., memory, serialization, database)
+                            improvements[key] = {}
+                            for op_key in python_results[key]:
+                                if op_key in rust_results[key] and isinstance(rust_results[key][op_key], (int, float)) and rust_results[key][op_key] > 0:
+                                    improvements[key][op_key] = python_results[key][op_key] / rust_results[key][op_key]
+                                else:
+                                    improvements[key][op_key] = float('inf')
+                        elif isinstance(python_results[key], (int, float)) and isinstance(rust_results[key], (int, float)):
+                            # Both are numbers (e.g., tools)
+                            if rust_results[key] > 0:
+                                improvements[key] = python_results[key] / rust_results[key]
+                            else:
+                                improvements[key] = float('inf')
+                        else:
+                            improvements[key] = float('inf')
+                    elif isinstance(python_results[key], (int, float)) and isinstance(rust_results[key], (int, float)):
+                        if rust_results[key] > 0:
+                            improvements[key] = python_results[key] / rust_results[key]
+                        else:
+                            improvements[key] = float('inf')
+                    else:
+                        improvements[key] = float('inf')
                 else:
                     improvements[key] = float('inf')
-            
+
             return {
                 'python': python_results,
                 'rust': rust_results,

@@ -1,0 +1,33 @@
+## Troubleshooting Configuration
+
+### Components Not Activating
+
+If acceleration isn't working:
+
+1. Check if environment variables are set correctly:
+```python
+from fast_crewai import get_environment_info
+print(get_environment_info())
+```
+
+2. Verify Rust availability:
+```python
+from fast_crewai import is_acceleration_available
+print("Rust available:", is_acceleration_available())
+```
+
+### Performance Degradation
+
+If performance is worse with acceleration:
+
+- Disable components individually to identify issues
+- Use `FAST_CREWAI_ACCELERATION=0` as a baseline
+- Consider increasing connection pool sizes for database-heavy workloads
+
+### Compatibility Issues
+
+If experiencing compatibility problems:
+
+- Start with `FAST_CREWAI_ACCELERATION=auto` for safe fallbacks
+- Disable specific components that cause issues
+- Enable components one by one to identify the problematic component

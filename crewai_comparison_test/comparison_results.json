@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-11-19T15:59:38+00:00",
+  "workflow_type": "basic",
+  "iterations": 3,
+  "baseline_average_time": 27.88116722000000000000,
+  "accelerated_average_time": 24.49817734700000000000,
+  "improvement_factor": 1.13,
+  "time_saved": 3.38298987300000000000,
+  "percent_improvement": 13.00
+}
