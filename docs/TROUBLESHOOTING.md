@@ -15,9 +15,8 @@ Common issues and solutions for CrewAI Rust integration.
 
 1. **Rebuild from source:**
 ```bash
-pip uninstall crewai-rust
-pip install maturin
-maturin develop
+uv sync --dev
+uv run maturin develop
 ```
 
 2. **Check Rust installation:**
@@ -39,8 +38,8 @@ source ~/.cargo/env
 # Install Visual C++ Build Tools
 # Download from: https://visualstudio.microsoft.com/visual-cpp-build-tools/
 # Restart terminal and try again
-pip install --upgrade setuptools wheel
-pip install crewai-rust
+uv sync --dev
+uv run maturin develop
 ```
 
 **macOS:**

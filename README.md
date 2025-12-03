@@ -2,7 +2,7 @@
 
 **Drop-in performance acceleration for CrewAI** - Get 2-5x faster memory, database, and execution with zero code changes to your existing CrewAI projects.
 
-[![Tests](https://github.com/neul-labs/fast-crewai/workflows/Tests/badge.svg)](https://github.com/neul-labs/fast-crewai/actions)
+[![CI](https://github.com/neul-labs/fast-crewai/workflows/CI/badge.svg)](https://github.com/neul-labs/fast-crewai/actions)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
 ## 🚀 Quick Start
@@ -10,7 +10,10 @@
 Get your CrewAI code running faster in seconds:
 
 ```bash
-# Install the acceleration layer
+# Install the acceleration layer (using uv - recommended)
+uv add fast-crewai
+
+# Or with pip
 pip install fast-crewai
 
 # Add one line to your existing CrewAI code
@@ -47,18 +50,25 @@ The acceleration happens automatically through **dynamic inheritance** - your to
 
 ### Get Started Quickly
 ```bash
+# Using uv (recommended)
+uv add fast-crewai
+
+# Or with pip
 pip install fast-crewai
 ```
 
 ### For Development
 ```bash
+# Install uv if you haven't already
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone and setup
 git clone https://github.com/neul-labs/fast-crewai.git
 cd fast-crewai
-pip install -e .
+uv sync --dev
 
-# Optional: Build Rust extensions for maximum performance
-pip install maturin
-maturin develop --release
+# Build Rust extensions for maximum performance
+uv run maturin develop --release
 ```
 
 ## 🧪 Testing & Verification
@@ -181,16 +191,10 @@ make benchmark                      # Test components in isolation
 ## 📚 Learn More
 
 - **[Architecture](docs/ARCHITECTURE.md)**: How the acceleration system works under the hood
-- **[Performance](docs/PERFORMANCE.md)**: Detailed benchmarking and optimization strategies
-- **[Quick Start](docs/QUICK_START.md)**: Getting up and running quickly
-- **[Installation](docs/INSTALLATION.md)**: Detailed installation instructions
-- **[Configuration](docs/CONFIGURATION.md)**: Fine-tuning Fast-CrewAI for your needs
 - **[API Reference](docs/API_REFERENCE.md)**: Complete API documentation
-- **[Development](docs/DEVELOPMENT.md)**: Contributing guidelines and code structure
-- **[Testing](docs/TESTING.md)**: Running tests and benchmarks
+- **[Configuration](docs/CONFIGURATION.md)**: Fine-tuning Fast-CrewAI for your needs
+- **[Performance](docs/PERFORMANCE.md)**: Detailed benchmarking and optimization
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)**: Common issues and solutions
-- **[Compatibility](docs/COMPATIBILITY.md)**: Understanding compatibility with CrewAI versions
-- **[Migration](docs/MIGRATION.md)**: Moving from standard CrewAI to Fast-CrewAI
 
 For complete documentation, visit the [docs/](docs/) directory.
 

@@ -10,20 +10,23 @@ Fast-CrewAI is a **drop-in performance enhancement layer** that provides high-pe
 
 ### Development Setup
 ```bash
-# Install build dependencies
-pip install maturin
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install all dependencies (includes maturin)
+uv sync --dev
 
 # Build Rust extension in development mode (fastest iteration)
-maturin develop
+uv run maturin develop
 
 # Force rebuild after Rust changes
-maturin develop --force
+uv run maturin develop --force
 ```
 
 ### Testing
 ```bash
 # Run all tests
-python -m pytest
+uv run pytest
 
 # Fast tests only (exclude slow/integration/performance)
 ./scripts/run_tests.sh fast
@@ -34,10 +37,10 @@ python -m pytest
 ./scripts/run_tests.sh performance
 
 # Single test file
-python -m pytest tests/test_memory.py -v
+uv run pytest tests/test_memory.py -v
 
 # Single test function
-python -m pytest tests/test_memory.py::test_rust_memory_storage -v
+uv run pytest tests/test_memory.py::test_rust_memory_storage -v
 
 # Tests with coverage
 ./scripts/run_tests.sh coverage
@@ -46,13 +49,13 @@ python -m pytest tests/test_memory.py::test_rust_memory_storage -v
 ### Build and Distribution
 ```bash
 # Release build (optimized)
-maturin build --release
+uv run maturin build --release
 
 # Build for specific Python version
-maturin develop --python python3.10
+uv run maturin develop --python python3.10
 
 # Check package structure
-python -c "import fast_crewai; print(fast_crewai.__file__)"
+uv run python -c "import fast_crewai; print(fast_crewai.__file__)"
 ```
 
 ## Core Architecture

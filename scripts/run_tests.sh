@@ -6,11 +6,15 @@ set -e
 echo "CrewAI Accelerate Test Runner"
 echo "========================="
 
-# Check if pytest is available
-if ! command -v pytest &> /dev/null; then
-    echo "pytest not found. Installing test dependencies..."
-    pip install -r tests/requirements.txt
+# Check if uv is installed
+if ! command -v uv &> /dev/null; then
+    echo "uv not found. Please install it first:"
+    echo "  curl -LsSf https://astral.sh/uv/install.sh | sh"
+    exit 1
 fi
+
+# Ensure dependencies are installed
+uv sync --dev 2>/dev/null || true
 
 # Function to run tests with error handling
 run_tests() {
@@ -19,10 +23,10 @@ run_tests() {
 
     echo ""
     echo "$description"
-    echo "Command: $test_cmd"
+    echo "Command: uv run $test_cmd"
     echo "---"
 
-    if eval "$test_cmd"; then
+    if uv run $test_cmd; then
         echo "$description - PASSED"
     else
         echo "$description - FAILED"

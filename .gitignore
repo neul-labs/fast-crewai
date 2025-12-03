@@ -31,7 +31,6 @@ MANIFEST
 # Rust/Maturin build artifacts
 /target/
 **/*.rs.bk
-Cargo.lock
 *.so
 *.dylib
 *.dll
@@ -116,3 +115,6 @@ dmypy.json
 # Documentation build
 docs/_build/
 /site
+
+# uv
+uv.lock
