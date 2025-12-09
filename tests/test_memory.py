@@ -2,10 +2,11 @@
 Tests for memory storage components.
 """
 
-import pytest
-import time
 import json
-from typing import Dict, Any, List
+import time
+from typing import Any, Dict, List
+
+import pytest
 
 
 class TestAcceleratedMemoryStorage:
@@ -14,6 +15,7 @@ class TestAcceleratedMemoryStorage:
     def test_import_memory_storage(self):
         """Test that we can import AcceleratedMemoryStorage."""
         from fast_crewai import AcceleratedMemoryStorage
+
         storage = AcceleratedMemoryStorage()
         assert storage is not None
 
@@ -43,8 +45,8 @@ class TestAcceleratedMemoryStorage:
         from fast_crewai import AcceleratedMemoryStorage
 
         storage = AcceleratedMemoryStorage()
-        assert hasattr(storage, 'implementation')
-        assert storage.implementation in ['rust', 'python']
+        assert hasattr(storage, "implementation")
+        assert storage.implementation in ["rust", "python"]
 
     def test_memory_with_complex_metadata(self):
         """Test memory storage with complex metadata."""
@@ -58,8 +60,8 @@ class TestAcceleratedMemoryStorage:
             "confidence": 0.95,
             "nested": {
                 "category": "technology",
-                "subcategory": "artificial_intelligence"
-            }
+                "subcategory": "artificial_intelligence",
+            },
         }
 
         storage.save("Complex document with rich metadata", complex_metadata)
@@ -112,12 +114,13 @@ class TestMemoryIntegration:
         """Test that CrewAI memory imports work after shimming."""
         try:
             # Import shim first
-            import fast_crewai.shim
-
+            from crewai.memory.long_term.long_term_memory import LongTermMemory
+            from crewai.memory.short_term.short_term_memory import \
+                ShortTermMemory
             # Then try to import CrewAI memory components
             from crewai.memory.storage.rag_storage import RAGStorage
-            from crewai.memory.short_term.short_term_memory import ShortTermMemory
-            from crewai.memory.long_term.long_term_memory import LongTermMemory
+
+            import fast_crewai.shim
 
             assert True  # If we get here, imports worked
 
@@ -128,14 +131,15 @@ class TestMemoryIntegration:
     def test_memory_component_replacement(self):
         """Test that memory components are properly replaced by shim."""
         try:
-            import fast_crewai.shim
             from crewai.memory.storage.rag_storage import RAGStorage
+
+            import fast_crewai.shim
 
             # Try to create storage - should use Rust implementation if available
             storage = RAGStorage(type="test")
 
             # Basic functionality test
-            if hasattr(storage, 'save'):
+            if hasattr(storage, "save"):
                 storage.save("test", {"shim": "test"})
 
             assert True  # If we get here, shimming worked
@@ -194,7 +198,7 @@ class TestMemoryEdgeCases:
             "boolean": True,
             "null": None,
             "list": [1, 2, 3],
-            "nested": {"deep": {"value": "test"}}
+            "nested": {"deep": {"value": "test"}},
         }
 
         storage.save("JSON test document", problematic_metadata)

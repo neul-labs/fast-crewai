@@ -2,28 +2,22 @@
 Pytest configuration for CrewAI Rust tests.
 """
 
-import pytest
 import os
 import sys
+
+import pytest
 
 
 def pytest_configure(config):
     """Configure pytest with custom markers and settings."""
     config.addinivalue_line(
-        "markers",
-        "integration: marks tests as integration tests (may require CrewAI)"
+        "markers", "integration: marks tests as integration tests (may require CrewAI)"
     )
+    config.addinivalue_line("markers", "performance: marks tests as performance tests")
+    config.addinivalue_line("markers", "slow: marks tests as slow running")
     config.addinivalue_line(
         "markers",
-        "performance: marks tests as performance tests"
-    )
-    config.addinivalue_line(
-        "markers",
-        "slow: marks tests as slow running"
-    )
-    config.addinivalue_line(
-        "markers",
-        "rust_required: marks tests that require Rust acceleration to be available"
+        "rust_required: marks tests that require Rust acceleration to be available",
     )
 
 
@@ -32,6 +26,7 @@ def rust_available():
     """Check if Rust acceleration is available."""
     try:
         from fast_crewai import is_rust_available
+
         return is_rust_available()
     except ImportError:
         return False
@@ -42,6 +37,7 @@ def crewai_available():
     """Check if CrewAI is available for integration testing."""
     try:
         import crewai
+
         return True
     except ImportError:
         return False
@@ -51,16 +47,16 @@ def crewai_available():
 def clean_environment():
     """Provide a clean environment for testing."""
     # Store original environment
-    original_env = os.environ.get('FAST_CREWAI_ACCELERATION')
+    original_env = os.environ.get("FAST_CREWAI_ACCELERATION")
     original_modules = {}
 
     # Modules that might be affected by testing
     test_modules = [
-        'fast_crewai.shim',
-        'crewai.memory.storage.rag_storage',
-        'crewai.tools.structured_tool',
-        'crewai.task',
-        'crewai.crew'
+        "fast_crewai.shim",
+        "crewai.memory.storage.rag_storage",
+        "crewai.tools.structured_tool",
+        "crewai.task",
+        "crewai.crew",
     ]
 
     for module in test_modules:
@@ -71,9 +67,9 @@ def clean_environment():
 
     # Restore environment
     if original_env is None:
-        os.environ.pop('FAST_CREWAI_ACCELERATION', None)
+        os.environ.pop("FAST_CREWAI_ACCELERATION", None)
     else:
-        os.environ['FAST_CREWAI_ACCELERATION'] = original_env
+        os.environ["FAST_CREWAI_ACCELERATION"] = original_env
 
     # Restore modules
     for module, mod_obj in original_modules.items():
@@ -84,6 +80,7 @@ def clean_environment():
 def memory_storage():
     """Provide a memory storage instance for testing."""
     from fast_crewai import RustMemoryStorage
+
     return RustMemoryStorage()
 
 
@@ -91,6 +88,7 @@ def memory_storage():
 def tool_executor():
     """Provide a tool executor instance for testing."""
     from fast_crewai import RustToolExecutor
+
     return RustToolExecutor()
 
 
@@ -98,6 +96,7 @@ def tool_executor():
 def task_executor():
     """Provide a task executor instance for testing."""
     from fast_crewai import RustTaskExecutor
+
     return RustTaskExecutor()
 
 
@@ -109,7 +108,7 @@ def sample_documents():
         "Text discussing automation in manufacturing",
         "Research paper on neural networks and deep learning",
         "Article about robotics and computer vision",
-        "Study on natural language processing applications"
+        "Study on natural language processing applications",
     ]
 
 
@@ -121,7 +120,7 @@ def sample_metadata():
         {"topic": "automation", "category": "industry", "priority": "medium"},
         {"topic": "ML", "category": "research", "priority": "high"},
         {"topic": "robotics", "category": "engineering", "priority": "medium"},
-        {"topic": "NLP", "category": "research", "priority": "high"}
+        {"topic": "NLP", "category": "research", "priority": "high"},
     ]
 
 
@@ -151,6 +150,7 @@ def pytest_runtest_setup(item):
     if item.get_closest_marker("rust_required"):
         try:
             from fast_crewai import is_rust_available
+
             if not is_rust_available():
                 pytest.skip("Rust acceleration not available")
         except ImportError:
@@ -168,22 +168,19 @@ def pytest_runtest_setup(item):
 def pytest_addoption(parser):
     """Add custom command line options."""
     parser.addoption(
-        "--run-slow",
-        action="store_true",
-        default=False,
-        help="run slow tests"
+        "--run-slow", action="store_true", default=False, help="run slow tests"
     )
     parser.addoption(
         "--run-integration",
         action="store_true",
         default=False,
-        help="run integration tests"
+        help="run integration tests",
     )
     parser.addoption(
         "--run-performance",
         action="store_true",
         default=False,
-        help="run performance tests"
+        help="run performance tests",
     )
 
 

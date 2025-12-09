@@ -5,15 +5,17 @@ This module provides accelerated task execution by wrapping CrewAI's Task
 and Crew classes with performance optimizations while maintaining full API compatibility.
 """
 
-import os
 import asyncio
-from typing import Any, Dict, Optional, List
+import os
+from typing import Any, Dict, List, Optional
+
 from ._constants import HAS_ACCELERATION_IMPLEMENTATION
 
 # Try to import the Rust implementation
 if HAS_ACCELERATION_IMPLEMENTATION:
     try:
         from ._core import AcceleratedTaskExecutor as _RustTaskExecutor
+
         _RUST_AVAILABLE = True
     except ImportError:
         _RUST_AVAILABLE = False
@@ -44,7 +46,9 @@ def create_accelerated_task():
             def __init__(self, *args, **kwargs):
                 """Initialize with acceleration support."""
                 super().__init__(*args, **kwargs)
-                self._acceleration_enabled = os.getenv('FAST_CREWAI_TASKS', 'auto').lower() in ('true', 'auto')
+                self._acceleration_enabled = os.getenv(
+                    "FAST_CREWAI_TASKS", "auto"
+                ).lower() in ("true", "auto")
                 self._execution_count = 0
 
             def execute(self, *args, **kwargs):
@@ -111,7 +115,9 @@ def create_accelerated_crew():
             def __init__(self, *args, **kwargs):
                 """Initialize with acceleration support."""
                 super().__init__(*args, **kwargs)
-                self._acceleration_enabled = os.getenv('FAST_CREWAI_TASKS', 'auto').lower() in ('true', 'auto')
+                self._acceleration_enabled = os.getenv(
+                    "FAST_CREWAI_TASKS", "auto"
+                ).lower() in ("true", "auto")
 
             def kickoff(self, *args, **kwargs):
                 """
@@ -163,11 +169,7 @@ class AcceleratedTaskExecutor:
     CrewAI, use AcceleratedTask and AcceleratedCrew instead.
     """
 
-    def __init__(
-        self,
-        max_concurrent_tasks: int = 10,
-        use_rust: Optional[bool] = None
-    ):
+    def __init__(self, max_concurrent_tasks: int = 10, use_rust: Optional[bool] = None):
         """
         Initialize the task executor.
 
@@ -182,10 +184,10 @@ class AcceleratedTaskExecutor:
         # Check if Rust implementation should be used
         if use_rust is None:
             # Check environment variable
-            env_setting = os.getenv('FAST_CREWAI_TASKS', 'auto').lower()
-            if env_setting == 'true':
+            env_setting = os.getenv("FAST_CREWAI_TASKS", "auto").lower()
+            if env_setting == "true":
                 self._use_rust = True
-            elif env_setting == 'false':
+            elif env_setting == "false":
                 self._use_rust = False
             else:  # 'auto' or other values
                 self._use_rust = _RUST_AVAILABLE
@@ -208,12 +210,7 @@ class AcceleratedTaskExecutor:
             self._implementation = "python"
             self._active_tasks = 0
 
-    async def execute_task(
-        self,
-        task_func,
-        *args,
-        **kwargs
-    ) -> Any:
+    async def execute_task(self, task_func, *args, **kwargs) -> Any:
         """
         Execute a task asynchronously.
 

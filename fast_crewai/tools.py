@@ -5,17 +5,19 @@ This module provides accelerated tool execution by wrapping CrewAI's BaseTool
 with performance optimizations while maintaining full API compatibility.
 """
 
+import functools
+import json
 import os
 import time
-import json
-import functools
-from typing import Any, Dict, Optional, Callable
+from typing import Any, Callable, Dict, Optional
+
 from ._constants import HAS_ACCELERATION_IMPLEMENTATION
 
 # Try to import the Rust implementation
 if HAS_ACCELERATION_IMPLEMENTATION:
     try:
         from ._core import AcceleratedToolExecutor as _RustToolExecutor
+
         _RUST_AVAILABLE = True
     except ImportError:
         _RUST_AVAILABLE = False
@@ -30,10 +32,14 @@ def accelerate_tool_execution(func: Callable) -> Callable:
     This decorator wraps tool execution methods to use Rust acceleration
     when available, with automatic fallback to Python implementation.
     """
+
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         # Check if acceleration is enabled
-        use_acceleration = os.getenv('FAST_CREWAI_TOOLS', 'auto').lower() in ('true', 'auto')
+        use_acceleration = os.getenv("FAST_CREWAI_TOOLS", "auto").lower() in (
+            "true",
+            "auto",
+        )
 
         if use_acceleration and _RUST_AVAILABLE:
             try:
@@ -73,7 +79,9 @@ def create_accelerated_base_tool():
             def __init__(self, *args, **kwargs):
                 """Initialize with acceleration support."""
                 super().__init__(*args, **kwargs)
-                self._acceleration_enabled = os.getenv('FAST_CREWAI_TOOLS', 'auto').lower() in ('true', 'auto')
+                self._acceleration_enabled = os.getenv(
+                    "FAST_CREWAI_TOOLS", "auto"
+                ).lower() in ("true", "auto")
                 self._execution_count = 0
 
             def _run(self, *args, **kwargs):
@@ -126,7 +134,8 @@ def create_accelerated_structured_tool():
     """
     try:
         # Import the original CrewStructuredTool from CrewAI
-        from crewai.tools.structured_tool import CrewStructuredTool as _OriginalStructuredTool
+        from crewai.tools.structured_tool import \
+            CrewStructuredTool as _OriginalStructuredTool
 
         class AcceleratedStructuredTool(_OriginalStructuredTool):
             """
@@ -139,7 +148,9 @@ def create_accelerated_structured_tool():
             def __init__(self, *args, **kwargs):
                 """Initialize with acceleration support."""
                 super().__init__(*args, **kwargs)
-                self._acceleration_enabled = os.getenv('FAST_CREWAI_TOOLS', 'auto').lower() in ('true', 'auto')
+                self._acceleration_enabled = os.getenv(
+                    "FAST_CREWAI_TOOLS", "auto"
+                ).lower() in ("true", "auto")
 
             def _run(self, *args, **kwargs):
                 """Accelerated version of _run method."""
@@ -178,7 +189,7 @@ class AcceleratedToolExecutor:
         self,
         max_recursion_depth: int = 100,
         timeout_seconds: int = 30,
-        use_rust: Optional[bool] = None
+        use_rust: Optional[bool] = None,
     ):
         """
         Initialize the tool executor.
@@ -196,10 +207,10 @@ class AcceleratedToolExecutor:
         # Check if Rust implementation should be used
         if use_rust is None:
             # Check environment variable
-            env_setting = os.getenv('FAST_CREWAI_TOOLS', 'auto').lower()
-            if env_setting == 'true':
+            env_setting = os.getenv("FAST_CREWAI_TOOLS", "auto").lower()
+            if env_setting == "true":
                 self._use_rust = True
-            elif env_setting == 'false':
+            elif env_setting == "false":
                 self._use_rust = False
             else:  # 'auto' or other values
                 self._use_rust = _RUST_AVAILABLE
@@ -223,10 +234,7 @@ class AcceleratedToolExecutor:
             self._execution_count = 0
 
     def execute_tool(
-        self,
-        tool_name: str,
-        arguments: Any,
-        timeout: Optional[int] = None
+        self, tool_name: str, arguments: Any, timeout: Optional[int] = None
     ) -> Any:
         """
         Execute a tool with the given name and arguments.
@@ -245,7 +253,11 @@ class AcceleratedToolExecutor:
         if self._use_rust:
             try:
                 # Convert arguments to string format for Rust
-                args_str = json.dumps(arguments, default=str) if not isinstance(arguments, str) else arguments
+                args_str = (
+                    json.dumps(arguments, default=str)
+                    if not isinstance(arguments, str)
+                    else arguments
+                )
 
                 # Execute using Rust backend
                 result_str = self._executor.execute_tool(tool_name, args_str)
@@ -260,7 +272,9 @@ class AcceleratedToolExecutor:
                 # Handle specific Rust errors
                 error_str = str(e)
                 if "Maximum recursion depth exceeded" in error_str:
-                    raise Exception(f"Tool execution failed: Maximum recursion depth exceeded for tool '{tool_name}'")
+                    raise Exception(
+                        f"Tool execution failed: Maximum recursion depth exceeded for tool '{tool_name}'"
+                    )
                 else:
                     # Fallback to Python implementation
                     self._use_rust = False
@@ -276,7 +290,9 @@ class AcceleratedToolExecutor:
         """Python implementation of tool execution for fallback."""
         # Check recursion limit
         if self._execution_count >= self.max_recursion_depth:
-            raise Exception(f"Tool execution failed: Maximum recursion depth exceeded for tool '{tool_name}'")
+            raise Exception(
+                f"Tool execution failed: Maximum recursion depth exceeded for tool '{tool_name}'"
+            )
 
         # Increment execution count
         self._execution_count += 1

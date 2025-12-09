@@ -2,10 +2,11 @@
 Tests for the shim system that enables Rust acceleration.
 """
 
-import pytest
 import os
 import sys
 from unittest.mock import patch
+
+import pytest
 
 
 class TestShimImport:
@@ -14,34 +15,36 @@ class TestShimImport:
     def test_shim_module_import(self):
         """Test that we can import the shim module."""
         import fast_crewai.shim
+
         assert True  # Should not raise exception
 
     def test_shim_functions_available(self):
         """Test that shim functions are available."""
-        from fast_crewai.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_acceleration
 
-        assert callable(enable_rust_acceleration)
+        assert callable(enable_acceleration)
 
     def test_shim_enable_function(self):
-        """Test the enable_rust_acceleration function."""
-        from fast_crewai.shim import enable_rust_acceleration
+        """Test the enable_acceleration function."""
+        from fast_crewai.shim import enable_acceleration
 
-        result = enable_rust_acceleration()
-        assert isinstance(result, (int, type(None)))
+        result = enable_acceleration()
+        assert isinstance(result, bool)
 
     def test_shim_enable_with_verbose(self):
         """Test shim enable with verbose output."""
-        from fast_crewai.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_acceleration
 
-        result = enable_rust_acceleration(verbose=True)
-        assert isinstance(result, (int, type(None)))
+        result = enable_acceleration(verbose=True)
+        assert isinstance(result, bool)
 
     def test_shim_disable_function(self):
-        """Test the disable_rust_acceleration function if available."""
+        """Test the disable_acceleration function if available."""
         try:
-            from fast_crewai.shim import disable_rust_acceleration
-            result = disable_rust_acceleration()
-            assert isinstance(result, (int, type(None)))
+            from fast_crewai.shim import disable_acceleration
+
+            result = disable_acceleration()
+            assert isinstance(result, bool)
         except ImportError:
             # Function might not be implemented yet
             pass
@@ -52,60 +55,63 @@ class TestEnvironmentVariableActivation:
 
     def test_environment_variable_detection(self):
         """Test that environment variable is properly detected."""
-        original = os.environ.get('FAST_CREWAI_ACCELERATION')
+        original = os.environ.get("FAST_CREWAI_ACCELERATION")
 
         try:
             # Test with environment variable set
-            os.environ['FAST_CREWAI_ACCELERATION'] = '1'
+            os.environ["FAST_CREWAI_ACCELERATION"] = "1"
 
             # Import should work regardless
             import fast_crewai.shim
+
             assert True
 
         finally:
             # Restore original environment
             if original is None:
-                os.environ.pop('FAST_CREWAI_ACCELERATION', None)
+                os.environ.pop("FAST_CREWAI_ACCELERATION", None)
             else:
-                os.environ['FAST_CREWAI_ACCELERATION'] = original
+                os.environ["FAST_CREWAI_ACCELERATION"] = original
 
     def test_environment_variable_values(self):
         """Test different environment variable values."""
-        original = os.environ.get('FAST_CREWAI_ACCELERATION')
+        original = os.environ.get("FAST_CREWAI_ACCELERATION")
 
-        test_values = ['1', 'true', 'TRUE', 'yes', 'YES', 'on', 'ON']
+        test_values = ["1", "true", "TRUE", "yes", "YES", "on", "ON"]
 
         try:
             for value in test_values:
-                os.environ['FAST_CREWAI_ACCELERATION'] = value
+                os.environ["FAST_CREWAI_ACCELERATION"] = value
 
                 # Should be able to import without error
-                from fast_crewai.shim import enable_rust_acceleration
-                result = enable_rust_acceleration()
-                assert isinstance(result, (int, type(None)))
+                from fast_crewai.shim import enable_acceleration
+
+                result = enable_acceleration()
+                assert isinstance(result, bool)
 
         finally:
             if original is None:
-                os.environ.pop('FAST_CREWAI_ACCELERATION', None)
+                os.environ.pop("FAST_CREWAI_ACCELERATION", None)
             else:
-                os.environ['FAST_CREWAI_ACCELERATION'] = original
+                os.environ["FAST_CREWAI_ACCELERATION"] = original
 
     def test_environment_variable_disabled(self):
         """Test behavior when environment variable is disabled."""
-        original = os.environ.get('FAST_CREWAI_ACCELERATION')
+        original = os.environ.get("FAST_CREWAI_ACCELERATION")
 
         try:
-            os.environ['FAST_CREWAI_ACCELERATION'] = '0'
+            os.environ["FAST_CREWAI_ACCELERATION"] = "0"
 
             # Should still be able to import
             import fast_crewai.shim
+
             assert True
 
         finally:
             if original is None:
-                os.environ.pop('FAST_CREWAI_ACCELERATION', None)
+                os.environ.pop("FAST_CREWAI_ACCELERATION", None)
             else:
-                os.environ['FAST_CREWAI_ACCELERATION'] = original
+                os.environ["FAST_CREWAI_ACCELERATION"] = original
 
 
 class TestCrewAICompatibility:
@@ -115,6 +121,7 @@ class TestCrewAICompatibility:
         """Test that CrewAI can be imported."""
         try:
             import crewai
+
             assert True
         except ImportError:
             pytest.skip("CrewAI not available for testing")
@@ -122,9 +129,10 @@ class TestCrewAICompatibility:
     def test_crewai_memory_modules_import(self):
         """Test that CrewAI memory modules can be imported."""
         try:
-            import crewai.memory.storage.rag_storage
-            import crewai.memory.short_term.short_term_memory
             import crewai.memory.memory
+            import crewai.memory.short_term.short_term_memory
+            import crewai.memory.storage.rag_storage
+
             assert True
         except ImportError:
             pytest.skip("CrewAI not available for testing")
@@ -134,6 +142,7 @@ class TestCrewAICompatibility:
         try:
             import crewai.tools.base_tool
             import crewai.tools.structured_tool
+
             assert True
         except ImportError:
             pytest.skip("CrewAI not available for testing")
@@ -141,8 +150,9 @@ class TestCrewAICompatibility:
     def test_crewai_task_modules_import(self):
         """Test that CrewAI task modules can be imported."""
         try:
-            import crewai.task
             import crewai.crew
+            import crewai.task
+
             assert True
         except ImportError:
             pytest.skip("CrewAI not available for testing")
@@ -151,8 +161,10 @@ class TestCrewAICompatibility:
         """Test shim behavior with different import orders."""
         try:
             # Test: shim first, then CrewAI
-            import fast_crewai.shim
             import crewai
+
+            import fast_crewai.shim
+
             assert True
 
         except ImportError:
@@ -161,8 +173,9 @@ class TestCrewAICompatibility:
     def test_memory_component_shimming(self):
         """Test that memory components are properly shimmed."""
         try:
-            import fast_crewai.shim
             from crewai.memory.storage.rag_storage import RAGStorage
+
+            import fast_crewai.shim
 
             # Should be able to access the class
             assert RAGStorage is not None
@@ -177,8 +190,9 @@ class TestCrewAICompatibility:
     def test_tool_component_shimming(self):
         """Test that tool components are properly shimmed."""
         try:
-            import fast_crewai.shim
             from crewai.tools.structured_tool import CrewStructuredTool
+
+            import fast_crewai.shim
 
             # Should be able to access the class
             assert CrewStructuredTool is not None
@@ -194,6 +208,7 @@ class TestShimInternals:
         """Test that internal monkey patch function exists."""
         try:
             from fast_crewai.shim import _monkey_patch_class
+
             assert callable(_monkey_patch_class)
         except ImportError:
             # Internal function might not be exposed
@@ -203,6 +218,7 @@ class TestShimInternals:
         """Test that original classes are backed up."""
         try:
             from fast_crewai.shim import _original_classes
+
             assert isinstance(_original_classes, dict)
         except ImportError:
             # Internal variable might not be exposed
@@ -210,35 +226,35 @@ class TestShimInternals:
 
     def test_shim_status_tracking(self):
         """Test that shim status is properly tracked."""
-        from fast_crewai.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_acceleration
 
         # Enable shimming
-        result = enable_rust_acceleration()
+        result = enable_acceleration()
 
-        # Should return some indication of what was patched
-        assert isinstance(result, (int, type(None)))
+        # Should return bool indicating success
+        assert isinstance(result, bool)
 
     def test_multiple_shim_enable_calls(self):
         """Test that multiple enable calls are safe."""
-        from fast_crewai.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_acceleration
 
         # Call multiple times
-        result1 = enable_rust_acceleration()
-        result2 = enable_rust_acceleration()
-        result3 = enable_rust_acceleration()
+        result1 = enable_acceleration()
+        result2 = enable_acceleration()
+        result3 = enable_acceleration()
 
         # Should not crash
-        assert isinstance(result1, (int, type(None)))
-        assert isinstance(result2, (int, type(None)))
-        assert isinstance(result3, (int, type(None)))
+        assert isinstance(result1, bool)
+        assert isinstance(result2, bool)
+        assert isinstance(result3, bool)
 
     def test_shim_with_missing_modules(self):
         """Test shim behavior when target modules are missing."""
-        from fast_crewai.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_acceleration
 
         # Should handle missing modules gracefully
-        result = enable_rust_acceleration()
-        assert isinstance(result, (int, type(None)))
+        result = enable_acceleration()
+        assert isinstance(result, bool)
 
 
 class TestShimErrorHandling:
@@ -249,8 +265,8 @@ class TestShimErrorHandling:
         # Temporarily remove modules from sys.modules
         original_modules = {}
         test_modules = [
-            'crewai.memory.storage.rag_storage',
-            'crewai.tools.structured_tool'
+            "crewai.memory.storage.rag_storage",
+            "crewai.tools.structured_tool",
         ]
 
         try:
@@ -260,9 +276,10 @@ class TestShimErrorHandling:
                     del sys.modules[module]
 
             # Shim should handle missing modules gracefully
-            from fast_crewai.shim import enable_rust_acceleration
-            result = enable_rust_acceleration()
-            assert isinstance(result, (int, type(None)))
+            from fast_crewai.shim import enable_acceleration
+
+            result = enable_acceleration()
+            assert isinstance(result, bool)
 
         finally:
             # Restore modules
@@ -271,18 +288,19 @@ class TestShimErrorHandling:
 
     def test_shim_with_attribute_errors(self):
         """Test shim behavior with attribute errors."""
-        from fast_crewai.shim import enable_rust_acceleration
+        from fast_crewai.shim import enable_acceleration
 
         # Should handle attribute errors gracefully
-        result = enable_rust_acceleration()
-        assert isinstance(result, (int, type(None)))
+        result = enable_acceleration()
+        assert isinstance(result, bool)
 
     def test_shim_restoration_safety(self):
         """Test that shim restoration is safe."""
         try:
-            from fast_crewai.shim import disable_rust_acceleration
-            result = disable_rust_acceleration()
-            assert isinstance(result, (int, type(None)))
+            from fast_crewai.shim import disable_acceleration
+
+            result = disable_acceleration()
+            assert isinstance(result, bool)
         except ImportError:
             # Function might not be implemented
             pass
@@ -294,11 +312,12 @@ class TestShimPerformance:
     def test_shim_enable_performance(self):
         """Test that shim enabling is reasonably fast."""
         import time
-        from fast_crewai.shim import enable_rust_acceleration
+
+        from fast_crewai.shim import enable_acceleration
 
         start_time = time.time()
         for i in range(10):
-            enable_rust_acceleration()
+            enable_acceleration()
         end_time = time.time()
 
         # Should be fast
@@ -311,8 +330,8 @@ class TestShimPerformance:
         start_time = time.time()
         for i in range(10):
             # Import in a way that forces reload
-            if 'fast_crewai.shim' in sys.modules:
-                del sys.modules['fast_crewai.shim']
+            if "fast_crewai.shim" in sys.modules:
+                del sys.modules["fast_crewai.shim"]
             import fast_crewai.shim
         end_time = time.time()
 

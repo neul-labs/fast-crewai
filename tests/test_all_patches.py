@@ -13,11 +13,12 @@ This script tests:
 Run this before the CrewAI compatibility tests to ensure all patches work correctly.
 """
 
-import sys
 import os
+import sys
 
 # Add current directory to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 
 def test_shim_loading():
     """Test that the shim loads without errors."""
@@ -27,11 +28,13 @@ def test_shim_loading():
 
     try:
         import fast_crewai.shim
+
         print("✅ Shim imported successfully")
         return True
     except Exception as e:
         print(f"❌ Failed to import shim: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -44,6 +47,7 @@ def test_acceleration_status():
 
     try:
         from fast_crewai import get_acceleration_status
+
         status = get_acceleration_status()
 
         print("\nAcceleration Status:")
@@ -55,6 +59,7 @@ def test_acceleration_status():
     except Exception as e:
         print(f"❌ Failed to get acceleration status: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -66,7 +71,8 @@ def test_tool_patching():
     print("=" * 80)
 
     try:
-        from fast_crewai.tools import AcceleratedBaseTool, AcceleratedStructuredTool
+        from fast_crewai.tools import (AcceleratedBaseTool,
+                                       AcceleratedStructuredTool)
 
         if AcceleratedBaseTool is not None:
             print("✅ AcceleratedBaseTool created successfully")
@@ -84,6 +90,7 @@ def test_tool_patching():
     except Exception as e:
         print(f"❌ Failed to test tool patching: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -95,7 +102,7 @@ def test_task_patching():
     print("=" * 80)
 
     try:
-        from fast_crewai.tasks import AcceleratedTask, AcceleratedCrew
+        from fast_crewai.tasks import AcceleratedCrew, AcceleratedTask
 
         if AcceleratedTask is not None:
             print("✅ AcceleratedTask created successfully")
@@ -113,6 +120,7 @@ def test_task_patching():
     except Exception as e:
         print(f"❌ Failed to test task patching: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -132,6 +140,7 @@ def test_memory_components():
     except Exception as e:
         print(f"❌ Failed to import memory components: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -151,6 +160,7 @@ def test_database_components():
     except Exception as e:
         print(f"❌ Failed to import database components: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -162,7 +172,7 @@ def test_serialization_components():
     print("=" * 80)
 
     try:
-        from fast_crewai.serialization import AgentMessage, AcceleratedMessage
+        from fast_crewai.serialization import AcceleratedMessage, AgentMessage
 
         print("✅ AgentMessage imported successfully")
         print(f"   Class: {AgentMessage}")
@@ -172,6 +182,7 @@ def test_serialization_components():
     except Exception as e:
         print(f"❌ Failed to import serialization components: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -185,9 +196,9 @@ def test_crewai_patching():
     try:
         # Try to import CrewAI components
         try:
-            from crewai.tools.base_tool import BaseTool
-            from crewai.task import Task
             from crewai.crew import Crew
+            from crewai.task import Task
+            from crewai.tools.base_tool import BaseTool
 
             print("✅ CrewAI is installed")
 
@@ -202,7 +213,7 @@ def test_crewai_patching():
             print(f"  Module: {Crew.__module__}")
 
             # Check if they have acceleration attributes
-            if hasattr(BaseTool, '__bases__'):
+            if hasattr(BaseTool, "__bases__"):
                 print(f"\nBaseTool inheritance chain: {BaseTool.__mro__[:3]}")
 
             print("\n✅ CrewAI classes inspected successfully")
@@ -215,6 +226,7 @@ def test_crewai_patching():
     except Exception as e:
         print(f"❌ Failed to verify CrewAI patching: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
