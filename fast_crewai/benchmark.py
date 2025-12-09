@@ -13,8 +13,7 @@ from typing import Any, Dict, List
 
 from .database import AcceleratedSQLiteWrapper
 from .memory import AcceleratedMemoryStorage
-from .serialization import AgentMessage, RustSerializer
-from .tasks import AcceleratedTaskExecutor
+from .serialization import AgentMessage
 from .tools import AcceleratedToolExecutor
 
 
@@ -31,7 +30,7 @@ class PerformanceBenchmark:
             iterations: Number of iterations for each benchmark
         """
         self.iterations = iterations
-        self.results = {}
+        self.results: Dict[str, Any] = {}
 
     def benchmark_memory_storage(self) -> Dict[str, Any]:
         """
@@ -69,49 +68,7 @@ class PerformanceBenchmark:
         rust_results = self._benchmark_rust_memory(test_data, search_queries)
 
         # Calculate improvements
-        improvements = {}
-        for key in python_results:
-            if key in rust_results:
-                if key == "operations_per_second":
-                    # Handle operations_per_second which can be dict or float
-                    if isinstance(python_results[key], dict) and isinstance(
-                        rust_results[key], dict
-                    ):
-                        # Both are dicts (e.g., memory, serialization, database)
-                        improvements[key] = {}
-                        for op_key in python_results[key]:
-                            if (
-                                op_key in rust_results[key]
-                                and isinstance(rust_results[key][op_key], (int, float))
-                                and rust_results[key][op_key] > 0
-                            ):
-                                improvements[key][op_key] = (
-                                    python_results[key][op_key]
-                                    / rust_results[key][op_key]
-                                )
-                            else:
-                                improvements[key][op_key] = float("inf")
-                    elif isinstance(python_results[key], (int, float)) and isinstance(
-                        rust_results[key], (int, float)
-                    ):
-                        # Both are numbers (e.g., tools)
-                        if rust_results[key] > 0:
-                            improvements[key] = python_results[key] / rust_results[key]
-                        else:
-                            improvements[key] = float("inf")
-                    else:
-                        improvements[key] = float("inf")
-                elif isinstance(python_results[key], (int, float)) and isinstance(
-                    rust_results[key], (int, float)
-                ):
-                    if rust_results[key] > 0:
-                        improvements[key] = python_results[key] / rust_results[key]
-                    else:
-                        improvements[key] = float("inf")
-                else:
-                    improvements[key] = float("inf")
-            else:
-                improvements[key] = float("inf")
+        improvements = self._calculate_improvements(python_results, rust_results)
 
         return {
             "python": python_results,
@@ -119,12 +76,56 @@ class PerformanceBenchmark:
             "improvements": improvements,
         }
 
+    def _calculate_improvements(
+        self, python_results: Dict[str, Any], rust_results: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Calculate improvements between Python and Rust results."""
+        improvements: Dict[str, Any] = {}
+        for key in python_results:
+            if key not in rust_results:
+                improvements[key] = float("inf")
+                continue
+
+            if key == "operations_per_second":
+                py_val = python_results[key]
+                rust_val = rust_results[key]
+                if isinstance(py_val, dict) and isinstance(rust_val, dict):
+                    improvements[key] = {}
+                    for op_key in py_val:
+                        if (
+                            op_key in rust_val
+                            and isinstance(rust_val[op_key], (int, float))
+                            and rust_val[op_key] > 0
+                        ):
+                            improvements[key][op_key] = py_val[op_key] / rust_val[op_key]
+                        else:
+                            improvements[key][op_key] = float("inf")
+                elif (
+                    isinstance(py_val, (int, float))
+                    and isinstance(rust_val, (int, float))
+                    and rust_val > 0
+                ):
+                    improvements[key] = py_val / rust_val
+                else:
+                    improvements[key] = float("inf")
+            elif isinstance(python_results[key], (int, float)) and isinstance(
+                rust_results[key], (int, float)
+            ):
+                if rust_results[key] > 0:
+                    improvements[key] = python_results[key] / rust_results[key]
+                else:
+                    improvements[key] = float("inf")
+            else:
+                improvements[key] = float("inf")
+
+        return improvements
+
     def _benchmark_python_memory(
         self, test_data: List[Dict], search_queries: List[str]
     ) -> Dict[str, float]:
         """Benchmark Python memory implementation."""
         # Simple list-based storage for comparison
-        storage = []
+        storage: List[Dict] = []
 
         # Benchmark save operations
         start_time = time.time()
@@ -135,7 +136,7 @@ class PerformanceBenchmark:
         # Benchmark search operations
         start_time = time.time()
         for query in search_queries:
-            results = [item for item in storage if query in str(item)]
+            _ = [item for item in storage if query in str(item)]
         search_time = time.time() - start_time
 
         return {
@@ -168,7 +169,7 @@ class PerformanceBenchmark:
             # Benchmark search operations
             start_time = time.time()
             for query in search_queries:
-                results = rust_storage.search(query)
+                _ = rust_storage.search(query)
             search_time = time.time() - start_time
 
             return {
@@ -183,7 +184,7 @@ class PerformanceBenchmark:
                     ),
                 },
             }
-        except Exception as e:
+        except Exception:
             # Return zero performance if Rust implementation fails
             return {
                 "save_time": 0,
@@ -211,49 +212,7 @@ class PerformanceBenchmark:
         rust_results = self._benchmark_rust_tools(test_tools)
 
         # Calculate improvements
-        improvements = {}
-        for key in python_results:
-            if key in rust_results:
-                if key == "operations_per_second":
-                    # Handle operations_per_second which can be dict or float
-                    if isinstance(python_results[key], dict) and isinstance(
-                        rust_results[key], dict
-                    ):
-                        # Both are dicts (e.g., memory, serialization, database)
-                        improvements[key] = {}
-                        for op_key in python_results[key]:
-                            if (
-                                op_key in rust_results[key]
-                                and isinstance(rust_results[key][op_key], (int, float))
-                                and rust_results[key][op_key] > 0
-                            ):
-                                improvements[key][op_key] = (
-                                    python_results[key][op_key]
-                                    / rust_results[key][op_key]
-                                )
-                            else:
-                                improvements[key][op_key] = float("inf")
-                    elif isinstance(python_results[key], (int, float)) and isinstance(
-                        rust_results[key], (int, float)
-                    ):
-                        # Both are numbers (e.g., tools)
-                        if rust_results[key] > 0:
-                            improvements[key] = python_results[key] / rust_results[key]
-                        else:
-                            improvements[key] = float("inf")
-                    else:
-                        improvements[key] = float("inf")
-                elif isinstance(python_results[key], (int, float)) and isinstance(
-                    rust_results[key], (int, float)
-                ):
-                    if rust_results[key] > 0:
-                        improvements[key] = python_results[key] / rust_results[key]
-                    else:
-                        improvements[key] = float("inf")
-                else:
-                    improvements[key] = float("inf")
-            else:
-                improvements[key] = float("inf")
+        improvements = self._calculate_improvements(python_results, rust_results)
 
         return {
             "python": python_results,
@@ -261,7 +220,9 @@ class PerformanceBenchmark:
             "improvements": improvements,
         }
 
-    def _benchmark_python_tools(self, test_tools: List[tuple]) -> Dict[str, float]:
+    def _benchmark_python_tools(
+        self, test_tools: List[tuple]
+    ) -> Dict[str, float]:
         """Benchmark Python tool execution."""
 
         # Simple function-based tool execution for comparison
@@ -271,7 +232,7 @@ class PerformanceBenchmark:
 
         start_time = time.time()
         for tool_name, args in test_tools:
-            result = execute_tool(tool_name, args)
+            _ = execute_tool(tool_name, args)
         execution_time = time.time() - start_time
 
         return {
@@ -291,7 +252,7 @@ class PerformanceBenchmark:
 
             start_time = time.time()
             for tool_name, args in test_tools:
-                result = rust_executor.execute_tool(tool_name, args)
+                _ = rust_executor.execute_tool(tool_name, args)
             execution_time = time.time() - start_time
 
             return {
@@ -300,7 +261,7 @@ class PerformanceBenchmark:
                     len(test_tools) / execution_time if execution_time > 0 else 0
                 ),
             }
-        except Exception as e:
+        except Exception:
             # Return zero performance if Rust implementation fails
             return {"execution_time": 0, "operations_per_second": 0}
 
@@ -331,49 +292,7 @@ class PerformanceBenchmark:
         rust_results = self._benchmark_rust_serialization(test_messages)
 
         # Calculate improvements
-        improvements = {}
-        for key in python_results:
-            if key in rust_results:
-                if key == "operations_per_second":
-                    # Handle operations_per_second which can be dict or float
-                    if isinstance(python_results[key], dict) and isinstance(
-                        rust_results[key], dict
-                    ):
-                        # Both are dicts (e.g., memory, serialization, database)
-                        improvements[key] = {}
-                        for op_key in python_results[key]:
-                            if (
-                                op_key in rust_results[key]
-                                and isinstance(rust_results[key][op_key], (int, float))
-                                and rust_results[key][op_key] > 0
-                            ):
-                                improvements[key][op_key] = (
-                                    python_results[key][op_key]
-                                    / rust_results[key][op_key]
-                                )
-                            else:
-                                improvements[key][op_key] = float("inf")
-                    elif isinstance(python_results[key], (int, float)) and isinstance(
-                        rust_results[key], (int, float)
-                    ):
-                        # Both are numbers (e.g., tools)
-                        if rust_results[key] > 0:
-                            improvements[key] = python_results[key] / rust_results[key]
-                        else:
-                            improvements[key] = float("inf")
-                    else:
-                        improvements[key] = float("inf")
-                elif isinstance(python_results[key], (int, float)) and isinstance(
-                    rust_results[key], (int, float)
-                ):
-                    if rust_results[key] > 0:
-                        improvements[key] = python_results[key] / rust_results[key]
-                    else:
-                        improvements[key] = float("inf")
-                else:
-                    improvements[key] = float("inf")
-            else:
-                improvements[key] = float("inf")
+        improvements = self._calculate_improvements(python_results, rust_results)
 
         return {
             "python": python_results,
@@ -464,7 +383,7 @@ class PerformanceBenchmark:
                     ),
                 },
             }
-        except Exception as e:
+        except Exception:
             # Return zero performance if Rust implementation fails
             return {
                 "serialize_time": 0,
@@ -508,53 +427,7 @@ class PerformanceBenchmark:
             rust_results = self._benchmark_rust_database(rust_db_path, test_data)
 
             # Calculate improvements
-            improvements = {}
-            for key in python_results:
-                if key in rust_results:
-                    if key == "operations_per_second":
-                        # Handle operations_per_second which can be dict or float
-                        if isinstance(python_results[key], dict) and isinstance(
-                            rust_results[key], dict
-                        ):
-                            # Both are dicts (e.g., memory, serialization, database)
-                            improvements[key] = {}
-                            for op_key in python_results[key]:
-                                if (
-                                    op_key in rust_results[key]
-                                    and isinstance(
-                                        rust_results[key][op_key], (int, float)
-                                    )
-                                    and rust_results[key][op_key] > 0
-                                ):
-                                    improvements[key][op_key] = (
-                                        python_results[key][op_key]
-                                        / rust_results[key][op_key]
-                                    )
-                                else:
-                                    improvements[key][op_key] = float("inf")
-                        elif isinstance(
-                            python_results[key], (int, float)
-                        ) and isinstance(rust_results[key], (int, float)):
-                            # Both are numbers (e.g., tools)
-                            if rust_results[key] > 0:
-                                improvements[key] = (
-                                    python_results[key] / rust_results[key]
-                                )
-                            else:
-                                improvements[key] = float("inf")
-                        else:
-                            improvements[key] = float("inf")
-                    elif isinstance(python_results[key], (int, float)) and isinstance(
-                        rust_results[key], (int, float)
-                    ):
-                        if rust_results[key] > 0:
-                            improvements[key] = python_results[key] / rust_results[key]
-                        else:
-                            improvements[key] = float("inf")
-                    else:
-                        improvements[key] = float("inf")
-                else:
-                    improvements[key] = float("inf")
+            improvements = self._calculate_improvements(python_results, rust_results)
 
             return {
                 "python": python_results,
@@ -563,11 +436,11 @@ class PerformanceBenchmark:
             }
         finally:
             # Clean up temporary files
-            try:
-                os.unlink(python_db_path)
-                os.unlink(rust_db_path)
-            except:
-                pass
+            for path in [python_db_path, rust_db_path]:
+                try:
+                    os.unlink(path)
+                except OSError:
+                    pass
 
     def _benchmark_python_database(
         self, db_path: str, test_data: List[Dict]
@@ -598,7 +471,8 @@ class PerformanceBenchmark:
             for item in test_data:
                 cursor.execute(
                     """
-                    INSERT INTO long_term_memories (task_description, metadata, datetime, score)
+                    INSERT INTO long_term_memories
+                        (task_description, metadata, datetime, score)
                     VALUES (?, ?, ?, ?)
                 """,
                     (
@@ -618,12 +492,12 @@ class PerformanceBenchmark:
             for item in test_data[:100]:  # Limit query tests
                 cursor.execute(
                     """
-                    SELECT * FROM long_term_memories 
+                    SELECT * FROM long_term_memories
                     WHERE task_description = ?
                 """,
                     (item["task_description"],),
                 )
-                rows = cursor.fetchall()
+                _ = cursor.fetchall()
         query_time = time.time() - start_time
 
         return {
@@ -650,7 +524,8 @@ class PerformanceBenchmark:
                 queries.append(
                     (
                         """
-                    INSERT INTO long_term_memories (task_description, metadata, datetime, score)
+                    INSERT INTO long_term_memories
+                        (task_description, metadata, datetime, score)
                     VALUES (?, ?, ?, ?)
                     """,
                         {
@@ -667,9 +542,9 @@ class PerformanceBenchmark:
             # Benchmark query operations
             start_time = time.time()
             for item in test_data[:100]:  # Limit query tests
-                results = rust_db.execute_query(
+                _ = rust_db.execute_query(
                     """
-                    SELECT * FROM long_term_memories 
+                    SELECT * FROM long_term_memories
                     WHERE task_description = ?
                 """,
                     {"task_description": item["task_description"]},
@@ -684,7 +559,7 @@ class PerformanceBenchmark:
                     "query": 100 / query_time if query_time > 0 else 0,
                 },
             }
-        except Exception as e:
+        except Exception:
             # Return zero performance if Rust implementation fails
             return {
                 "insert_time": 0,
@@ -702,63 +577,51 @@ class PerformanceBenchmark:
         print("Running CrewAI Rust Integration Benchmarks...")
         print("=" * 50)
 
-        results = {}
+        results: Dict[str, Any] = {}
 
         # Memory storage benchmark
         print("Benchmarking memory storage...")
         results["memory"] = self.benchmark_memory_storage()
-        print(
-            f"  Python: {results['memory']['python']['operations_per_second']['save']:.0f} saves/sec"
-        )
-        if results["memory"]["rust"]["operations_per_second"]["save"] > 0:
-            print(
-                f"  Rust: {results['memory']['rust']['operations_per_second']['save']:.0f} saves/sec"
-            )
-            print(
-                f"  Improvement: {results['memory']['improvements']['save_time']:.1f}x"
-            )
+        py_save = results["memory"]["python"]["operations_per_second"]["save"]
+        print(f"  Python: {py_save:.0f} saves/sec")
+        rust_save = results["memory"]["rust"]["operations_per_second"]["save"]
+        if rust_save > 0:
+            print(f"  Rust: {rust_save:.0f} saves/sec")
+            improvement = results["memory"]["improvements"]["save_time"]
+            print(f"  Improvement: {improvement:.1f}x")
 
         # Tool execution benchmark
         print("\nBenchmarking tool execution...")
         results["tools"] = self.benchmark_tool_execution()
-        print(
-            f"  Python: {results['tools']['python']['operations_per_second']:.0f} ops/sec"
-        )
-        if results["tools"]["rust"]["operations_per_second"] > 0:
-            print(
-                f"  Rust: {results['tools']['rust']['operations_per_second']:.0f} ops/sec"
-            )
-            print(
-                f"  Improvement: {results['tools']['improvements']['execution_time']:.1f}x"
-            )
+        py_ops = results["tools"]["python"]["operations_per_second"]
+        print(f"  Python: {py_ops:.0f} ops/sec")
+        rust_ops = results["tools"]["rust"]["operations_per_second"]
+        if rust_ops > 0:
+            print(f"  Rust: {rust_ops:.0f} ops/sec")
+            improvement = results["tools"]["improvements"]["execution_time"]
+            print(f"  Improvement: {improvement:.1f}x")
 
         # Serialization benchmark
         print("\nBenchmarking serialization...")
         results["serialization"] = self.benchmark_serialization()
-        print(
-            f"  Python serialize: {results['serialization']['python']['operations_per_second']['serialize']:.0f} ops/sec"
-        )
-        if results["serialization"]["rust"]["operations_per_second"]["serialize"] > 0:
-            print(
-                f"  Rust serialize: {results['serialization']['rust']['operations_per_second']['serialize']:.0f} ops/sec"
-            )
-            print(
-                f"  Serialization improvement: {results['serialization']['improvements']['serialize_time']:.1f}x"
-            )
+        py_ser = results["serialization"]["python"]["operations_per_second"]["serialize"]
+        print(f"  Python serialize: {py_ser:.0f} ops/sec")
+        rust_ser = results["serialization"]["rust"]["operations_per_second"]["serialize"]
+        if rust_ser > 0:
+            print(f"  Rust serialize: {rust_ser:.0f} ops/sec")
+            improvement = results["serialization"]["improvements"]["serialize_time"]
+            print(f"  Serialization improvement: {improvement:.1f}x")
 
         # Database benchmark
         print("\nBenchmarking database operations...")
         results["database"] = self.benchmark_database()
-        print(
-            f"  Python insert: {results['database']['python']['operations_per_second']['insert']:.0f} ops/sec"
-        )
-        if results["database"]["rust"]["operations_per_second"]["insert"] > 0:
-            print(
-                f"  Rust insert: {results['database']['rust']['operations_per_second']['insert']:.0f} ops/sec"
-            )
-            print(
-                f"  Insert improvement: {results['database']['improvements']['insert_time']:.1f}x"
-            )
+        py_ins = results["database"]["python"]["operations_per_second"]["insert"]
+        print(f"  Python insert: {py_ins:.0f} ops/sec")
+        rust_ins = results["database"]["rust"]["operations_per_second"]["insert"]
+        if rust_ins > 0:
+            print(f"  Rust insert: {rust_ins:.0f} ops/sec")
+            improvement = results["database"]["improvements"]["insert_time"]
+            print(f"  Insert improvement: {improvement:.1f}x")
 
         print("\n" + "=" * 50)
         print("Benchmarking complete!")

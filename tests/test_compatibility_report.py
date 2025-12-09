@@ -10,7 +10,7 @@ import os
 import sys
 import time
 import unittest
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 # Add the current directory to the path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

@@ -27,7 +27,7 @@ def test_shim_loading():
     print("=" * 80)
 
     try:
-        import fast_crewai.shim
+        import fast_crewai.shim  # noqa: F401
 
         print("✅ Shim imported successfully")
         return True

@@ -46,7 +46,7 @@ def _monkey_patch_class(module_path: str, class_name: str, new_class: Any) -> bo
         setattr(module, class_name, new_class)
         return True
 
-    except Exception as e:
+    except Exception:
         # Only print debug info if in verbose mode
         return False
 
@@ -141,7 +141,7 @@ def _patch_tool_components():
     except ImportError:
         # CrewAI not installed, skip patching
         pass
-    except Exception as e:
+    except Exception:
         # Unexpected error, log and continue
         patches_failed += 1
 
@@ -187,7 +187,7 @@ def _patch_task_components():
     except ImportError:
         # CrewAI not installed, skip patching
         pass
-    except Exception as e:
+    except Exception:
         # Unexpected error, log and continue
         patches_failed += 1
 
@@ -293,7 +293,7 @@ def enable_acceleration(verbose: bool = False) -> bool:
         total_patches_failed += serialization_failed
 
         if verbose:
-            print(f"✅ Acceleration bootstrap completed!")
+            print("Acceleration bootstrap completed!")
             print(
                 f"  - Memory patches applied: {memory_applied}, failed: {memory_failed}"
             )

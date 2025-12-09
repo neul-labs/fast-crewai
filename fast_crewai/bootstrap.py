@@ -13,7 +13,6 @@ Or set environment variable:
     python your_crewai_app.py
 """
 
-import os
 import sys
 
 

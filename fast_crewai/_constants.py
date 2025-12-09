@@ -7,9 +7,13 @@ without creating circular imports.
 
 # Try to import the Rust core to determine if acceleration is available
 try:
-    from ._core import (AcceleratedMemoryStorage, AcceleratedSQLiteWrapper,
-                        AcceleratedTaskExecutor, AcceleratedToolExecutor,
-                        AgentMessage)
+    from ._core import (  # noqa: F401
+        AcceleratedMemoryStorage,
+        AcceleratedSQLiteWrapper,
+        AcceleratedTaskExecutor,
+        AcceleratedToolExecutor,
+        AgentMessage,
+    )
 
     HAS_ACCELERATION_IMPLEMENTATION = True
 except ImportError:

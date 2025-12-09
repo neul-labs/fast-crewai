@@ -7,7 +7,7 @@ and Crew classes with performance optimizations while maintaining full API compa
 
 import asyncio
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from ._constants import HAS_ACCELERATION_IMPLEMENTATION
 

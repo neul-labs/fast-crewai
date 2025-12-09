@@ -7,7 +7,7 @@ systems with zero-copy optimizations and performance improvements.
 
 import json
 import os
-from typing import Any, Dict, Optional
+from typing import Optional
 
 from ._constants import HAS_ACCELERATION_IMPLEMENTATION
 
@@ -84,7 +84,8 @@ class AgentMessage:
                 self._message = None
                 self._implementation = "python"
                 print(
-                    f"Warning: Failed to initialize Rust message serialization, falling back to Python: {e}"
+                    f"Warning: Failed to initialize Rust message serialization, "
+                    f"falling back to Python: {e}"
                 )
         else:
             self._message = None

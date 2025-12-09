@@ -2,9 +2,7 @@
 Tests for memory storage components.
 """
 
-import json
 import time
-from typing import Any, Dict, List
 
 import pytest
 
@@ -86,7 +84,7 @@ class TestAcceleratedMemoryStorage:
         # Test search performance
         start_time = time.time()
         for i in range(10):
-            results = storage.search("Document", limit=5)
+            storage.search("Document", limit=5)
         search_time = time.time() - start_time
 
         # Performance should be reasonable (not testing specific speeds)
@@ -114,13 +112,16 @@ class TestMemoryIntegration:
         """Test that CrewAI memory imports work after shimming."""
         try:
             # Import shim first
-            from crewai.memory.long_term.long_term_memory import LongTermMemory
-            from crewai.memory.short_term.short_term_memory import \
-                ShortTermMemory
+            from crewai.memory.long_term.long_term_memory import (  # noqa: F401
+                LongTermMemory,
+            )
+            from crewai.memory.short_term.short_term_memory import (  # noqa: F401
+                ShortTermMemory,
+            )
             # Then try to import CrewAI memory components
-            from crewai.memory.storage.rag_storage import RAGStorage
+            from crewai.memory.storage.rag_storage import RAGStorage  # noqa: F401
 
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             assert True  # If we get here, imports worked
 
@@ -133,7 +134,7 @@ class TestMemoryIntegration:
         try:
             from crewai.memory.storage.rag_storage import RAGStorage
 
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             # Try to create storage - should use Rust implementation if available
             storage = RAGStorage(type="test")

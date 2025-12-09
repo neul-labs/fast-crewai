@@ -19,6 +19,8 @@ def pytest_configure(config):
         "markers",
         "rust_required: marks tests that require Rust acceleration to be available",
     )
+    # Configure markers based on command line options
+    _configure_markers(config)
 
 
 @pytest.fixture(scope="session")
@@ -36,7 +38,7 @@ def rust_available():
 def crewai_available():
     """Check if CrewAI is available for integration testing."""
     try:
-        import crewai
+        import crewai  # noqa: F401
 
         return True
     except ImportError:
@@ -159,7 +161,7 @@ def pytest_runtest_setup(item):
     # Skip integration tests if CrewAI is not available
     if item.get_closest_marker("integration"):
         try:
-            import crewai
+            import crewai  # noqa: F401
         except ImportError:
             pytest.skip("CrewAI not available for integration testing")
 
@@ -184,7 +186,7 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config):
+def _configure_markers(config):
     """Configure test collection based on command line options."""
     if not config.option.run_slow:
         config.option.markexpr = "not slow"

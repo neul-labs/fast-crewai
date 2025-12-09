@@ -44,7 +44,7 @@ def get_acceleration_status() -> dict:
                 "serialization": True,
                 "database": True,
             }
-        except ImportError as e:
+        except ImportError:
             # Try to identify which components are missing
             status["components"] = {
                 "memory": False,
@@ -56,35 +56,35 @@ def get_acceleration_status() -> dict:
 
             # This is a simplified check - in practice, you'd want more detailed checking
             try:
-                from ._core import AcceleratedMemoryStorage
+                from ._core import AcceleratedMemoryStorage  # noqa: F401
 
                 status["components"]["memory"] = True
             except ImportError:
                 pass
 
             try:
-                from ._core import AcceleratedToolExecutor
+                from ._core import AcceleratedToolExecutor  # noqa: F401
 
                 status["components"]["tools"] = True
             except ImportError:
                 pass
 
             try:
-                from ._core import AcceleratedTaskExecutor
+                from ._core import AcceleratedTaskExecutor  # noqa: F401
 
                 status["components"]["tasks"] = True
             except ImportError:
                 pass
 
             try:
-                from ._core import AgentMessage
+                from ._core import AgentMessage  # noqa: F401
 
                 status["components"]["serialization"] = True
             except ImportError:
                 pass
 
             try:
-                from ._core import AcceleratedSQLiteWrapper
+                from ._core import AcceleratedSQLiteWrapper  # noqa: F401
 
                 status["components"]["database"] = True
             except ImportError:
@@ -136,7 +136,9 @@ def get_performance_improvements() -> dict:
     return {
         "memory": {
             "improvement": "10-20x",
-            "description": "Faster memory operations with SIMD-accelerated vector similarity calculations",
+            "description": (
+                "Faster memory operations with SIMD-accelerated vector similarity calculations"
+            ),
         },
         "tools": {
             "improvement": "2-5x",

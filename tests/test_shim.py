@@ -4,7 +4,6 @@ Tests for the shim system that enables Rust acceleration.
 
 import os
 import sys
-from unittest.mock import patch
 
 import pytest
 
@@ -14,7 +13,7 @@ class TestShimImport:
 
     def test_shim_module_import(self):
         """Test that we can import the shim module."""
-        import fast_crewai.shim
+        import fast_crewai.shim  # noqa: F401
 
         assert True  # Should not raise exception
 
@@ -62,7 +61,7 @@ class TestEnvironmentVariableActivation:
             os.environ["FAST_CREWAI_ACCELERATION"] = "1"
 
             # Import should work regardless
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             assert True
 
@@ -103,7 +102,7 @@ class TestEnvironmentVariableActivation:
             os.environ["FAST_CREWAI_ACCELERATION"] = "0"
 
             # Should still be able to import
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             assert True
 
@@ -120,7 +119,7 @@ class TestCrewAICompatibility:
     def test_crewai_base_import(self):
         """Test that CrewAI can be imported."""
         try:
-            import crewai
+            import crewai  # noqa: F401
 
             assert True
         except ImportError:
@@ -129,9 +128,9 @@ class TestCrewAICompatibility:
     def test_crewai_memory_modules_import(self):
         """Test that CrewAI memory modules can be imported."""
         try:
-            import crewai.memory.memory
-            import crewai.memory.short_term.short_term_memory
-            import crewai.memory.storage.rag_storage
+            import crewai.memory.memory  # noqa: F401
+            import crewai.memory.short_term.short_term_memory  # noqa: F401
+            import crewai.memory.storage.rag_storage  # noqa: F401
 
             assert True
         except ImportError:
@@ -140,8 +139,8 @@ class TestCrewAICompatibility:
     def test_crewai_tool_modules_import(self):
         """Test that CrewAI tool modules can be imported."""
         try:
-            import crewai.tools.base_tool
-            import crewai.tools.structured_tool
+            import crewai.tools.base_tool  # noqa: F401
+            import crewai.tools.structured_tool  # noqa: F401
 
             assert True
         except ImportError:
@@ -150,8 +149,8 @@ class TestCrewAICompatibility:
     def test_crewai_task_modules_import(self):
         """Test that CrewAI task modules can be imported."""
         try:
-            import crewai.crew
-            import crewai.task
+            import crewai.crew  # noqa: F401
+            import crewai.task  # noqa: F401
 
             assert True
         except ImportError:
@@ -161,9 +160,9 @@ class TestCrewAICompatibility:
         """Test shim behavior with different import orders."""
         try:
             # Test: shim first, then CrewAI
-            import crewai
+            import crewai  # noqa: F401
 
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             assert True
 
@@ -175,7 +174,7 @@ class TestCrewAICompatibility:
         try:
             from crewai.memory.storage.rag_storage import RAGStorage
 
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             # Should be able to access the class
             assert RAGStorage is not None
@@ -192,7 +191,7 @@ class TestCrewAICompatibility:
         try:
             from crewai.tools.structured_tool import CrewStructuredTool
 
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             # Should be able to access the class
             assert CrewStructuredTool is not None
@@ -332,7 +331,7 @@ class TestShimPerformance:
             # Import in a way that forces reload
             if "fast_crewai.shim" in sys.modules:
                 del sys.modules["fast_crewai.shim"]
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
         end_time = time.time()
 
         # Should be fast

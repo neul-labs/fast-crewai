@@ -75,7 +75,8 @@ class AcceleratedSQLiteWrapper:
                 self._implementation = "python"
                 self._initialize_python_db()
                 print(
-                    f"Warning: Failed to initialize Rust SQLite wrapper, falling back to Python: {e}"
+                    f"Warning: Failed to initialize Rust SQLite wrapper, "
+                    f"falling back to Python: {e}"
                 )
         else:
             self._wrapper = None
@@ -326,4 +327,7 @@ class AcceleratedSQLiteWrapper:
 
     def __repr__(self) -> str:
         """String representation of the wrapper."""
-        return f"AcceleratedSQLiteWrapper(implementation={self.implementation}, db_path={self.db_path})"
+        return (
+            f"AcceleratedSQLiteWrapper(implementation={self.implementation}, "
+            f"db_path={self.db_path})"
+        )

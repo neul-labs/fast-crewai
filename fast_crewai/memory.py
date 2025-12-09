@@ -67,7 +67,8 @@ class AcceleratedMemoryStorage:
                 self._storage = []
                 self._implementation = "python"
                 print(
-                    f"Warning: Failed to initialize Rust memory storage, falling back to Python: {e}"
+                    f"Warning: Failed to initialize Rust memory storage, "
+                    f"falling back to Python: {e}"
                 )
         else:
             self._storage = []
@@ -218,7 +219,7 @@ class AcceleratedMemoryStorage:
         if self._use_rust:
             try:
                 return len(self._storage.get_all())
-            except:
+            except Exception:
                 return len(self._storage)  # Fallback
         else:
             return len(self._storage)

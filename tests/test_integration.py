@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Check if CrewAI is available - skip entire module if not
 try:
-    import crewai
+    import crewai  # noqa: F401
 
     CREWAI_AVAILABLE = True
 except ImportError:
@@ -39,7 +39,7 @@ class TestFastCrewAIIntegration:
 
     def test_shim_activation(self):
         """Test that the shim activates correctly."""
-        import fast_crewai.shim
+        import fast_crewai.shim  # noqa: F401
 
         # If we get here, the shim activated successfully
         assert True
@@ -103,13 +103,12 @@ class TestFastCrewAIIntegration:
             return a + b
 
         # Try different invocation patterns
-        result = None
         if hasattr(calculate_sum, "_run"):
-            result = calculate_sum._run(5, 3)
+            calculate_sum._run(5, 3)
         elif hasattr(calculate_sum, "run"):
-            result = calculate_sum.run(a=5, b=3)
+            calculate_sum.run(a=5, b=3)
         elif hasattr(calculate_sum, "func"):
-            result = calculate_sum.func(5, 3)
+            calculate_sum.func(5, 3)
 
         # Tool execution may require different patterns based on CrewAI version
         # This test just verifies the tool was created successfully

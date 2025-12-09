@@ -40,56 +40,44 @@ if os.environ.get("FAST_CREWAI_ACCELERATION") == "1":
         # Silently fail if shimming doesn't work
         pass
 
-# Import the actual components (this will handle the acceleration vs Python fallback)
+# Check if acceleration implementation is available
 try:
-    # Try to import the accelerated extension
-    from ._core import (AcceleratedMemoryStorage, AcceleratedMessage,
-                        AcceleratedSQLiteWrapper, AcceleratedTaskExecutor,
-                        AcceleratedToolExecutor)
+    from ._core import (
+        AcceleratedMemoryStorage as _CoreMemoryStorage,
+        AcceleratedMessage as _CoreMessage,
+        AcceleratedSQLiteWrapper as _CoreSQLiteWrapper,
+        AcceleratedTaskExecutor as _CoreTaskExecutor,
+        AcceleratedToolExecutor as _CoreToolExecutor,
+    )
 
-    # Mark acceleration implementation as available
     HAS_ACCELERATION_IMPLEMENTATION = True
+    # These are available but we prefer the wrapper classes from submodules
+    del _CoreMemoryStorage, _CoreMessage, _CoreSQLiteWrapper
+    del _CoreTaskExecutor, _CoreToolExecutor
 
 except ImportError:
-    # Acceleration implementation not available, set flags to False
+    # Acceleration implementation not available
     HAS_ACCELERATION_IMPLEMENTATION = False
 
-    # Create placeholder classes to prevent ImportError
-    class AcceleratedMemoryStorage:
-        def __init__(self, *args, **kwargs):
-            raise RuntimeError("Acceleration implementation not available")
 
-    class AcceleratedToolExecutor:
-        def __init__(self, *args, **kwargs):
-            raise RuntimeError("Acceleration implementation not available")
-
-    class AcceleratedTaskExecutor:
-        def __init__(self, *args, **kwargs):
-            raise RuntimeError("Acceleration implementation not available")
-
-    class AcceleratedMessage:
-        def __init__(self, *args, **kwargs):
-            raise RuntimeError("Acceleration implementation not available")
-
-    class AcceleratedSQLiteWrapper:
-        def __init__(self, *args, **kwargs):
-            raise RuntimeError("Acceleration implementation not available")
-
-
+# Import public API from submodules (these provide Python fallbacks)
 from .database import AcceleratedSQLiteWrapper
-# Import integration utilities
-from .integration import (AcceleratedMemoryIntegration,
-                          AcceleratedTaskIntegration,
-                          AcceleratedToolIntegration)
-# Import public API
+from .integration import (
+    AcceleratedMemoryIntegration,
+    AcceleratedTaskIntegration,
+    AcceleratedToolIntegration,
+)
 from .memory import AcceleratedMemoryStorage
 from .serialization import AgentMessage, RustSerializer
 from .tasks import AcceleratedTaskExecutor
 from .tools import AcceleratedToolExecutor
-# Import utility functions
-from .utils import (configure_accelerated_components, get_acceleration_status,
-                    get_environment_info, get_performance_improvements,
-                    is_acceleration_available)
+from .utils import (
+    configure_accelerated_components,
+    get_acceleration_status,
+    get_environment_info,
+    get_performance_improvements,
+    is_acceleration_available,
+)
 
 __all__ = [
     "HAS_ACCELERATION_IMPLEMENTATION",

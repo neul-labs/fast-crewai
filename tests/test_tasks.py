@@ -4,7 +4,6 @@ Tests for task execution components.
 
 import threading
 import time
-from typing import List
 
 import pytest
 
@@ -38,12 +37,10 @@ class TestAcceleratedTaskExecutor:
         """Basic performance test for task execution."""
         from fast_crewai import AcceleratedTaskExecutor
 
-        executor = AcceleratedTaskExecutor()
-
         # Create multiple task executors quickly
         start_time = time.time()
         for i in range(100):
-            temp_executor = AcceleratedTaskExecutor()
+            AcceleratedTaskExecutor()
         creation_time = time.time() - start_time
 
         # Should be reasonably fast
@@ -57,11 +54,11 @@ class TestTaskIntegration:
         """Test that CrewAI task imports work after shimming."""
         try:
             # Import shim first
-            from crewai.crew import Crew
+            from crewai.crew import Crew  # noqa: F401
             # Then try to import CrewAI task components
-            from crewai.task import Task
+            from crewai.task import Task  # noqa: F401
 
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             assert True  # If we get here, imports worked
 
@@ -74,12 +71,11 @@ class TestTaskIntegration:
         try:
             from crewai.task import Task
 
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             # Should be able to use Task class
             # (might be enhanced by Rust implementation)
-            task_cls = Task
-            assert task_cls is not None
+            assert Task is not None
 
         except ImportError:
             pytest.skip("CrewAI not available for integration testing")
@@ -89,7 +85,7 @@ class TestTaskIntegration:
         try:
             from crewai import Agent, Crew, Task
 
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             # Create minimal crew for testing
             agent = Agent(

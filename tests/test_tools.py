@@ -4,7 +4,6 @@ Tests for tool execution components.
 
 import json
 import time
-from typing import Any, Dict
 
 import pytest
 
@@ -46,8 +45,6 @@ class TestAcceleratedToolExecutor:
         """Test that tool executor handles recursion safely."""
         from fast_crewai import AcceleratedToolExecutor
 
-        executor = AcceleratedToolExecutor(max_recursion_depth=100)
-
         # Test that we can create executor with high recursion limit
         high_recursion_executor = AcceleratedToolExecutor(max_recursion_depth=10000)
         assert high_recursion_executor is not None
@@ -59,7 +56,7 @@ class TestAcceleratedToolExecutor:
         executor = AcceleratedToolExecutor()
 
         # Test with a tool execution - should handle gracefully
-        result = executor.execute_tool("nonexistent_tool", {})
+        executor.execute_tool("nonexistent_tool", {})
         # The executor should not crash - it returns a result
         assert executor is not None
 
@@ -67,12 +64,10 @@ class TestAcceleratedToolExecutor:
         """Basic performance test for tool execution."""
         from fast_crewai import AcceleratedToolExecutor
 
-        executor = AcceleratedToolExecutor()
-
         # Time multiple tool creations
         start_time = time.time()
         for i in range(100):
-            executor = AcceleratedToolExecutor()
+            AcceleratedToolExecutor()
         creation_time = time.time() - start_time
 
         # Should be reasonably fast
@@ -87,10 +82,10 @@ class TestToolIntegration:
         try:
             # Import shim first
             # Then try to import CrewAI tool components
-            from crewai.tools.base_tool import BaseTool
-            from crewai.tools.structured_tool import CrewStructuredTool
+            from crewai.tools.base_tool import BaseTool  # noqa: F401
+            from crewai.tools.structured_tool import CrewStructuredTool  # noqa: F401
 
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             assert True  # If we get here, imports worked
 
@@ -103,7 +98,7 @@ class TestToolIntegration:
         try:
             from crewai import tool
 
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             @tool
             def test_calculation(a: int, b: int) -> int:
@@ -121,12 +116,11 @@ class TestToolIntegration:
         try:
             from crewai.tools.structured_tool import CrewStructuredTool
 
-            import fast_crewai.shim
+            import fast_crewai.shim  # noqa: F401
 
             # Should be able to use CrewStructuredTool
             # (might be replaced by Rust implementation)
-            tool_cls = CrewStructuredTool
-            assert tool_cls is not None
+            assert CrewStructuredTool is not None
 
         except ImportError:
             pytest.skip("CrewAI not available for integration testing")
@@ -182,7 +176,6 @@ class TestToolEdgeCases:
 
         from fast_crewai import AcceleratedToolExecutor
 
-        executor = AcceleratedToolExecutor()
         results = []
         errors = []
 
@@ -233,10 +226,6 @@ class TestToolPerformance:
 
     def test_tool_argument_serialization_performance(self):
         """Test performance of argument serialization."""
-        from fast_crewai import AcceleratedToolExecutor
-
-        executor = AcceleratedToolExecutor()
-
         # Create large argument structure
         large_args = {"data": [{"id": i, "value": f"item_{i}"} for i in range(1000)]}
 
@@ -244,7 +233,7 @@ class TestToolPerformance:
 
         # Serialize arguments multiple times
         for i in range(100):
-            json_args = json.dumps(large_args)
+            json.dumps(large_args)
 
         serialization_time = time.time() - start_time
 

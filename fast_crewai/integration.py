@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional
 
 from .database import AcceleratedSQLiteWrapper
 from .memory import AcceleratedMemoryStorage
-from .serialization import AgentMessage, RustSerializer
 from .tasks import AcceleratedTaskExecutor
 from .tools import AcceleratedToolExecutor
 
@@ -47,10 +46,9 @@ class AcceleratedMemoryIntegration:
             return RustEnhancedMemoryProxy(
                 rust_memory, crew, embedder_config, storage, path
             )
-        except Exception as e:
+        except Exception:
             # Fallback to original implementation
-            from crewai.memory.short_term.short_term_memory import \
-                ShortTermMemory
+            from crewai.memory.short_term.short_term_memory import ShortTermMemory
 
             return ShortTermMemory(
                 crew=crew, embedder_config=embedder_config, storage=storage, path=path
@@ -83,7 +81,7 @@ class AcceleratedMemoryIntegration:
                 return RustEnhancedLongTermMemoryProxy(
                     rust_db, crew, embedder_config, storage, path
                 )
-        except Exception as e:
+        except Exception:
             pass
 
         # Fallback to original implementation
@@ -121,7 +119,7 @@ class RustEnhancedMemoryProxy:
         """Save a value to memory."""
         try:
             self.rust_memory.save(value, metadata)
-        except Exception as e:
+        except Exception:
             # Fallback to original implementation
             self.original_memory.save(value, metadata)
 
@@ -131,7 +129,7 @@ class RustEnhancedMemoryProxy:
         """Search memory for items matching the query."""
         try:
             return self.rust_memory.search(query, limit, score_threshold)
-        except Exception as e:
+        except Exception:
             # Fallback to original implementation
             return self.original_memory.search(query, limit, score_threshold)
 
@@ -139,7 +137,7 @@ class RustEnhancedMemoryProxy:
         """Reset memory storage."""
         try:
             self.rust_memory.reset()
-        except Exception as e:
+        except Exception:
             # Fallback to original implementation
             self.original_memory.reset()
 
@@ -206,7 +204,7 @@ class RustEnhancedLongTermMemoryProxy:
             self.rust_db.save_memory(
                 task_description, metadata or {}, datetime_str, score
             )
-        except Exception as e:
+        except Exception:
             # Fallback to original implementation
             self.original_memory.save(value, metadata)
 
@@ -221,7 +219,7 @@ class RustEnhancedLongTermMemoryProxy:
             results = self.rust_db.load_memories(query, limit)
             if results:
                 return results
-        except Exception as e:
+        except Exception:
             pass
 
         # Fallback to original implementation
@@ -231,7 +229,7 @@ class RustEnhancedLongTermMemoryProxy:
         """Reset memory storage."""
         try:
             self.rust_db.reset()
-        except Exception as e:
+        except Exception:
             # Fallback to original implementation
             self.original_memory.reset()
 
@@ -255,7 +253,7 @@ class AcceleratedToolIntegration:
         try:
             rust_executor = AcceleratedToolExecutor(max_recursion_depth=max_iterations)
             return rust_executor
-        except Exception as e:
+        except Exception:
             # Return a compatible Python implementation
             return PythonToolExecutor(max_iterations)
 
@@ -277,8 +275,6 @@ class PythonToolExecutor:
         self.iteration_count += 1
         try:
             # Simulate tool execution
-            import json
-
             if isinstance(arguments, dict):
                 args_str = ", ".join([f"{k}={v}" for k, v in arguments.items()])
             else:
@@ -305,7 +301,7 @@ class AcceleratedTaskIntegration:
         try:
             rust_executor = AcceleratedTaskExecutor()
             return rust_executor
-        except Exception as e:
+        except Exception:
             # Return a compatible Python implementation
             return PythonTaskExecutor()
 

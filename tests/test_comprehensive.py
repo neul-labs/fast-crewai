@@ -188,7 +188,10 @@ class TestSerialization(unittest.TestCase):
 
     def test_message_deserialization(self):
         """Test message deserialization from JSON."""
-        json_str = '{"id": "2", "sender": "agent2", "recipient": "agent1", "content": "Reply", "timestamp": 1234567891}'
+        json_str = (
+            '{"id": "2", "sender": "agent2", "recipient": "agent1", '
+            '"content": "Reply", "timestamp": 1234567891}'
+        )
         message = SerializableMessage.from_json(json_str)
         self.assertIsInstance(message, SerializableMessage)
         self.assertEqual(message.id, "2")

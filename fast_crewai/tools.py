@@ -9,7 +9,7 @@ import functools
 import json
 import os
 import time
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Optional
 
 from ._constants import HAS_ACCELERATION_IMPLEMENTATION
 
@@ -47,7 +47,7 @@ def accelerate_tool_execution(func: Callable) -> Callable:
                 # For now, fall back to original implementation
                 # Future: implement actual Rust-accelerated tool execution
                 return func(self, *args, **kwargs)
-            except Exception as e:
+            except Exception:
                 # Fall back to original implementation on error
                 return func(self, *args, **kwargs)
         else:
@@ -116,11 +116,11 @@ def create_accelerated_base_tool():
 
         return AcceleratedBaseTool
 
-    except ImportError as e:
+    except ImportError:
         # If we can't import BaseTool, return None
         # This happens when CrewAI is not installed
         return None
-    except Exception as e:
+    except Exception:
         # On any other error, return None
         return None
 
@@ -222,7 +222,7 @@ class AcceleratedToolExecutor:
             try:
                 self._executor = _RustToolExecutor(max_recursion_depth)
                 self._implementation = "rust"
-            except Exception as e:
+            except Exception:
                 # Fallback to Python implementation
                 self._use_rust = False
                 self._executor = None
@@ -247,9 +247,6 @@ class AcceleratedToolExecutor:
         Returns:
             Result of the tool execution
         """
-        # Use provided timeout or default
-        actual_timeout = timeout if timeout is not None else self.timeout_seconds
-
         if self._use_rust:
             try:
                 # Convert arguments to string format for Rust
@@ -273,7 +270,8 @@ class AcceleratedToolExecutor:
                 error_str = str(e)
                 if "Maximum recursion depth exceeded" in error_str:
                     raise Exception(
-                        f"Tool execution failed: Maximum recursion depth exceeded for tool '{tool_name}'"
+                        f"Tool execution failed: Maximum recursion depth exceeded "
+                        f"for tool '{tool_name}'"
                     )
                 else:
                     # Fallback to Python implementation

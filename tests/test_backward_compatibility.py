@@ -8,8 +8,6 @@ when the Rust integration is installed.
 import os
 import sys
 import unittest
-from typing import Any, Dict, List, Optional
-from unittest.mock import MagicMock, patch
 
 # Add the fast_crewai directory to the path for testing
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "fast_crewai"))
@@ -80,7 +78,7 @@ class TestBackwardCompatibility(unittest.TestCase):
             import fast_crewai
 
             importlib.reload(fast_crewai)
-        except Exception as e:
+        except Exception:
             # This is expected if Rust components aren't available
             pass
 
@@ -93,7 +91,7 @@ class TestBackwardCompatibility(unittest.TestCase):
 
                 storage = AcceleratedMemoryStorage()
                 self.assertEqual(storage.implementation, "python")
-            except Exception as e:
+            except Exception:
                 # This is expected if Rust components aren't available
                 pass
 
@@ -159,7 +157,7 @@ class TestBackwardCompatibility(unittest.TestCase):
             # Test reset method
             storage.reset()
 
-        except Exception as e:
+        except Exception:
             # This is expected if Rust components aren't available
             pass
 
@@ -175,7 +173,7 @@ class TestBackwardCompatibility(unittest.TestCase):
             result = executor.execute_tool("test_tool", {"param": "value"})
             self.assertIsInstance(result, str)
 
-        except Exception as e:
+        except Exception:
             # This is expected if Rust components aren't available
             pass
 
@@ -190,7 +188,7 @@ class TestBackwardCompatibility(unittest.TestCase):
             # Test implementation property
             self.assertIn(executor.implementation, ["rust", "python"])
 
-        except Exception as e:
+        except Exception:
             # This is expected if Rust components aren't available
             pass
 
@@ -217,7 +215,7 @@ class TestBackwardCompatibility(unittest.TestCase):
             self.assertEqual(message.id, message2.id)
             self.assertEqual(message.sender, message2.sender)
 
-        except Exception as e:
+        except Exception:
             # This is expected if Rust components aren't available
             pass
 
@@ -248,7 +246,7 @@ class TestBackwardCompatibility(unittest.TestCase):
                 if os.path.exists(db_path):
                     os.unlink(db_path)
 
-        except Exception as e:
+        except Exception:
             # This is expected if Rust components aren't available
             pass
 
@@ -289,7 +287,7 @@ class TestBackwardCompatibility(unittest.TestCase):
             results = storage.search("", limit=-1)
             self.assertIsInstance(results, list)
 
-        except Exception as e:
+        except Exception:
             # This is expected if Rust components aren't available
             pass
 
