@@ -1,3 +1,6 @@
+// Allow non_local_definitions for pyo3 macros (older pyo3 version compatibility)
+#![allow(non_local_definitions)]
+
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList, PyTuple};
 use serde::{Deserialize, Serialize};
@@ -6,6 +9,7 @@ use std::collections::HashMap;
 
 // Add a new struct to store memory items with metadata
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct MemoryItem {
     id: u64,
     content: String,
@@ -189,7 +193,7 @@ impl RustToolExecutor {
         }
         
         *count += 1;
-        let current_count = *count;
+        let _current_count = *count;
         drop(count); // Release the lock
         
         // Simulate tool execution
@@ -371,21 +375,21 @@ impl RustSQLiteWrapper {
         })
     }
 
-    pub fn execute_query(&self, query: &str, params: &PyDict) -> PyResult<Vec<HashMap<String, String>>> {
+    pub fn execute_query(&self, _query: &str, params: &PyDict) -> PyResult<Vec<HashMap<String, String>>> {
         let pool = self.connection_pool.lock().map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
                 "Failed to acquire pool lock: {}",
                 e
             ))
         })?;
-        
-        let conn = pool.get().map_err(|e| {
+
+        let _conn = pool.get().map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
                 "Failed to get connection: {}",
                 e
             ))
         })?;
-        
+
         // Convert PyDict to Vec of parameters
         let mut param_vec = Vec::new();
         for (key, value) in params.iter() {
@@ -393,32 +397,32 @@ impl RustSQLiteWrapper {
             let value_str: String = value.extract()?;
             param_vec.push((key_str, value_str));
         }
-        
+
         // For now, we'll return a simplified result
         // In a full implementation, we'd execute the query and return actual results
         let mut results = Vec::new();
         let mut row = HashMap::new();
         row.insert("status".to_string(), "success".to_string());
         results.push(row);
-        
+
         Ok(results)
     }
 
-    pub fn execute_update(&self, query: &str, params: &PyDict) -> PyResult<usize> {
+    pub fn execute_update(&self, _query: &str, _params: &PyDict) -> PyResult<usize> {
         let pool = self.connection_pool.lock().map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
                 "Failed to acquire pool lock: {}",
                 e
             ))
         })?;
-        
-        let conn = pool.get().map_err(|e| {
+
+        let _conn = pool.get().map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
                 "Failed to get connection: {}",
                 e
             ))
         })?;
-        
+
         // For now, we'll return a simplified result
         // In a full implementation, we'd execute the query and return actual results
         Ok(1)
