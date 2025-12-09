@@ -7,26 +7,27 @@ shimming to measure the actual real-world performance improvements.
 """
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
 import sys
-import time
-from pathlib import Path
-from typing import Optional, Dict, Any
 import tempfile
-import json
+import time
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 
 class Colors:
     """ANSI color codes for terminal output."""
-    RED = '\033[0;31m'
-    GREEN = '\033[0;32m'
-    YELLOW = '\033[1;33m'
-    BLUE = '\033[0;34m'
-    PURPLE = '\033[0;35m'
-    NC = '\033[0m'  # No Color
+
+    RED = "\033[0;31m"
+    GREEN = "\033[0;32m"
+    YELLOW = "\033[1;33m"
+    BLUE = "\033[0;34m"
+    PURPLE = "\033[0;35m"
+    NC = "\033[0m"  # No Color
 
 
 def log_info(message: str) -> None:
@@ -58,16 +59,12 @@ def run_command(
     cmd: list[str],
     cwd: Optional[Path] = None,
     check: bool = True,
-    capture_output: bool = False
+    capture_output: bool = False,
 ) -> subprocess.CompletedProcess:
     """Run a command and return the result."""
     try:
         result = subprocess.run(
-            cmd,
-            cwd=cwd,
-            check=check,
-            capture_output=capture_output,
-            text=True
+            cmd, cwd=cwd, check=check, capture_output=capture_output, text=True
         )
         return result
     except subprocess.CalledProcessError as e:
@@ -78,21 +75,18 @@ def run_command(
         raise
 
 
-def setup_test_environment(
-    test_dir: Path,
-    skip_install: bool = False
-) -> Path:
+def setup_test_environment(test_dir: Path, skip_install: bool = False) -> Path:
     """Set up the test environment with CrewAI installed."""
     # Create virtual environment
     venv_dir = test_dir / "venv"
-    
+
     if not skip_install:
         log_info("Creating virtual environment for CrewAI")
         run_command([sys.executable, "-m", "venv", str(venv_dir)])
-        
+
         pip = get_venv_pip(venv_dir)
         run_command([str(pip), "install", "--upgrade", "pip", "setuptools", "wheel"])
-    
+
     return venv_dir
 
 
@@ -115,13 +109,16 @@ def get_venv_pip(venv_dir: Path) -> Path:
 def install_crewai(venv_dir: Path) -> None:
     """Install CrewAI in the virtual environment."""
     pip = get_venv_pip(venv_dir)
-    
+
     # Install a minimal version of CrewAI (avoiding complex dependencies if possible for benchmarking)
     # Try to install with minimal dependencies first
     try:
         run_command([str(pip), "install", "crewai[tools]"], check=False)
         # If that fails, try a simpler install
-        if run_command([str(pip), "list"], capture_output=True).stdout.find("crewai") == -1:
+        if (
+            run_command([str(pip), "list"], capture_output=True).stdout.find("crewai")
+            == -1
+        ):
             run_command([str(pip), "install", "crewai"], check=True)
     except:
         # If all else fails, install directly
@@ -131,17 +128,17 @@ def install_crewai(venv_dir: Path) -> None:
 def install_fast_crewai(venv_dir: Path, fast_crewai_dir: Path) -> None:
     """Install both CrewAI and Fast-CrewAI in the virtual environment."""
     pip = get_venv_pip(venv_dir)
-    
+
     # Install CrewAI first
     install_crewai(venv_dir)
-    
+
     # Install Fast-CrewAI
     run_command([str(pip), "install", "-e", "."], cwd=fast_crewai_dir)
 
 
 def create_test_workflow_script(venv_dir: Path, test_dir: Path) -> Path:
     """Create a test script that runs a CrewAI workflow."""
-    
+
     workflow_script_content = '''
 import os
 import sys
@@ -381,9 +378,9 @@ if __name__ == "__main__":
 '''
 
     workflow_script_path = test_dir / "crewai_test_workflow.py"
-    with open(workflow_script_path, 'w') as f:
+    with open(workflow_script_path, "w") as f:
         f.write(workflow_script_content)
-    
+
     return workflow_script_path
 
 
@@ -392,106 +389,118 @@ def run_benchmark(
     workflow_script: Path,
     use_acceleration: bool,
     workflow_type: str = "basic",
-    iterations: int = 3
+    iterations: int = 3,
 ) -> Dict[str, Any]:
     """Run the benchmark with or without acceleration."""
     python_exe = get_venv_python(venv_dir)
-    
+
     results = []
-    
+
     for i in range(iterations):
-        log_info(f"Running iteration {i+1}/{iterations} ({'with' if use_acceleration else 'without'} acceleration)")
-        
+        log_info(
+            f"Running iteration {i+1}/{iterations} ({'with' if use_acceleration else 'without'} acceleration)"
+        )
+
         # Set environment variables
         env = os.environ.copy()
-        env['WORKFLOW_TYPE'] = workflow_type
-        
+        env["WORKFLOW_TYPE"] = workflow_type
+
         if use_acceleration:
-            env['FAST_CREWAI_ACCELERATION'] = '1'
+            env["FAST_CREWAI_ACCELERATION"] = "1"
         else:
             # Ensure acceleration is disabled
-            env.pop('FAST_CREWAI_ACCELERATION', None)
-        
+            env.pop("FAST_CREWAI_ACCELERATION", None)
+
         # Add fast_crewai.shim import if using acceleration
         cmd = [str(python_exe)]
         if use_acceleration:
-            cmd.extend(['-c', f'import fast_crewai.shim; exec(open("{workflow_script}").read())'])
+            cmd.extend(
+                [
+                    "-c",
+                    f'import fast_crewai.shim; exec(open("{workflow_script}").read())',
+                ]
+            )
         else:
             cmd.append(str(workflow_script))
-        
+
         start_time = time.time()
         try:
             result = subprocess.run(
-                cmd,
-                cwd=venv_dir,
-                capture_output=True,
-                text=True,
-                env=env
+                cmd, cwd=venv_dir, capture_output=True, text=True, env=env
             )
-            
+
             execution_time = time.time() - start_time
-            
+
             if result.returncode != 0:
-                log_error(f"Iteration {i+1} failed with return code {result.returncode}")
+                log_error(
+                    f"Iteration {i+1} failed with return code {result.returncode}"
+                )
                 log_error(f"Error output: {result.stderr}")
                 continue
-            
+
             # Extract timing from the output
             import re
-            time_match = re.search(r'workflow completed in ([\d.]+) seconds', result.stdout.lower())
+
+            time_match = re.search(
+                r"workflow completed in ([\d.]+) seconds", result.stdout.lower()
+            )
             actual_time = float(time_match.group(1)) if time_match else execution_time
-            
-            results.append({
-                'total_time': execution_time,
-                'actual_workflow_time': actual_time,
-                'success': True,
-                'output_length': len(result.stdout)
-            })
-            
+
+            results.append(
+                {
+                    "total_time": execution_time,
+                    "actual_workflow_time": actual_time,
+                    "success": True,
+                    "output_length": len(result.stdout),
+                }
+            )
+
         except Exception as e:
             log_error(f"Iteration {i+1} failed with exception: {e}")
             continue
-    
+
     if not results:
         log_error("All iterations failed")
         return None
-    
+
     # Calculate averages
-    avg_total_time = sum(r['total_time'] for r in results) / len(results)
-    avg_workflow_time = sum(r['actual_workflow_time'] for r in results) / len(results)
-    
+    avg_total_time = sum(r["total_time"] for r in results) / len(results)
+    avg_workflow_time = sum(r["actual_workflow_time"] for r in results) / len(results)
+
     return {
-        'iterations_run': len(results),
-        'average_total_time': avg_total_time,
-        'average_workflow_time': avg_workflow_time,
-        'results': results
+        "iterations_run": len(results),
+        "average_total_time": avg_total_time,
+        "average_workflow_time": avg_workflow_time,
+        "results": results,
     }
 
 
-def compare_performance(baseline_results: Dict, accelerated_results: Dict) -> Dict[str, Any]:
+def compare_performance(
+    baseline_results: Dict, accelerated_results: Dict
+) -> Dict[str, Any]:
     """Compare baseline and accelerated performance."""
     if not baseline_results or not accelerated_results:
         return {"error": "Missing results to compare"}
-    
+
     comparison = {}
-    
-    baseline_time = baseline_results['average_workflow_time']
-    accelerated_time = accelerated_results['average_workflow_time']
-    
+
+    baseline_time = baseline_results["average_workflow_time"]
+    accelerated_time = accelerated_results["average_workflow_time"]
+
     # Calculate improvement
     if accelerated_time > 0:
         improvement = baseline_time / accelerated_time
-        comparison['improvement_factor'] = improvement
-        comparison['time_saved'] = baseline_time - accelerated_time
-        comparison['percent_improvement'] = (1 - accelerated_time / baseline_time) * 100
+        comparison["improvement_factor"] = improvement
+        comparison["time_saved"] = baseline_time - accelerated_time
+        comparison["percent_improvement"] = (1 - accelerated_time / baseline_time) * 100
     else:
-        comparison['improvement_factor'] = float('inf')
-        comparison['time_saved'] = baseline_time
-        comparison['percent_improvement'] = float('inf')
-    
-    comparison['baseline_time'] = baseline_time
-    comparison['accelerated_time'] = accelerated_time
-    
+        comparison["improvement_factor"] = float("inf")
+        comparison["time_saved"] = baseline_time
+        comparison["percent_improvement"] = float("inf")
+
+    comparison["baseline_time"] = baseline_time
+    comparison["accelerated_time"] = accelerated_time
+
     return comparison
 
 
@@ -504,34 +513,30 @@ def main() -> int:
         "--test-dir",
         type=Path,
         default=Path("./crewai_comparison_test"),
-        help="Directory for test environment"
+        help="Directory for test environment",
     )
     parser.add_argument(
         "--iterations",
         type=int,
         default=3,
-        help="Number of iterations for each test (default: 3)"
+        help="Number of iterations for each test (default: 3)",
     )
     parser.add_argument(
         "--workflow-type",
         choices=["basic", "memory", "tools"],
         default="basic",
-        help="Type of workflow to test: basic, memory-intensive, or tool-intensive"
+        help="Type of workflow to test: basic, memory-intensive, or tool-intensive",
     )
     parser.add_argument(
         "--skip-install",
         action="store_true",
-        help="Skip installation steps (use existing environment)"
+        help="Skip installation steps (use existing environment)",
     )
     parser.add_argument(
-        "--keep-env",
-        action="store_true",
-        help="Keep test environment after completion"
+        "--keep-env", action="store_true", help="Keep test environment after completion"
     )
     parser.add_argument(
-        "-v", "--verbose",
-        action="store_true",
-        help="Enable verbose output"
+        "-v", "--verbose", action="store_true", help="Enable verbose output"
     )
 
     args = parser.parse_args()
@@ -546,9 +551,9 @@ def main() -> int:
         # Setup environment
         test_dir = args.test_dir
         test_dir.mkdir(parents=True, exist_ok=True)
-        
+
         venv_dir = setup_test_environment(test_dir, args.skip_install)
-        
+
         if not args.skip_install:
             log_info("Installing CrewAI and Fast-CrewAI...")
             install_fast_crewai(venv_dir, fast_crewai_dir)
@@ -563,69 +568,91 @@ def main() -> int:
         print()
 
         # Run without acceleration (baseline)
-        log_info(f"Running baseline test ({args.workflow_type} workflow) without Fast-CrewAI acceleration...")
-        baseline_results = run_benchmark(
-            venv_dir, workflow_script, use_acceleration=False,
-            workflow_type=args.workflow_type, iterations=args.iterations
+        log_info(
+            f"Running baseline test ({args.workflow_type} workflow) without Fast-CrewAI acceleration..."
         )
-        
+        baseline_results = run_benchmark(
+            venv_dir,
+            workflow_script,
+            use_acceleration=False,
+            workflow_type=args.workflow_type,
+            iterations=args.iterations,
+        )
+
         if not baseline_results:
             log_error("Baseline test failed - cannot proceed with comparison")
             return 1
 
         print()
-        log_info(f"Baseline completed - Average time: {baseline_results['average_workflow_time']:.2f}s")
+        log_info(
+            f"Baseline completed - Average time: {baseline_results['average_workflow_time']:.2f}s"
+        )
 
         # Run with acceleration
-        log_info(f"Running accelerated test ({args.workflow_type} workflow) with Fast-CrewAI acceleration...")
-        accelerated_results = run_benchmark(
-            venv_dir, workflow_script, use_acceleration=True,
-            workflow_type=args.workflow_type, iterations=args.iterations
+        log_info(
+            f"Running accelerated test ({args.workflow_type} workflow) with Fast-CrewAI acceleration..."
         )
-        
+        accelerated_results = run_benchmark(
+            venv_dir,
+            workflow_script,
+            use_acceleration=True,
+            workflow_type=args.workflow_type,
+            iterations=args.iterations,
+        )
+
         if not accelerated_results:
             log_error("Accelerated test failed")
             return 1
 
         print()
-        log_info(f"Accelerated test completed - Average time: {accelerated_results['average_workflow_time']:.2f}s")
+        log_info(
+            f"Accelerated test completed - Average time: {accelerated_results['average_workflow_time']:.2f}s"
+        )
 
         # Compare results
         comparison = compare_performance(baseline_results, accelerated_results)
-        
+
         print()
         log_performance("PERFORMANCE COMPARISON RESULTS")
         print("=" * 60)
         print(f"Workflow Type: {args.workflow_type}")
         print(f"Iterations: {args.iterations}")
-        print(f"Baseline (without Fast-CrewAI): {baseline_results['average_workflow_time']:.4f}s")
-        print(f"Accelerated (with Fast-CrewAI): {accelerated_results['average_workflow_time']:.4f}s")
+        print(
+            f"Baseline (without Fast-CrewAI): {baseline_results['average_workflow_time']:.4f}s"
+        )
+        print(
+            f"Accelerated (with Fast-CrewAI): {accelerated_results['average_workflow_time']:.4f}s"
+        )
         print(f"Time Saved: {comparison['time_saved']:.4f}s")
-        print(f"Performance Improvement: {comparison['improvement_factor']:.2f}x faster")
+        print(
+            f"Performance Improvement: {comparison['improvement_factor']:.2f}x faster"
+        )
         print(f"Percent Improvement: {comparison['percent_improvement']:.2f}%")
         print("=" * 60)
 
         # Save results to file
         results_file = test_dir / "comparison_results.json"
         results_data = {
-            'timestamp': datetime.now().isoformat(),
-            'workflow_type': args.workflow_type,
-            'iterations': args.iterations,
-            'baseline_results': baseline_results,
-            'accelerated_results': accelerated_results,
-            'comparison': comparison
+            "timestamp": datetime.now().isoformat(),
+            "workflow_type": args.workflow_type,
+            "iterations": args.iterations,
+            "baseline_results": baseline_results,
+            "accelerated_results": accelerated_results,
+            "comparison": comparison,
         }
-        
-        with open(results_file, 'w') as f:
+
+        with open(results_file, "w") as f:
             json.dump(results_data, f, indent=2)
-        
+
         log_success(f"Comparison completed! Results saved to {results_file}")
-        
+
         # Cleanup
         if not args.keep_env:
             print()
-            response = input("Keep test environment for inspection? [y/N] ").strip().lower()
-            if response not in ['y', 'yes']:
+            response = (
+                input("Keep test environment for inspection? [y/N] ").strip().lower()
+            )
+            if response not in ["y", "yes"]:
                 log_info("Cleaning up test environment...")
                 shutil.rmtree(test_dir)
                 log_success("Cleanup complete")
@@ -643,6 +670,7 @@ def main() -> int:
     except Exception as e:
         log_error(f"Unexpected error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

@@ -15,8 +15,7 @@ from ._constants import HAS_ACCELERATION_IMPLEMENTATION
 # Try to import the Rust implementation
 if HAS_ACCELERATION_IMPLEMENTATION:
     try:
-        from ._core import \
-            AcceleratedSQLiteWrapper as _AcceleratedSQLiteWrapper
+        from ._core import AcceleratedSQLiteWrapper as _AcceleratedSQLiteWrapper
 
         _RUST_AVAILABLE = True
     except ImportError:
@@ -34,9 +33,7 @@ class AcceleratedSQLiteWrapper:
     API compatibility.
     """
 
-    def __init__(
-        self, db_path: str, pool_size: int = 5, use_rust: Optional[bool] = None
-    ):
+    def __init__(self, db_path: str, pool_size: int = 5, use_rust: Optional[bool] = None):
         """
         Initialize the SQLite wrapper.
 
@@ -126,9 +123,7 @@ class AcceleratedSQLiteWrapper:
                 return result_dicts
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(
-                    f"Warning: Rust query execution failed, using Python fallback: {e}"
-                )
+                print(f"Warning: Rust query execution failed, using Python fallback: {e}")
                 self._use_rust = False
                 return self._python_execute_query(query, params)
         else:
@@ -152,9 +147,7 @@ class AcceleratedSQLiteWrapper:
         except Exception as e:
             raise Exception(f"Database query failed: {str(e)}")
 
-    def execute_update(
-        self, query: str, params: Optional[Dict[str, Any]] = None
-    ) -> int:
+    def execute_update(self, query: str, params: Optional[Dict[str, Any]] = None) -> int:
         """
         Execute an INSERT, UPDATE, or DELETE query.
 
@@ -173,17 +166,13 @@ class AcceleratedSQLiteWrapper:
                 return affected_rows
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(
-                    f"Warning: Rust update execution failed, using Python fallback: {e}"
-                )
+                print(f"Warning: Rust update execution failed, using Python fallback: {e}")
                 self._use_rust = False
                 return self._python_execute_update(query, params)
         else:
             return self._python_execute_update(query, params)
 
-    def _python_execute_update(
-        self, query: str, params: Optional[Dict[str, Any]] = None
-    ) -> int:
+    def _python_execute_update(self, query: str, params: Optional[Dict[str, Any]] = None) -> int:
         """Python implementation of update execution for fallback."""
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -219,9 +208,7 @@ class AcceleratedSQLiteWrapper:
                 return affected_counts
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(
-                    f"Warning: Rust batch execution failed, using Python fallback: {e}"
-                )
+                print(f"Warning: Rust batch execution failed, using Python fallback: {e}")
                 self._use_rust = False
                 return self._python_execute_batch(queries)
         else:

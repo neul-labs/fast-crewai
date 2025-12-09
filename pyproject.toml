@@ -67,6 +67,26 @@ Repository = "https://github.com/neul-labs/fast-crewai"
 features = ["pyo3/extension-module"]
 module-name = "fast_crewai._core"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "performance: marks tests as performance tests",
+]
+# Exclude test_compatibility directory (cloned CrewAI repo for compatibility testing)
+addopts = "--ignore=test_compatibility"
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.black]
+line-length = 100
+
 [tool.uv]
 dev-dependencies = [
     "maturin>=1.0.0",

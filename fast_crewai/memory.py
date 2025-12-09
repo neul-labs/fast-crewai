@@ -15,8 +15,7 @@ from ._constants import HAS_ACCELERATION_IMPLEMENTATION
 # Try to import the Rust implementation
 if HAS_ACCELERATION_IMPLEMENTATION:
     try:
-        from ._core import \
-            AcceleratedMemoryStorage as _AcceleratedMemoryStorage
+        from ._core import AcceleratedMemoryStorage as _AcceleratedMemoryStorage
 
         _RUST_AVAILABLE = True
     except ImportError:
@@ -134,9 +133,7 @@ class AcceleratedMemoryStorage:
                         results.append(data)
                     except (json.JSONDecodeError, KeyError):
                         # If it's just raw content, wrap it
-                        results.append(
-                            {"value": item, "metadata": {}, "timestamp": time.time()}
-                        )
+                        results.append({"value": item, "metadata": {}, "timestamp": time.time()})
                 return results
             except Exception as e:
                 # Fallback to Python implementation on error
@@ -180,15 +177,11 @@ class AcceleratedMemoryStorage:
                         data = json.loads(item)
                         items.append(data)
                     except (json.JSONDecodeError, KeyError):
-                        items.append(
-                            {"value": item, "metadata": {}, "timestamp": time.time()}
-                        )
+                        items.append({"value": item, "metadata": {}, "timestamp": time.time()})
                 return items
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(
-                    f"Warning: Rust memory get_all failed, using Python fallback: {e}"
-                )
+                print(f"Warning: Rust memory get_all failed, using Python fallback: {e}")
                 self._use_rust = False
                 return self._storage
         else:

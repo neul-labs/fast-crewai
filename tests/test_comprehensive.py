@@ -10,18 +10,25 @@ import os
 import tempfile
 import unittest
 
-from fast_crewai import (HAS_ACCELERATION_IMPLEMENTATION,
-                         AcceleratedMemoryStorage, AcceleratedSQLiteWrapper,
-                         AcceleratedTaskExecutor, AcceleratedToolExecutor,
-                         AgentMessage)
+from fast_crewai import (
+    HAS_ACCELERATION_IMPLEMENTATION,
+    AcceleratedMemoryStorage,
+    AcceleratedSQLiteWrapper,
+    AcceleratedTaskExecutor,
+    AcceleratedToolExecutor,
+    AgentMessage,
+)
 from fast_crewai.database import AcceleratedSQLiteWrapper as DatabaseWrapper
 from fast_crewai.memory import AcceleratedMemoryStorage as MemoryStorage
 from fast_crewai.serialization import AgentMessage as SerializableMessage
 from fast_crewai.tasks import AcceleratedTaskExecutor as TaskExecutor
 from fast_crewai.tools import AcceleratedToolExecutor as ToolExecutor
-from fast_crewai.utils import (configure_accelerated_components,
-                               get_acceleration_status, get_environment_info,
-                               is_acceleration_available)
+from fast_crewai.utils import (
+    configure_accelerated_components,
+    get_acceleration_status,
+    get_environment_info,
+    is_acceleration_available,
+)
 
 
 class TestAccelerationAvailability(unittest.TestCase):
@@ -285,9 +292,7 @@ class TestDatabaseWrapper(unittest.TestCase):
 
     def test_execute_update(self):
         """Test executing an update."""
-        query = (
-            "CREATE TABLE IF NOT EXISTS test_table (id INTEGER PRIMARY KEY, name TEXT)"
-        )
+        query = "CREATE TABLE IF NOT EXISTS test_table (id INTEGER PRIMARY KEY, name TEXT)"
         params = {}
         affected_rows = self.db_wrapper.execute_update(query, params)
         self.assertIsInstance(affected_rows, int)

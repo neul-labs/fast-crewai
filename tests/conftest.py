@@ -169,9 +169,7 @@ def pytest_runtest_setup(item):
 # Custom pytest command line options
 def pytest_addoption(parser):
     """Add custom command line options."""
-    parser.addoption(
-        "--run-slow", action="store_true", default=False, help="run slow tests"
-    )
+    parser.addoption("--run-slow", action="store_true", default=False, help="run slow tests")
     parser.addoption(
         "--run-integration",
         action="store_true",

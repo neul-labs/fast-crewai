@@ -30,8 +30,7 @@ class TestPackageImport:
 
     def test_acceleration_availability_functions(self):
         """Test acceleration availability detection functions."""
-        from fast_crewai import (get_acceleration_status,
-                                 is_acceleration_available)
+        from fast_crewai import get_acceleration_status, is_acceleration_available
 
         # Should be able to call these functions
         available = is_acceleration_available()
@@ -42,9 +41,11 @@ class TestPackageImport:
 
     def test_main_component_imports(self):
         """Test that we can import main components."""
-        from fast_crewai import (AcceleratedMemoryStorage,
-                                 AcceleratedTaskExecutor,
-                                 AcceleratedToolExecutor)
+        from fast_crewai import (
+            AcceleratedMemoryStorage,
+            AcceleratedTaskExecutor,
+            AcceleratedToolExecutor,
+        )
 
         assert AcceleratedMemoryStorage is not None
         assert AcceleratedToolExecutor is not None
@@ -98,8 +99,7 @@ class TestComponentAvailability:
 
     def test_component_methods_exist(self):
         """Test that components have expected methods."""
-        from fast_crewai import (AcceleratedMemoryStorage,
-                                 AcceleratedToolExecutor)
+        from fast_crewai import AcceleratedMemoryStorage, AcceleratedToolExecutor
 
         # Memory storage methods
         storage = AcceleratedMemoryStorage()

@@ -3,7 +3,8 @@
 **Drop-in performance acceleration for CrewAI** - Get 2-5x faster memory, database, and execution with zero code changes to your existing CrewAI projects.
 
 [![CI](https://github.com/neul-labs/fast-crewai/workflows/CI/badge.svg)](https://github.com/neul-labs/fast-crewai/actions)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10-3.13](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](https://www.python.org/downloads/)
+[![Rust](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org/)
 
 ## 🚀 Quick Start
 
@@ -198,11 +199,33 @@ make benchmark                      # Test components in isolation
 
 For complete documentation, visit the [docs/](docs/) directory.
 
-## 📋 Requirements
+## 📋 Requirements & Compatibility
 
-- Python 3.9 or higher
-- CrewAI (any version supported)
-- Optional: Rust toolchain for native extensions (for maximum performance)
+### Python Version Support
+
+| Python Version | Status | Notes |
+|----------------|--------|-------|
+| Python 3.10 | ✅ Supported | Fully tested |
+| Python 3.11 | ✅ Supported | Fully tested |
+| Python 3.12 | ✅ Supported | Fully tested |
+| Python 3.13 | ✅ Supported | Fully tested |
+| Python 3.9 | ⚠️ Limited | May work but not tested in CI |
+
+### Dependencies
+
+- **CrewAI**: Any recent version supported
+- **Rust toolchain**: Optional, for native extensions (provides maximum performance)
+  - PyO3 0.23+ is used for Python-Rust bindings
+  - Falls back to pure Python if Rust extensions aren't available
+
+### Platform Support
+
+| Platform | Status |
+|----------|--------|
+| Linux (x86_64) | ✅ Fully supported |
+| macOS (x86_64) | ✅ Fully supported |
+| macOS (ARM64/M1) | ✅ Fully supported |
+| Windows (x86_64) | ✅ Supported |
 
 ## 🤝 Contributing
 

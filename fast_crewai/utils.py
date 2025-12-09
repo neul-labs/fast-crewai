@@ -32,10 +32,13 @@ def get_acceleration_status() -> dict:
 
     if HAS_ACCELERATION_IMPLEMENTATION:
         try:
-            from ._core import (AcceleratedMemoryStorage,
-                                AcceleratedSQLiteWrapper,
-                                AcceleratedTaskExecutor,
-                                AcceleratedToolExecutor, AgentMessage)
+            from ._core import (
+                AcceleratedMemoryStorage,
+                AcceleratedSQLiteWrapper,
+                AcceleratedTaskExecutor,
+                AcceleratedToolExecutor,
+                AgentMessage,
+            )
 
             status["components"] = {
                 "memory": True,

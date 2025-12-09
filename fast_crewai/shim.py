@@ -108,8 +108,7 @@ def _patch_tool_components():
     patches_failed = 0
 
     try:
-        from fast_crewai.tools import (AcceleratedBaseTool,
-                                       AcceleratedStructuredTool)
+        from fast_crewai.tools import AcceleratedBaseTool, AcceleratedStructuredTool
 
         # Only patch if the accelerated classes were successfully created
         if AcceleratedBaseTool is not None:
@@ -294,15 +293,11 @@ def enable_acceleration(verbose: bool = False) -> bool:
 
         if verbose:
             print("Acceleration bootstrap completed!")
-            print(
-                f"  - Memory patches applied: {memory_applied}, failed: {memory_failed}"
-            )
+            print(f"  - Memory patches applied: {memory_applied}, failed: {memory_failed}")
             print(f"  - Tool patches applied: {tool_applied}, failed: {tool_failed}")
             print(f"  - Task patches applied: {task_applied}, failed: {task_failed}")
             print(f"  - Database patches applied: {db_applied}, failed: {db_failed}")
-            print(
-                f"  - Serialization patches: {serialization_applied} (not yet implemented)"
-            )
+            print(f"  - Serialization patches: {serialization_applied} (not yet implemented)")
             print(f"  - Total patches applied: {total_patches_applied}")
             print(f"  - Total patches failed: {total_patches_failed}")
 

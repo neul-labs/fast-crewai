@@ -121,9 +121,7 @@ class AgentMessage:
         return json.dumps(data, separators=(",", ":"))
 
     @classmethod
-    def from_json(
-        cls, json_str: str, use_rust: Optional[bool] = None
-    ) -> "AgentMessage":
+    def from_json(cls, json_str: str, use_rust: Optional[bool] = None) -> "AgentMessage":
         """
         Deserialize a message from JSON.
 
@@ -158,9 +156,7 @@ class AgentMessage:
                 )
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(
-                    f"Warning: Rust deserialization failed, using Python fallback: {e}"
-                )
+                print(f"Warning: Rust deserialization failed, using Python fallback: {e}")
         # Python implementation
         data = json.loads(json_str)
         return cls(
@@ -239,9 +235,7 @@ class RustSerializer:
                 return serialized_messages
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(
-                    f"Warning: Rust batch serialization failed, using Python fallback: {e}"
-                )
+                print(f"Warning: Rust batch serialization failed, using Python fallback: {e}")
                 self._use_rust = False
                 return self._python_serialize_batch(messages)
         else:
@@ -288,9 +282,7 @@ class RustSerializer:
                 return deserialized_messages
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(
-                    f"Warning: Rust batch deserialization failed, using Python fallback: {e}"
-                )
+                print(f"Warning: Rust batch deserialization failed, using Python fallback: {e}")
                 self._use_rust = False
                 return self._python_deserialize_batch(json_strings)
         else:

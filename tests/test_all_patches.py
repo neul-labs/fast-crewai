@@ -71,8 +71,7 @@ def test_tool_patching():
     print("=" * 80)
 
     try:
-        from fast_crewai.tools import (AcceleratedBaseTool,
-                                       AcceleratedStructuredTool)
+        from fast_crewai.tools import AcceleratedBaseTool, AcceleratedStructuredTool
 
         if AcceleratedBaseTool is not None:
             print("✅ AcceleratedBaseTool created successfully")

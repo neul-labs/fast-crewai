@@ -34,9 +34,7 @@ Commands:
         "command", choices=["status", "env", "bench", "info"], help="Command to execute"
     )
 
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose output"
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
 
     args = parser.parse_args()
 

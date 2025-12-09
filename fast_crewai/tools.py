@@ -79,9 +79,10 @@ def create_accelerated_base_tool():
             def __init__(self, *args, **kwargs):
                 """Initialize with acceleration support."""
                 super().__init__(*args, **kwargs)
-                self._acceleration_enabled = os.getenv(
-                    "FAST_CREWAI_TOOLS", "auto"
-                ).lower() in ("true", "auto")
+                self._acceleration_enabled = os.getenv("FAST_CREWAI_TOOLS", "auto").lower() in (
+                    "true",
+                    "auto",
+                )
                 self._execution_count = 0
 
             def _run(self, *args, **kwargs):
@@ -134,8 +135,7 @@ def create_accelerated_structured_tool():
     """
     try:
         # Import the original CrewStructuredTool from CrewAI
-        from crewai.tools.structured_tool import \
-            CrewStructuredTool as _OriginalStructuredTool
+        from crewai.tools.structured_tool import CrewStructuredTool as _OriginalStructuredTool
 
         class AcceleratedStructuredTool(_OriginalStructuredTool):
             """
@@ -148,9 +148,10 @@ def create_accelerated_structured_tool():
             def __init__(self, *args, **kwargs):
                 """Initialize with acceleration support."""
                 super().__init__(*args, **kwargs)
-                self._acceleration_enabled = os.getenv(
-                    "FAST_CREWAI_TOOLS", "auto"
-                ).lower() in ("true", "auto")
+                self._acceleration_enabled = os.getenv("FAST_CREWAI_TOOLS", "auto").lower() in (
+                    "true",
+                    "auto",
+                )
 
             def _run(self, *args, **kwargs):
                 """Accelerated version of _run method."""
@@ -233,9 +234,7 @@ class AcceleratedToolExecutor:
             self._implementation = "python"
             self._execution_count = 0
 
-    def execute_tool(
-        self, tool_name: str, arguments: Any, timeout: Optional[int] = None
-    ) -> Any:
+    def execute_tool(self, tool_name: str, arguments: Any, timeout: Optional[int] = None) -> Any:
         """
         Execute a tool with the given name and arguments.
 

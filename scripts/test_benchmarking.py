@@ -11,25 +11,26 @@ This script automates the process of:
 """
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
 import sys
+import tempfile
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
-import tempfile
-import json
-from datetime import datetime
 
 
 class Colors:
     """ANSI color codes for terminal output."""
-    RED = '\033[0;31m'
-    GREEN = '\033[0;32m'
-    YELLOW = '\033[1;33m'
-    BLUE = '\033[0;34m'
-    PURPLE = '\033[0;35m'
-    NC = '\033[0m'  # No Color
+
+    RED = "\033[0;31m"
+    GREEN = "\033[0;32m"
+    YELLOW = "\033[1;33m"
+    BLUE = "\033[0;34m"
+    PURPLE = "\033[0;35m"
+    NC = "\033[0m"  # No Color
 
 
 def log_info(message: str) -> None:
@@ -61,16 +62,12 @@ def run_command(
     cmd: list[str],
     cwd: Optional[Path] = None,
     check: bool = True,
-    capture_output: bool = False
+    capture_output: bool = False,
 ) -> subprocess.CompletedProcess:
     """Run a command and return the result."""
     try:
         result = subprocess.run(
-            cmd,
-            cwd=cwd,
-            check=check,
-            capture_output=capture_output,
-            text=True
+            cmd, cwd=cwd, check=check, capture_output=capture_output, text=True
         )
         return result
     except subprocess.CalledProcessError as e:
@@ -81,10 +78,7 @@ def run_command(
         raise
 
 
-def setup_benchmark_environment(
-    test_dir: Path,
-    skip_install: bool = False
-) -> Path:
+def setup_benchmark_environment(test_dir: Path, skip_install: bool = False) -> Path:
     """Set up the benchmark environment.
 
     Returns:
@@ -111,7 +105,7 @@ def setup_benchmark_environment(
 
         run_command([sys.executable, "-m", "venv", str(venv_dir)])
         log_success("Virtual environment created")
-        
+
         # Install Fast-CrewAI in development mode
         pip = get_venv_pip(venv_dir)
         run_command([str(pip), "install", "--upgrade", "pip", "setuptools", "wheel"])
@@ -139,10 +133,7 @@ def get_venv_pip(venv_dir: Path) -> Path:
         return venv_dir / "bin" / "pip"
 
 
-def build_rust_extension(
-    fast_crewai_dir: Path,
-    build_rust: bool = True
-) -> bool:
+def build_rust_extension(fast_crewai_dir: Path, build_rust: bool = True) -> bool:
     """Build the Rust extension if requested and available."""
     if not build_rust:
         log_info("Step 3/5: Skipping Rust extension build (--no-rust-build)")
@@ -150,7 +141,7 @@ def build_rust_extension(
         return False
 
     log_info("Step 3/5: Building Rust extension")
-    
+
     try:
         # Check if maturin is available
         result = run_command(["maturin", "--version"], capture_output=True, check=False)
@@ -163,18 +154,19 @@ def build_rust_extension(
         # Build the Rust extension
         run_command(["maturin", "develop", "--release"], cwd=fast_crewai_dir)
         log_success("Rust extension built successfully")
-        
+
         # Check if Rust is available
         try:
             import fast_crewai
+
             rust_available = fast_crewai.HAS_ACCELERATION_IMPLEMENTATION
             log_performance(f"Rust acceleration available: {rust_available}")
         except ImportError:
             log_warning("Could not check Rust availability")
-        
+
         print()
         return True
-        
+
     except (subprocess.CalledProcessError, FileNotFoundError):
         log_warning("Rust extension build failed, will use Python fallback")
         log_info("Benchmarks will run with Python fallback only")
@@ -188,7 +180,7 @@ def run_benchmarks(
     iterations: int,
     python_only: bool = False,
     rust_only: bool = False,
-    report_file: Optional[Path] = None
+    report_file: Optional[Path] = None,
 ) -> int:
     """
     Run performance benchmarks.
@@ -200,12 +192,12 @@ def run_benchmarks(
     print()
 
     # Set environment variables for benchmarking
-    os.environ['FAST_CREWAI_ACCELERATION'] = '1'
-    os.environ['FAST_CREWAI_MEMORY'] = 'true'
-    os.environ['FAST_CREWAI_TOOLS'] = 'true'
-    os.environ['FAST_CREWAI_TASKS'] = 'true'
-    os.environ['FAST_CREWAI_DATABASE'] = 'true'
-    os.environ['ITERATIONS'] = str(iterations)
+    os.environ["FAST_CREWAI_ACCELERATION"] = "1"
+    os.environ["FAST_CREWAI_MEMORY"] = "true"
+    os.environ["FAST_CREWAI_TOOLS"] = "true"
+    os.environ["FAST_CREWAI_TASKS"] = "true"
+    os.environ["FAST_CREWAI_DATABASE"] = "true"
+    os.environ["ITERATIONS"] = str(iterations)
 
     # Build benchmark runner script
     benchmark_runner_content = f'''
@@ -272,7 +264,7 @@ if __name__ == "__main__":
 
     # Write the benchmark runner script
     runner_path = test_dir / "benchmark_runner.py"
-    with open(runner_path, 'w') as f:
+    with open(runner_path, "w") as f:
         f.write(benchmark_runner_content)
 
     # Prepare the Python executable in the virtual environment
@@ -286,32 +278,36 @@ if __name__ == "__main__":
         if report_file:
             # Run with output to both console and file
             import subprocess
+
             result = subprocess.run(
                 [str(python_exe), str(runner_path)],
                 cwd=test_dir,
                 capture_output=True,
-                text=True
+                text=True,
             )
-            
+
             # Write to report file
-            with open(report_file, 'w') as f:
+            with open(report_file, "w") as f:
                 f.write(result.stdout)
                 if result.stderr:
                     f.write(result.stderr)
-            
+
             print(result.stdout)
             if result.stderr:
                 print(result.stderr, file=sys.stderr)
-            
+
             return result.returncode
         else:
             # Run with output to console only
-            result = run_command([str(python_exe), str(runner_path)], cwd=test_dir, check=False)
+            result = run_command(
+                [str(python_exe), str(runner_path)], cwd=test_dir, check=False
+            )
             return result.returncode
-            
+
     except Exception as e:
         log_error(f"Error running benchmarks: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 
@@ -322,46 +318,38 @@ def main() -> int:
         description="Benchmark Fast-CrewAI performance improvements"
     )
     parser.add_argument(
-        "--no-rust-build",
-        action="store_true",
-        help="Skip Rust extension build"
+        "--no-rust-build", action="store_true", help="Skip Rust extension build"
     )
     parser.add_argument(
         "--python-only",
         action="store_true",
-        help="Run only Python implementation benchmarks"
+        help="Run only Python implementation benchmarks",
     )
     parser.add_argument(
         "--rust-only",
         action="store_true",
-        help="Run only Rust implementation benchmarks"
+        help="Run only Rust implementation benchmarks",
     )
     parser.add_argument(
         "--test-dir",
         type=Path,
         default=Path("./benchmark_test"),
-        help="Directory for test environment"
+        help="Directory for test environment",
     )
     parser.add_argument(
-        "--keep-env",
-        action="store_true",
-        help="Keep test environment after completion"
+        "--keep-env", action="store_true", help="Keep test environment after completion"
     )
     parser.add_argument(
         "--iterations",
         type=int,
         default=1000,
-        help="Number of iterations for benchmarks (default: 1000)"
+        help="Number of iterations for benchmarks (default: 1000)",
     )
     parser.add_argument(
-        "--report-file",
-        type=Path,
-        help="Save benchmark report to file"
+        "--report-file", type=Path, help="Save benchmark report to file"
     )
     parser.add_argument(
-        "-v", "--verbose",
-        action="store_true",
-        help="Enable verbose output"
+        "-v", "--verbose", action="store_true", help="Enable verbose output"
     )
 
     args = parser.parse_args()
@@ -386,20 +374,21 @@ def main() -> int:
             args.iterations,
             args.python_only,
             args.rust_only,
-            args.report_file
+            args.report_file,
         )
 
         print()
         if exit_code == 0:
             log_success("Benchmarking completed successfully!")
-            
+
             # Show acceleration status
             log_performance("Acceleration Status:")
             try:
                 from fast_crewai import get_acceleration_status
+
                 status = get_acceleration_status()
                 for key, value in status.items():
-                    print(f'  {key}: {value}')
+                    print(f"  {key}: {value}")
             except ImportError:
                 log_warning("Could not get acceleration status")
         else:
@@ -408,8 +397,10 @@ def main() -> int:
         # Cleanup
         if not args.keep_env:
             print()
-            response = input("Keep test environment for inspection? [y/N] ").strip().lower()
-            if response not in ['y', 'yes']:
+            response = (
+                input("Keep test environment for inspection? [y/N] ").strip().lower()
+            )
+            if response not in ["y", "yes"]:
                 log_info("Cleaning up benchmark environment...")
                 shutil.rmtree(args.test_dir)
                 log_success("Cleanup complete")
@@ -427,6 +418,7 @@ def main() -> int:
     except Exception as e:
         log_error(f"Unexpected error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

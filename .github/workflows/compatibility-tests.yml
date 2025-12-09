@@ -25,7 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
         crewai-branch: ['main']
 
     steps:
@@ -69,16 +69,30 @@ jobs:
       env:
         CREWAI_BRANCH: ${{ matrix.crewai-branch }}
       run: |
+        # Run tests that don't require OPENAI_API_KEY
+        # These test utility functions, serialization, event handling, etc.
         uv run python scripts/test_crewai_compatibility.py \
           --crewai-branch "$CREWAI_BRANCH" \
-          --verbose
+          --keep-env \
+          --verbose \
+          --no-api-key
+
+    - name: Upload compatibility report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: compatibility-report-py${{ matrix.python-version }}-${{ matrix.crewai-branch }}
+        path: test_compatibility/COMPATIBILITY.md
+        retention-days: 30
 
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.crewai-branch }}
-        path: test_compatibility/test_results.log
+        path: |
+          test_compatibility/pytest_results.json
+          test_compatibility/COMPATIBILITY.md
         retention-days: 30
 
     - name: Comment on PR (on failure)

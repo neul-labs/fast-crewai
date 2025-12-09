@@ -118,6 +118,7 @@ class TestMemoryIntegration:
             from crewai.memory.short_term.short_term_memory import (  # noqa: F401
                 ShortTermMemory,
             )
+
             # Then try to import CrewAI memory components
             from crewai.memory.storage.rag_storage import RAGStorage  # noqa: F401
 

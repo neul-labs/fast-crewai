@@ -43,9 +43,7 @@ class AcceleratedMemoryIntegration:
         # Try to create Rust-enhanced memory
         try:
             rust_memory = AcceleratedMemoryStorage()
-            return RustEnhancedMemoryProxy(
-                rust_memory, crew, embedder_config, storage, path
-            )
+            return RustEnhancedMemoryProxy(rust_memory, crew, embedder_config, storage, path)
         except Exception:
             # Fallback to original implementation
             from crewai.memory.short_term.short_term_memory import ShortTermMemory
@@ -201,9 +199,7 @@ class RustEnhancedLongTermMemoryProxy:
             )
             score = float(metadata.get("score", 0.0)) if metadata else 0.0
 
-            self.rust_db.save_memory(
-                task_description, metadata or {}, datetime_str, score
-            )
+            self.rust_db.save_memory(task_description, metadata or {}, datetime_str, score)
         except Exception:
             # Fallback to original implementation
             self.original_memory.save(value, metadata)

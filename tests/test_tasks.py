@@ -55,6 +55,7 @@ class TestTaskIntegration:
         try:
             # Import shim first
             from crewai.crew import Crew  # noqa: F401
+
             # Then try to import CrewAI task components
             from crewai.task import Task  # noqa: F401
 
@@ -88,13 +89,9 @@ class TestTaskIntegration:
             import fast_crewai.shim  # noqa: F401
 
             # Create minimal crew for testing
-            agent = Agent(
-                role="Test Agent", goal="Test goal", backstory="Test backstory"
-            )
+            agent = Agent(role="Test Agent", goal="Test goal", backstory="Test backstory")
 
-            task = Task(
-                description="Test task", expected_output="Test output", agent=agent
-            )
+            task = Task(description="Test task", expected_output="Test output", agent=agent)
 
             crew = Crew(agents=[agent], tasks=[task])
             assert crew is not None

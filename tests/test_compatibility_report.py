@@ -73,9 +73,7 @@ def run_compatibility_analysis():
         # Store results
         category_results = {
             "total_tests": suite.countTestCases(),
-            "passed": suite.countTestCases()
-            - len(result.failures)
-            - len(result.errors),
+            "passed": suite.countTestCases() - len(result.failures) - len(result.errors),
             "failed": len(result.failures),
             "errors": len(result.errors),
             "failures": [str(test) for test, _ in result.failures],
@@ -140,9 +138,7 @@ def run_compatibility_analysis():
     # Show issues if any
     if results["issues_found"]:
         print(f"\nIssues Found ({len(results['issues_found'])}):")
-        for i, issue in enumerate(
-            results["issues_found"][:10], 1
-        ):  # Show first 10 issues
+        for i, issue in enumerate(results["issues_found"][:10], 1):  # Show first 10 issues
             print(f"  {i}. [{issue['category']}] {issue['test']} - {issue['type']}")
 
     if len(results["issues_found"]) > 10:
@@ -183,17 +179,13 @@ def generate_detailed_report(results: Dict[str, Any]) -> str:
         for issue in results["issues_found"]:
             report.append(f"[{issue['category']}] {issue['test']}")
             report.append(f"  Type: {issue['type']}")
-            report.append(
-                f"  Details: {issue['details'][:200]}..."
-            )  # Truncate long details
+            report.append(f"  Details: {issue['details'][:200]}...")  # Truncate long details
             report.append("")
 
     return "\n".join(report)
 
 
-def save_report_to_file(
-    results: Dict[str, Any], filename: str = "compatibility_report.txt"
-):
+def save_report_to_file(results: Dict[str, Any], filename: str = "compatibility_report.txt"):
     """Save the compatibility report to a file."""
     try:
         # Generate text report
@@ -234,9 +226,7 @@ def main():
         elif results["compatibility_score"] >= 80:
             print("⚠️  The Rust integration is usable but needs some improvements.")
         else:
-            print(
-                "❌ The Rust integration needs significant work before production use."
-            )
+            print("❌ The Rust integration needs significant work before production use.")
 
         return results["compatibility_score"] >= 80
     else:

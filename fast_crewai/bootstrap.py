@@ -31,9 +31,7 @@ def bootstrap_acceleration():
 
         if success:
             print("\n🚀 CrewAI acceleration is now active!")
-            print(
-                "   No code changes required - your existing CrewAI code will run faster."
-            )
+            print("   No code changes required - your existing CrewAI code will run faster.")
         else:
             print("\n❌ Failed to enable acceleration.")
 

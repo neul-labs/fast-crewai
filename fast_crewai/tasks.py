@@ -46,9 +46,10 @@ def create_accelerated_task():
             def __init__(self, *args, **kwargs):
                 """Initialize with acceleration support."""
                 super().__init__(*args, **kwargs)
-                self._acceleration_enabled = os.getenv(
-                    "FAST_CREWAI_TASKS", "auto"
-                ).lower() in ("true", "auto")
+                self._acceleration_enabled = os.getenv("FAST_CREWAI_TASKS", "auto").lower() in (
+                    "true",
+                    "auto",
+                )
                 self._execution_count = 0
 
             def execute(self, *args, **kwargs):
@@ -115,9 +116,10 @@ def create_accelerated_crew():
             def __init__(self, *args, **kwargs):
                 """Initialize with acceleration support."""
                 super().__init__(*args, **kwargs)
-                self._acceleration_enabled = os.getenv(
-                    "FAST_CREWAI_TASKS", "auto"
-                ).lower() in ("true", "auto")
+                self._acceleration_enabled = os.getenv("FAST_CREWAI_TASKS", "auto").lower() in (
+                    "true",
+                    "auto",
+                )
 
             def kickoff(self, *args, **kwargs):
                 """

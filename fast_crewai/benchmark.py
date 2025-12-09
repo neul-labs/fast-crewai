@@ -42,8 +42,7 @@ class PerformanceBenchmark:
         # Generate test data
         test_data = [
             {
-                "value": f"Test item {i} "
-                + "".join(random.choices(string.ascii_letters, k=50)),
+                "value": f"Test item {i} " + "".join(random.choices(string.ascii_letters, k=50)),
                 "metadata": {
                     "id": i,
                     "category": random.choice(["A", "B", "C"]),
@@ -145,9 +144,7 @@ class PerformanceBenchmark:
             "operations_per_second": {
                 "save": len(test_data) / save_time if save_time > 0 else 0,
                 "search": (
-                    (len(search_queries) * len(test_data)) / search_time
-                    if search_time > 0
-                    else 0
+                    (len(search_queries) * len(test_data)) / search_time if search_time > 0 else 0
                 ),
             },
         }
@@ -220,9 +217,7 @@ class PerformanceBenchmark:
             "improvements": improvements,
         }
 
-    def _benchmark_python_tools(
-        self, test_tools: List[tuple]
-    ) -> Dict[str, float]:
+    def _benchmark_python_tools(self, test_tools: List[tuple]) -> Dict[str, float]:
         """Benchmark Python tool execution."""
 
         # Simple function-based tool execution for comparison
@@ -300,9 +295,7 @@ class PerformanceBenchmark:
             "improvements": improvements,
         }
 
-    def _benchmark_python_serialization(
-        self, test_messages: List[Dict]
-    ) -> Dict[str, float]:
+    def _benchmark_python_serialization(self, test_messages: List[Dict]) -> Dict[str, float]:
         """Benchmark Python serialization."""
         # Serialization
         start_time = time.time()
@@ -324,18 +317,14 @@ class PerformanceBenchmark:
             "serialize_time": serialize_time,
             "deserialize_time": deserialize_time,
             "operations_per_second": {
-                "serialize": (
-                    len(test_messages) / serialize_time if serialize_time > 0 else 0
-                ),
+                "serialize": (len(test_messages) / serialize_time if serialize_time > 0 else 0),
                 "deserialize": (
                     len(test_messages) / deserialize_time if deserialize_time > 0 else 0
                 ),
             },
         }
 
-    def _benchmark_rust_serialization(
-        self, test_messages: List[Dict]
-    ) -> Dict[str, float]:
+    def _benchmark_rust_serialization(self, test_messages: List[Dict]) -> Dict[str, float]:
         """Benchmark Rust serialization."""
         try:
             # Serialization
@@ -373,13 +362,9 @@ class PerformanceBenchmark:
                 "serialize_time": serialize_time,
                 "deserialize_time": deserialize_time,
                 "operations_per_second": {
-                    "serialize": (
-                        len(test_messages) / serialize_time if serialize_time > 0 else 0
-                    ),
+                    "serialize": (len(test_messages) / serialize_time if serialize_time > 0 else 0),
                     "deserialize": (
-                        len(test_messages) / deserialize_time
-                        if deserialize_time > 0
-                        else 0
+                        len(test_messages) / deserialize_time if deserialize_time > 0 else 0
                     ),
                 },
             }
@@ -442,9 +427,7 @@ class PerformanceBenchmark:
                 except OSError:
                     pass
 
-    def _benchmark_python_database(
-        self, db_path: str, test_data: List[Dict]
-    ) -> Dict[str, float]:
+    def _benchmark_python_database(self, db_path: str, test_data: List[Dict]) -> Dict[str, float]:
         """Benchmark Python database operations."""
         import sqlite3
 
@@ -509,9 +492,7 @@ class PerformanceBenchmark:
             },
         }
 
-    def _benchmark_rust_database(
-        self, db_path: str, test_data: List[Dict]
-    ) -> Dict[str, float]:
+    def _benchmark_rust_database(self, db_path: str, test_data: List[Dict]) -> Dict[str, float]:
         """Benchmark Rust database operations."""
         try:
             # Initialize Rust database wrapper
@@ -646,25 +627,19 @@ class PerformanceBenchmark:
 
         # Tool execution improvements
         if self.results.get("tools"):
-            tool_improvement = self.results["tools"]["improvements"].get(
-                "execution_time", 0
-            )
+            tool_improvement = self.results["tools"]["improvements"].get("execution_time", 0)
             if tool_improvement > 0:
                 print(f"Tool Execution: {tool_improvement:.1f}x improvement")
 
         # Serialization improvements
         if self.results.get("serialization"):
-            ser_improvement = self.results["serialization"]["improvements"].get(
-                "serialize_time", 0
-            )
+            ser_improvement = self.results["serialization"]["improvements"].get("serialize_time", 0)
             if ser_improvement > 0:
                 print(f"Serialization: {ser_improvement:.1f}x improvement")
 
         # Database improvements
         if self.results.get("database"):
-            db_improvement = self.results["database"]["improvements"].get(
-                "insert_time", 0
-            )
+            db_improvement = self.results["database"]["improvements"].get("insert_time", 0)
             if db_improvement > 0:
                 print(f"Database Operations: {db_improvement:.1f}x improvement")
 

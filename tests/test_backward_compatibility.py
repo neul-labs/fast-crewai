@@ -116,8 +116,10 @@ class TestBackwardCompatibility(unittest.TestCase):
     def test_utility_functions(self):
         """Test that utility functions work correctly."""
         try:
-            from fast_crewai.utils import (get_acceleration_status,
-                                           is_acceleration_available)
+            from fast_crewai.utils import (
+                get_acceleration_status,
+                is_acceleration_available,
+            )
 
             self.assertIsInstance(is_acceleration_available(), bool)
             self.assertIsInstance(get_acceleration_status(), dict)
@@ -257,14 +259,10 @@ class TestBackwardCompatibility(unittest.TestCase):
             from crewai import Agent, Crew, Task
 
             # Create a simple agent
-            agent = Agent(
-                role="Test Agent", goal="Test Goal", backstory="Test Backstory"
-            )
+            agent = Agent(role="Test Agent", goal="Test Goal", backstory="Test Backstory")
 
             # Create a simple task
-            task = Task(
-                description="Test Task", expected_output="Test Output", agent=agent
-            )
+            task = Task(description="Test Task", expected_output="Test Output", agent=agent)
 
             # Create a crew
             crew = Crew(agents=[agent], tasks=[task])
@@ -294,8 +292,10 @@ class TestBackwardCompatibility(unittest.TestCase):
     def test_configuration_utilities(self):
         """Test configuration utilities."""
         try:
-            from fast_crewai.utils import (configure_accelerated_components,
-                                           get_environment_info)
+            from fast_crewai.utils import (
+                configure_accelerated_components,
+                get_environment_info,
+            )
 
             # Test configure_accelerated_components
             configure_accelerated_components(memory=True, tools=False)
@@ -312,8 +312,10 @@ class TestBackwardCompatibility(unittest.TestCase):
     def test_performance_utilities(self):
         """Test performance utilities."""
         try:
-            from fast_crewai.utils import (benchmark_comparison,
-                                           get_performance_improvements)
+            from fast_crewai.utils import (
+                benchmark_comparison,
+                get_performance_improvements,
+            )
 
             # Test get_performance_improvements
             improvements = get_performance_improvements()
