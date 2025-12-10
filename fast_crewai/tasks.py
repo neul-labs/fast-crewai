@@ -285,8 +285,7 @@ class AcceleratedTaskExecutor:
             if task["state"] != "pending":
                 continue
             deps_satisfied = all(
-                self._tasks.get(dep, {}).get("state") == "completed"
-                for dep in task["dependencies"]
+                self._tasks.get(dep, {}).get("state") == "completed" for dep in task["dependencies"]
             )
             if deps_satisfied:
                 ready.append(task_id)

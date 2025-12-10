@@ -310,9 +310,7 @@ class AcceleratedToolExecutor:
         """
         # Convert arguments to string format
         args_str = (
-            json.dumps(arguments, default=str)
-            if not isinstance(arguments, str)
-            else arguments
+            json.dumps(arguments, default=str) if not isinstance(arguments, str) else arguments
         )
 
         if self._use_rust:
@@ -370,9 +368,7 @@ class AcceleratedToolExecutor:
         """Python implementation of tool execution for fallback."""
         # Convert arguments to string
         args_str = (
-            json.dumps(arguments, default=str)
-            if not isinstance(arguments, str)
-            else arguments
+            json.dumps(arguments, default=str) if not isinstance(arguments, str) else arguments
         )
         cache_key = f"{tool_name}:{args_str}"
 

@@ -100,8 +100,17 @@ class PerformanceBenchmark:
                 # Large text content (500-2000 chars) - realistic agent memory entries
                 "value": (
                     f"Memory entry {i}: "
-                    + "".join(random.choices(string.ascii_letters + " ", k=random.randint(500, 2000)))
-                    + f" Keywords: {', '.join(random.choices(['AI', 'task', 'result', 'error', 'success', 'pending', 'analysis', 'data', 'report', 'user'], k=5))}"
+                    + "".join(
+                        random.choices(string.ascii_letters + " ", k=random.randint(500, 2000))
+                    )
+                    + " Keywords: "
+                    + ", ".join(
+                        random.choices(
+                            ["AI", "task", "result", "error", "success",
+                             "pending", "analysis", "data", "report", "user"],
+                            k=5,
+                        )
+                    )
                 ),
                 # Complex nested metadata
                 "metadata": {
@@ -110,7 +119,9 @@ class PerformanceBenchmark:
                     "priority": random.randint(1, 10),
                     "agent": random.choice(agents),
                     "timestamp": 1700000000 + i * 60,
-                    "tags": random.sample(["important", "urgent", "review", "complete", "pending", "archived"], k=3),
+                    "tags": random.sample(
+                        ["important", "urgent", "review", "complete", "pending", "archived"], k=3
+                    ),
                     "context": {
                         "session_id": f"session_{i % 100}",
                         "task_id": f"task_{i % 50}",
@@ -330,8 +341,15 @@ class PerformanceBenchmark:
         """
         # Generate complex tool invocations - simulating real CrewAI tool calls
         tool_types = [
-            "web_search", "file_read", "file_write", "api_call", "database_query",
-            "code_execute", "image_analyze", "text_summarize", "data_transform"
+            "web_search",
+            "file_read",
+            "file_write",
+            "api_call",
+            "database_query",
+            "code_execute",
+            "image_analyze",
+            "text_summarize",
+            "data_transform",
         ]
 
         test_tools = [
@@ -339,34 +357,50 @@ class PerformanceBenchmark:
                 random.choice(tool_types),
                 {
                     # Basic parameters
-                    "query": f"Complex query {i} with " + "".join(random.choices(string.ascii_letters + " ", k=200)),
+                    "query": f"Complex query {i} with "
+                    + "".join(random.choices(string.ascii_letters + " ", k=200)),
                     "max_results": random.randint(1, 100),
                     "timeout": random.uniform(1.0, 30.0),
                     "retry_count": random.randint(0, 5),
                     # Nested configuration
                     "config": {
-                        "api_key": f"sk-{''.join(random.choices(string.ascii_letters + string.digits, k=32))}",
-                        "endpoint": f"https://api.example.com/v{random.randint(1, 3)}/resource",
+                        "api_key": "sk-"
+                        + "".join(
+                            random.choices(string.ascii_letters + string.digits, k=32)
+                        ),
+                        "endpoint": (
+                            f"https://api.example.com/v{random.randint(1, 3)}/resource"
+                        ),
                         "headers": {
-                            "Authorization": f"Bearer {''.join(random.choices(string.ascii_letters, k=64))}",
+                            "Authorization": "Bearer "
+                            + "".join(random.choices(string.ascii_letters, k=64)),
                             "Content-Type": "application/json",
-                            "X-Request-ID": f"req-{i}-{''.join(random.choices(string.hexdigits, k=8))}",
+                            "X-Request-ID": f"req-{i}-"
+                            + "".join(random.choices(string.hexdigits, k=8)),
                         },
                     },
                     # Array of items
                     "filters": [
-                        {"field": f"field_{j}", "operator": random.choice(["eq", "ne", "gt", "lt", "contains"]), "value": random.randint(1, 1000)}
+                        {
+                            "field": f"field_{j}",
+                            "operator": random.choice(["eq", "ne", "gt", "lt", "contains"]),
+                            "value": random.randint(1, 1000),
+                        }
                         for j in range(random.randint(2, 8))
                     ],
                     # Large text content
-                    "context": "".join(random.choices(string.ascii_letters + " \n", k=random.randint(500, 1500))),
+                    "context": "".join(
+                        random.choices(string.ascii_letters + " \n", k=random.randint(500, 1500))
+                    ),
                     # Metadata
                     "metadata": {
                         "source": f"agent_{i % 10}",
                         "priority": random.randint(1, 10),
-                        "tags": random.sample(["urgent", "batch", "async", "sync", "cached", "fresh"], k=3),
+                        "tags": random.sample(
+                            ["urgent", "batch", "async", "sync", "cached", "fresh"], k=3
+                        ),
                     },
-                }
+                },
             )
             for i in range(self.iterations)
         ]
@@ -478,9 +512,17 @@ class PerformanceBenchmark:
                 # Very large content - simulating full LLM responses (2000-8000 chars)
                 "content": (
                     f"[{random.choice(message_types).upper()}] "
-                    + "".join(random.choices(string.ascii_letters + " .,!?\n\t", k=random.randint(2000, 8000)))
-                    + f"\n\n## Summary\nTask {i} {'completed successfully' if random.random() > 0.2 else 'failed with error'}"
-                    + f"\n\n## Details\n" + "".join(random.choices(string.ascii_letters + " .,\n", k=500))
+                    + "".join(
+                        random.choices(
+                            string.ascii_letters + " .,!?\n\t", k=random.randint(2000, 8000)
+                        )
+                    )
+                    + "\n\n## Summary\nTask "
+                    + str(i)
+                    + " "
+                    + ("completed successfully" if random.random() > 0.2 else "failed with error")
+                    + "\n\n## Details\n"
+                    + "".join(random.choices(string.ascii_letters + " .,\n", k=500))
                     + f"\n\nTokens used: {random.randint(100, 4000)}"
                 ),
                 "timestamp": 1700000000 + i * random.randint(1, 60),
@@ -491,9 +533,11 @@ class PerformanceBenchmark:
                     "max_tokens": random.randint(100, 4000),
                     "stop_sequences": ["\n\n", "###", "END"],
                     "context": {
-                        "conversation_id": f"conv-{''.join(random.choices(string.hexdigits, k=16))}",
+                        "conversation_id": "conv-"
+                        + "".join(random.choices(string.hexdigits, k=16)),
                         "turn_number": random.randint(1, 50),
-                        "parent_message_id": f"msg-{max(0, i-1)}-{''.join(random.choices(string.hexdigits, k=16))}",
+                        "parent_message_id": f"msg-{max(0, i-1)}-"
+                        + "".join(random.choices(string.hexdigits, k=16)),
                         "thread_depth": random.randint(0, 10),
                         "session": {
                             "id": f"session-{''.join(random.choices(string.hexdigits, k=8))}",
@@ -504,12 +548,21 @@ class PerformanceBenchmark:
                     "tool_calls": [
                         {
                             "id": f"call-{j}-{''.join(random.choices(string.hexdigits, k=8))}",
-                            "name": random.choice(["web_search", "code_exec", "file_read", "api_call"]),
+                            "name": random.choice(
+                                ["web_search", "code_exec", "file_read", "api_call"]
+                            ),
                             "arguments": {
                                 "query": "".join(random.choices(string.ascii_letters + " ", k=100)),
-                                "options": {"timeout": random.randint(1, 30), "retries": random.randint(0, 3)},
+                                "options": {
+                                    "timeout": random.randint(1, 30),
+                                    "retries": random.randint(0, 3),
+                                },
                             },
-                            "result": "".join(random.choices(string.ascii_letters + " \n", k=random.randint(100, 500))),
+                            "result": "".join(
+                                random.choices(
+                                    string.ascii_letters + " \n", k=random.randint(100, 500)
+                                )
+                            ),
                         }
                         for j in range(random.randint(0, 5))
                     ],
@@ -679,7 +732,11 @@ class PerformanceBenchmark:
                     # Large task description (500-2000 chars)
                     "task_description": (
                         f"[{random.choice(task_types).upper()}] Task {i}: "
-                        + "".join(random.choices(string.ascii_letters + " .,\n", k=random.randint(500, 2000)))
+                        + "".join(
+                            random.choices(
+                                string.ascii_letters + " .,\n", k=random.randint(500, 2000)
+                            )
+                        )
                         + f"\n\nOutcome: {random.choice(outcomes)}"
                         + f"\nIterations: {random.randint(1, 10)}"
                     ),
@@ -689,17 +746,26 @@ class PerformanceBenchmark:
                         "agent": f"agent_{i % 15}",
                         "crew": f"crew_{i % 5}",
                         "priority": random.randint(1, 10),
-                        "tags": random.sample(["critical", "routine", "background", "urgent", "deferred"], k=2),
+                        "tags": random.sample(
+                            ["critical", "routine", "background", "urgent", "deferred"], k=2
+                        ),
                         "execution": {
                             "start_time": 1700000000 + i * 60,
                             "end_time": 1700000000 + i * 60 + random.randint(10, 3600),
                             "retries": random.randint(0, 3),
                             "tokens_used": random.randint(100, 8000),
                         },
-                        "dependencies": [f"task-{max(0, i - j)}" for j in range(1, random.randint(2, 5))],
-                        "output_summary": "".join(random.choices(string.ascii_letters + " ", k=200)),
+                        "dependencies": [
+                            f"task-{max(0, i - j)}" for j in range(1, random.randint(2, 5))
+                        ],
+                        "output_summary": "".join(
+                            random.choices(string.ascii_letters + " ", k=200)
+                        ),
                     },
-                    "datetime": f"2024-{(i % 12) + 1:02d}-{(i % 28) + 1:02d} {(i % 24):02d}:{(i % 60):02d}:00",
+                    "datetime": (
+                        f"2024-{(i % 12) + 1:02d}-{(i % 28) + 1:02d} "
+                        f"{(i % 24):02d}:{(i % 60):02d}:00"
+                    ),
                     "score": random.uniform(0.0, 1.0),
                 }
                 for i in range(min(self.iterations, 2000))  # Allow more records for database tests
@@ -779,7 +845,9 @@ class PerformanceBenchmark:
                 "operations_per_second": {
                     "insert": len(test_data) / insert_time if insert_time > 0 else 0,
                     "query": 100 / query_time if query_time > 0 else 0,
-                    "fts_search": len(search_queries) / fts_search_time if fts_search_time > 0 else 0,
+                    "fts_search": (
+                        len(search_queries) / fts_search_time if fts_search_time > 0 else 0
+                    ),
                 },
             }
         except Exception:
@@ -845,7 +913,9 @@ class PerformanceBenchmark:
                 "operations_per_second": {
                     "insert": len(test_data) / insert_time if insert_time > 0 else 0,
                     "query": 100 / query_time if query_time > 0 else 0,
-                    "fts_search": len(search_queries) / fts_search_time if fts_search_time > 0 else 0,
+                    "fts_search": (
+                        len(search_queries) / fts_search_time if fts_search_time > 0 else 0
+                    ),
                 },
             }
         except Exception:
@@ -1045,8 +1115,12 @@ class PerformanceBenchmark:
 
         # Build memory usage table
         memory_rows = []
-        for category, name in [("memory", "Memory Storage"), ("tools", "Tool Execution"),
-                               ("serialization", "Serialization"), ("database", "Database")]:
+        for category, name in [
+            ("memory", "Memory Storage"),
+            ("tools", "Tool Execution"),
+            ("serialization", "Serialization"),
+            ("database", "Database"),
+        ]:
             if category in self.results:
                 py_mem = self.results[category].get("python", {}).get("memory_mb", 0)
                 rust_mem = self.results[category].get("rust", {}).get("memory_mb", 0)
@@ -1061,7 +1135,9 @@ class PerformanceBenchmark:
                     else:
                         emoji = "➡️"
                         status = "Same"
-                    memory_rows.append(f"| {name} | {py_mem:.1f} MB | {rust_mem:.1f} MB | {emoji} {status} |")
+                    memory_rows.append(
+                        f"| {name} | {py_mem:.1f} MB | {rust_mem:.1f} MB | {emoji} {status} |"
+                    )
 
         memory_table = "\n".join(memory_rows) if memory_rows else "| No data | - | - | - |"
 
@@ -1140,7 +1216,7 @@ class PerformanceBenchmark:
 
 | Metric | Performance |
 |--------|-------------|
-| Execute | Python: {self.results.get("tools", {}).get("python", {}).get("operations_per_second", 0):,.0f} ops/s | Rust: {self.results.get("tools", {}).get("rust", {}).get("operations_per_second", 0):,.0f} ops/s |
+| Execute | {format_ops("tools", "execute")} |
 | Memory | {format_memory("tools")} |
 
 ### Serialization

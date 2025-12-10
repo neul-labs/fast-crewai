@@ -454,7 +454,6 @@ enum TaskState {
 /// A task with dependencies and state tracking
 #[derive(Debug, Clone)]
 struct TaskInfo {
-    id: String,
     dependencies: Vec<String>,
     state: TaskState,
     result: Option<String>,
@@ -507,7 +506,6 @@ impl RustTaskExecutor {
         tasks.insert(
             task_id.to_string(),
             TaskInfo {
-                id: task_id.to_string(),
                 dependencies,
                 state: TaskState::Pending,
                 result: None,

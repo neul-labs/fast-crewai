@@ -102,9 +102,7 @@ class AcceleratedSQLiteWrapper:
         except Exception as e:
             print(f"Warning: Failed to initialize Python SQLite database: {e}")
 
-    def execute_query(
-        self, query: str, params: Optional[Any] = None
-    ) -> List[Dict[str, Any]]:
+    def execute_query(self, query: str, params: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
         Execute a SELECT query.
 
@@ -259,10 +257,7 @@ class AcceleratedSQLiteWrapper:
             try:
                 # Use the new Rust insert_memory method for better performance
                 row_id = self._wrapper.insert_memory(
-                    task_description,
-                    json.dumps(metadata),
-                    datetime,
-                    float(score)
+                    task_description, json.dumps(metadata), datetime, float(score)
                 )
                 return row_id
             except Exception as e:
@@ -288,9 +283,7 @@ class AcceleratedSQLiteWrapper:
         self._python_execute_update(query, params)
         return None  # Python implementation doesn't return row ID
 
-    def search_memories_fts(
-        self, query: str, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    def search_memories_fts(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """
         Search memories using FTS5 full-text search (Rust only).
 
@@ -315,14 +308,16 @@ class AcceleratedSQLiteWrapper:
                         metadata = json.loads(row.get("metadata", "{}"))
                     except (json.JSONDecodeError, TypeError):
                         metadata = {}
-                    parsed_results.append({
-                        "id": row.get("id"),
-                        "task_description": row.get("task_description"),
-                        "metadata": metadata,
-                        "datetime": row.get("datetime"),
-                        "score": float(row.get("score", 0)),
-                        "rank": float(row.get("rank", 0)),
-                    })
+                    parsed_results.append(
+                        {
+                            "id": row.get("id"),
+                            "task_description": row.get("task_description"),
+                            "metadata": metadata,
+                            "datetime": row.get("datetime"),
+                            "score": float(row.get("score", 0)),
+                            "rank": float(row.get("rank", 0)),
+                        }
+                    )
                 return parsed_results
             except Exception as e:
                 print(f"Warning: Rust FTS5 search failed, using Python fallback: {e}")
@@ -330,9 +325,7 @@ class AcceleratedSQLiteWrapper:
         else:
             return self._python_search_memories(query, limit)
 
-    def _python_search_memories(
-        self, query: str, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    def _python_search_memories(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """Python implementation of search using LIKE queries."""
         search_query = """
             SELECT id, task_description, metadata, datetime, score
@@ -342,24 +335,23 @@ class AcceleratedSQLiteWrapper:
             LIMIT ?
         """
         search_pattern = f"%{query}%"
-        rows = self._python_execute_query(
-            search_query,
-            (search_pattern, search_pattern, limit)
-        )
+        rows = self._python_execute_query(search_query, (search_pattern, search_pattern, limit))
         parsed_results = []
         for row in rows:
             try:
                 metadata = json.loads(row.get("metadata", "{}"))
             except (json.JSONDecodeError, TypeError):
                 metadata = {}
-            parsed_results.append({
-                "id": row.get("id"),
-                "task_description": row.get("task_description"),
-                "metadata": metadata,
-                "datetime": row.get("datetime"),
-                "score": float(row.get("score", 0)),
-                "rank": 0.0,  # Python fallback doesn't have BM25 ranking
-            })
+            parsed_results.append(
+                {
+                    "id": row.get("id"),
+                    "task_description": row.get("task_description"),
+                    "metadata": metadata,
+                    "datetime": row.get("datetime"),
+                    "score": float(row.get("score", 0)),
+                    "rank": 0.0,  # Python fallback doesn't have BM25 ranking
+                }
+            )
         return parsed_results
 
     def get_all_memories(self, limit: int = 100) -> List[Dict[str, Any]]:
@@ -381,13 +373,15 @@ class AcceleratedSQLiteWrapper:
                         metadata = json.loads(row.get("metadata", "{}"))
                     except (json.JSONDecodeError, TypeError):
                         metadata = {}
-                    parsed_results.append({
-                        "id": row.get("id"),
-                        "task_description": row.get("task_description"),
-                        "metadata": metadata,
-                        "datetime": row.get("datetime"),
-                        "score": float(row.get("score", 0)),
-                    })
+                    parsed_results.append(
+                        {
+                            "id": row.get("id"),
+                            "task_description": row.get("task_description"),
+                            "metadata": metadata,
+                            "datetime": row.get("datetime"),
+                            "score": float(row.get("score", 0)),
+                        }
+                    )
                 return parsed_results
             except Exception as e:
                 print(f"Warning: Rust get_all_memories failed, using Python fallback: {e}")
@@ -410,13 +404,15 @@ class AcceleratedSQLiteWrapper:
                 metadata = json.loads(row.get("metadata", "{}"))
             except (json.JSONDecodeError, TypeError):
                 metadata = {}
-            parsed_results.append({
-                "id": row.get("id"),
-                "task_description": row.get("task_description"),
-                "metadata": metadata,
-                "datetime": row.get("datetime"),
-                "score": float(row.get("score", 0)),
-            })
+            parsed_results.append(
+                {
+                    "id": row.get("id"),
+                    "task_description": row.get("task_description"),
+                    "metadata": metadata,
+                    "datetime": row.get("datetime"),
+                    "score": float(row.get("score", 0)),
+                }
+            )
         return parsed_results
 
     def load_memories(
