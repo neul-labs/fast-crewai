@@ -1,6 +1,6 @@
 # Fast-CrewAI Compatibility Report
 
-> Generated: 2025-12-09 23:32:28 UTC
+> Generated: 2025-12-10 01:00:48 UTC
 
 ## Summary
 
@@ -12,14 +12,14 @@
 | Tests Skipped | 0 |
 | Tests Errors | 0 |
 | Total Tests | 107 |
-| Duration | 11.49s |
+| Duration | 14.08s |
 
 ## Environment
 
 | Component | Version |
 |-----------|---------|
-| Python | 3.12.3 |
-| Platform | Linux-6.14.0-36-generic-x86_64-with-glibc2.39 |
+| Python | 3.12.12 |
+| Platform | Linux-6.11.0-1018-azure-x86_64-with-glibc2.39 |
 | Fast-CrewAI | 0.1.0 |
 | CrewAI | 1.7.0 |
 | CrewAI Branch | main |
