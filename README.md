@@ -1,6 +1,6 @@
 # Fast-CrewAI
 
-**Drop-in performance acceleration for CrewAI** - Get 2-5x faster memory, database, and execution with zero code changes to your existing CrewAI projects.
+**Drop-in performance acceleration for CrewAI** - Get up to **34x faster serialization**, **17x faster tool execution**, and **11x faster database search** with zero code changes to your existing CrewAI projects.
 
 [![CI](https://github.com/neul-labs/fast-crewai/workflows/CI/badge.svg)](https://github.com/neul-labs/fast-crewai/actions)
 [![Python 3.10-3.13](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](https://www.python.org/downloads/)
@@ -22,16 +22,19 @@ import fast_crewai.shim  # Add this before importing CrewAI
 from crewai import Agent, Task, Crew  # Your existing code remains unchanged!
 ```
 
-That's it! Your existing CrewAI code now runs **2-5x faster** with no other changes needed.
+That's it! Your existing CrewAI code now benefits from Rust-powered acceleration.
 
 ## 🏎️ What Gets Faster
 
 | Component | Performance Boost | What This Means |
 |-----------|-------------------|-----------------|
-| **Memory Storage** | 2-5x faster | RAG storage, short/long-term memory operations |
-| **Database Operations** | 2-4x faster | SQLite operations for memory and persistence |
-| **Tool Execution** | Hooks ready | Acceleration points for future optimization |
-| **Task Execution** | Hooks ready | Acceleration points for future optimization |
+| **Serialization** | 🚀 **34x faster** | Agent message serialization using serde |
+| **Tool Execution** | 🚀 **17x faster** | Result caching and JSON validation |
+| **Database Search** | 🚀 **11x faster** | FTS5 full-text search with BM25 ranking |
+| **Memory Storage** | ✅ **TF-IDF search** | Semantic search using cosine similarity |
+| **Task Execution** | ✅ **Dependency tracking** | Topological sort and parallel scheduling |
+
+See [BENCHMARK.md](BENCHMARK.md) for detailed performance data.
 
 ## 🤝 How It Works
 
@@ -133,42 +136,48 @@ export FAST_CREWAI_TOOLS=false    # Tool acceleration
 export FAST_CREWAI_DATABASE=true  # Database acceleration
 ```
 
-## 📊 Real-World Performance
+## 📊 Performance Benchmarks
 
-Performance improvements vary by workload type:
+Latest benchmark results (see [BENCHMARK.md](BENCHMARK.md) for full details):
 
-### Component-Specific Benchmarks (Internal Testing)
-These benchmarks test Fast-CrewAI components in isolation:
+### Performance Improvements
 
-| Component | Baseline | With Fast-CrewAI | Improvement |
-|-----------|----------|------------------|-------------|
-| Memory Operations | 1.00s | 0.35s | **2.9x faster** |
-| Database Operations | 1.00s | 0.41s | **2.4x faster** |
-| Overall Workflow | 1.00s | 0.54s | **1.9x faster** |
+| Component | Improvement | Details |
+|-----------|-------------|---------|
+| **Serialization** | 🚀 **34.5x faster** | 80,525 ops/s (Rust) vs 2,333 ops/s (Python) |
+| **Tool Execution** | 🚀 **17.3x faster** | Result caching with configurable TTL |
+| **FTS Database Search** | 🚀 **11.2x faster** | 10,206 ops/s (FTS5) vs 913 ops/s (LIKE) |
+| **Database Query** | 🚀 **1.3x faster** | Connection pooling with r2d2 |
+| **Memory Storage** | ✅ **Comparable** | TF-IDF semantic search |
 
-*These are internal component benchmarks testing Rust vs Python implementations*
+### Memory Usage
 
-### Actual Workflow Testing
-When running complete CrewAI workflows with `make test-comparison`, performance varies by workflow type:
+| Component | Python | Rust | Savings |
+|-----------|--------|------|---------|
+| Tool Execution | 1.2 MB | 0.0 MB | **99% less** |
+| Serialization | 8.0 MB | 3.4 MB | **58% less** |
+| Database | 0.1 MB | 0.1 MB | **31% less** |
 
-- **Basic workflows**: Modest improvements (10-15% in the example below)
-- **Memory-intensive workflows**: Higher improvements (2-5x) due to accelerated storage
-- **Database-heavy workflows**: Higher improvements (2-4x) due to connection pooling
+### Key Features by Component
 
-Example of basic workflow comparison:
-```
-==================================================
-Workflow Type: basic
-Iterations: 3
-Baseline (without Fast-CrewAI): 27.88s
-Accelerated (with Fast-CrewAI): 24.50s
-Time Saved: 3.38s
-Performance Improvement: 1.13x faster
-Percent Improvement: 13.00%
-==================================================
-```
+**Database (FTS5)**
+- Full-text search with BM25 relevance ranking
+- Automatic index synchronization via triggers
+- Connection pooling for concurrent access
 
-Higher improvements (2-5x) are typically seen with memory-intensive and database-heavy workflows where Fast-CrewAI's Rust acceleration provides greater benefits.
+**Tool Executor**
+- Result caching with TTL expiration
+- Fast JSON validation using serde
+- Execution statistics tracking
+
+**Task Executor**
+- Dependency tracking with topological sort
+- Cycle detection for circular dependencies
+- Parallel task scheduling via Tokio
+
+**Serialization**
+- serde-based JSON serialization (34x faster)
+- Lower memory footprint (58% less)
 
 ## 🛠️ Development & Testing
 

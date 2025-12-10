@@ -1,10 +1,6 @@
 name: CrewAI Compatibility Tests
 
 on:
-  # Run on pull requests
-  pull_request:
-    branches: [ main, develop ]
-
   # Run on pushes to main
   push:
     branches: [ main ]
@@ -18,15 +14,13 @@ on:
 
 jobs:
   compatibility-test:
-    name: Test with CrewAI ${{ matrix.crewai-branch }}
-    runs-on: ${{ matrix.os }}
+    name: Test with CrewAI (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13']
-        crewai-branch: ['main']
 
     steps:
     - name: Checkout Fast-CrewAI
@@ -66,46 +60,69 @@ jobs:
       run: uv sync --dev
 
     - name: Run Compatibility Tests
-      env:
-        CREWAI_BRANCH: ${{ matrix.crewai-branch }}
       run: |
         # Run tests that don't require OPENAI_API_KEY
-        # These test utility functions, serialization, event handling, etc.
         uv run python scripts/test_crewai_compatibility.py \
-          --crewai-branch "$CREWAI_BRANCH" \
+          --crewai-branch main \
           --keep-env \
           --verbose \
-          --no-api-key
+          --no-api-key \
+          --report-output COMPATIBILITY.md
 
     - name: Upload compatibility report
-      if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: compatibility-report-py${{ matrix.python-version }}-${{ matrix.crewai-branch }}
-        path: test_compatibility/COMPATIBILITY.md
+        name: compatibility-report-py${{ matrix.python-version }}
+        path: COMPATIBILITY.md
         retention-days: 30
 
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}-${{ matrix.crewai-branch }}
+        name: test-results-py${{ matrix.python-version }}
         path: |
           test_compatibility/pytest_results.json
-          test_compatibility/COMPATIBILITY.md
+          COMPATIBILITY.md
         retention-days: 30
 
-    - name: Comment on PR (on failure)
-      if: failure() && github.event_name == 'pull_request'
-      uses: actions/github-script@v7
+  update-compatibility-report:
+    name: Update COMPATIBILITY.md
+    needs: compatibility-test
+    runs-on: ubuntu-latest
+    # Only run on push to main or scheduled runs, not on PRs
+    if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    steps:
+    - name: Checkout Fast-CrewAI
+      uses: actions/checkout@v4
       with:
-        script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: '⚠️ CrewAI compatibility tests failed. Please review the test results.'
-          })
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Download compatibility report
+      uses: actions/download-artifact@v4
+      with:
+        # Use Python 3.12 report as the canonical one
+        name: compatibility-report-py3.12
+        path: .
+
+    - name: Check for changes
+      id: check_changes
+      run: |
+        if git diff --quiet COMPATIBILITY.md 2>/dev/null; then
+          echo "changed=false" >> $GITHUB_OUTPUT
+        else
+          echo "changed=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Commit and push COMPATIBILITY.md
+      if: steps.check_changes.outputs.changed == 'true'
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add COMPATIBILITY.md
+        git commit -m "Update COMPATIBILITY.md [skip ci]"
+        git push
 
   compatibility-test-summary:
     name: Compatibility Test Summary

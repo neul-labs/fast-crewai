@@ -67,14 +67,15 @@ Configure Fast-CrewAI in your Python code:
 ```python
 import fast_crewai.shim
 
-# Configure specific components
+# Configure which components use Rust acceleration
 from fast_crewai import configure_accelerated_components
 
 configure_accelerated_components(
     memory=True,
-    database=True, 
+    database=True,
     tools=False,  # Disable tool acceleration
-    tasks=True
+    tasks=True,
+    serialization=True
 )
 
 # Check current configuration
@@ -93,9 +94,7 @@ from fast_crewai.memory import AcceleratedMemoryStorage
 
 # Custom memory storage with specific settings
 memory_storage = AcceleratedMemoryStorage(
-    use_rust=True,  # Use Rust backend if available
-    search_limit=5,  # Limit search results
-    similarity_threshold=0.7  # Minimum similarity for matches
+    use_rust=True  # Use Rust backend if available (TF-IDF search)
 )
 ```
 
@@ -121,10 +120,10 @@ Tool acceleration adds execution hooks:
 ```python
 from fast_crewai.tools import AcceleratedToolExecutor
 
-# Custom tool executor with configuration
+# Custom tool executor with caching (17x faster for repeated calls)
 tool_executor = AcceleratedToolExecutor(
-    max_recursion_depth=50,
-    timeout_seconds=30,
+    max_recursion_depth=1000,
+    cache_ttl_seconds=300,  # Cache results for 5 minutes
     use_rust=True
 )
 ```
@@ -169,8 +168,9 @@ Choose components based on your workload:
 Monitor configuration effectiveness:
 
 ```python
-from fast_crewai import get_acceleration_status
+from fast_crewai import get_acceleration_status, is_acceleration_available
 
+print(f"Rust available: {is_acceleration_available()}")
 status = get_acceleration_status()
 print("Active components:", [k for k, v in status.get('components', {}).items() if v])
 ```

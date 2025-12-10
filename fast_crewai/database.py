@@ -15,7 +15,7 @@ from ._constants import HAS_ACCELERATION_IMPLEMENTATION
 # Try to import the Rust implementation
 if HAS_ACCELERATION_IMPLEMENTATION:
     try:
-        from ._core import AcceleratedSQLiteWrapper as _AcceleratedSQLiteWrapper
+        from ._core import RustSQLiteWrapper as _RustSQLiteWrapper
 
         _RUST_AVAILABLE = True
     except ImportError:
@@ -63,7 +63,7 @@ class AcceleratedSQLiteWrapper:
         # Initialize the appropriate implementation
         if self._use_rust:
             try:
-                self._wrapper = _AcceleratedSQLiteWrapper(db_path, pool_size)
+                self._wrapper = _RustSQLiteWrapper(db_path, pool_size)
                 self._implementation = "rust"
             except Exception as e:
                 # Fallback to Python implementation
@@ -103,28 +103,31 @@ class AcceleratedSQLiteWrapper:
             print(f"Warning: Failed to initialize Python SQLite database: {e}")
 
     def execute_query(
-        self, query: str, params: Optional[Dict[str, Any]] = None
+        self, query: str, params: Optional[Any] = None
     ) -> List[Dict[str, Any]]:
         """
         Execute a SELECT query.
 
         Args:
             query: SQL query to execute
-            params: Parameters for the query
+            params: Parameters for the query (dict for named params, tuple for positional)
 
         Returns:
             List of result rows as dictionaries
         """
         if self._use_rust:
             try:
-                # Convert params to a format Rust can handle
+                # Rust implementation requires dict with named parameters
+                # Convert tuple to dict if needed, using :param1, :param2 style
+                if isinstance(params, tuple):
+                    # For tuple params, fall back to Python as Rust expects dict
+                    return self._python_execute_query(query, params)
                 params_dict = params or {}
                 result_dicts = self._wrapper.execute_query(query, params_dict)
                 return result_dicts
             except Exception as e:
                 # Fallback to Python implementation on error
                 print(f"Warning: Rust query execution failed, using Python fallback: {e}")
-                self._use_rust = False
                 return self._python_execute_query(query, params)
         else:
             return self._python_execute_query(query, params)
@@ -239,7 +242,7 @@ class AcceleratedSQLiteWrapper:
         metadata: Dict[str, Any],
         datetime: str,
         score: Union[int, float],
-    ) -> None:
+    ) -> Optional[int]:
         """
         Save a memory entry to the database.
 
@@ -248,13 +251,173 @@ class AcceleratedSQLiteWrapper:
             metadata: Metadata associated with the memory
             datetime: Timestamp of the memory
             score: Score or priority of the memory
+
+        Returns:
+            The ID of the inserted row, or None on failure
         """
+        if self._use_rust:
+            try:
+                # Use the new Rust insert_memory method for better performance
+                row_id = self._wrapper.insert_memory(
+                    task_description,
+                    json.dumps(metadata),
+                    datetime,
+                    float(score)
+                )
+                return row_id
+            except Exception as e:
+                print(f"Warning: Rust insert_memory failed, using Python fallback: {e}")
+                self._use_rust = False
+                return self._python_save_memory(task_description, metadata, datetime, score)
+        else:
+            return self._python_save_memory(task_description, metadata, datetime, score)
+
+    def _python_save_memory(
+        self,
+        task_description: str,
+        metadata: Dict[str, Any],
+        datetime: str,
+        score: Union[int, float],
+    ) -> Optional[int]:
+        """Python implementation of save_memory for fallback."""
         query = """
             INSERT INTO long_term_memories (task_description, metadata, datetime, score)
             VALUES (?, ?, ?, ?)
         """
         params = (task_description, json.dumps(metadata), datetime, float(score))
-        self.execute_update(query, params)
+        self._python_execute_update(query, params)
+        return None  # Python implementation doesn't return row ID
+
+    def search_memories_fts(
+        self, query: str, limit: int = 10
+    ) -> List[Dict[str, Any]]:
+        """
+        Search memories using FTS5 full-text search (Rust only).
+
+        This method uses SQLite FTS5 with BM25 ranking for fast, relevance-ranked
+        full-text search. Falls back to simple LIKE queries in Python.
+
+        Args:
+            query: Search query string
+            limit: Maximum number of results to return
+
+        Returns:
+            List of matching memory entries ranked by relevance
+        """
+        if self._use_rust:
+            try:
+                # Use the new Rust FTS5 search method
+                results = self._wrapper.search_memories(query, limit)
+                # Parse metadata from JSON strings
+                parsed_results = []
+                for row in results:
+                    try:
+                        metadata = json.loads(row.get("metadata", "{}"))
+                    except (json.JSONDecodeError, TypeError):
+                        metadata = {}
+                    parsed_results.append({
+                        "id": row.get("id"),
+                        "task_description": row.get("task_description"),
+                        "metadata": metadata,
+                        "datetime": row.get("datetime"),
+                        "score": float(row.get("score", 0)),
+                        "rank": float(row.get("rank", 0)),
+                    })
+                return parsed_results
+            except Exception as e:
+                print(f"Warning: Rust FTS5 search failed, using Python fallback: {e}")
+                return self._python_search_memories(query, limit)
+        else:
+            return self._python_search_memories(query, limit)
+
+    def _python_search_memories(
+        self, query: str, limit: int = 10
+    ) -> List[Dict[str, Any]]:
+        """Python implementation of search using LIKE queries."""
+        search_query = """
+            SELECT id, task_description, metadata, datetime, score
+            FROM long_term_memories
+            WHERE task_description LIKE ? OR metadata LIKE ?
+            ORDER BY datetime DESC
+            LIMIT ?
+        """
+        search_pattern = f"%{query}%"
+        rows = self._python_execute_query(
+            search_query,
+            (search_pattern, search_pattern, limit)
+        )
+        parsed_results = []
+        for row in rows:
+            try:
+                metadata = json.loads(row.get("metadata", "{}"))
+            except (json.JSONDecodeError, TypeError):
+                metadata = {}
+            parsed_results.append({
+                "id": row.get("id"),
+                "task_description": row.get("task_description"),
+                "metadata": metadata,
+                "datetime": row.get("datetime"),
+                "score": float(row.get("score", 0)),
+                "rank": 0.0,  # Python fallback doesn't have BM25 ranking
+            })
+        return parsed_results
+
+    def get_all_memories(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """
+        Get all memories ordered by datetime (most recent first).
+
+        Args:
+            limit: Maximum number of results to return
+
+        Returns:
+            List of memory entries
+        """
+        if self._use_rust:
+            try:
+                results = self._wrapper.get_all_memories(limit)
+                parsed_results = []
+                for row in results:
+                    try:
+                        metadata = json.loads(row.get("metadata", "{}"))
+                    except (json.JSONDecodeError, TypeError):
+                        metadata = {}
+                    parsed_results.append({
+                        "id": row.get("id"),
+                        "task_description": row.get("task_description"),
+                        "metadata": metadata,
+                        "datetime": row.get("datetime"),
+                        "score": float(row.get("score", 0)),
+                    })
+                return parsed_results
+            except Exception as e:
+                print(f"Warning: Rust get_all_memories failed, using Python fallback: {e}")
+                return self._python_get_all_memories(limit)
+        else:
+            return self._python_get_all_memories(limit)
+
+    def _python_get_all_memories(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """Python implementation of get_all_memories."""
+        query = """
+            SELECT id, task_description, metadata, datetime, score
+            FROM long_term_memories
+            ORDER BY datetime DESC
+            LIMIT ?
+        """
+        rows = self._python_execute_query(query, (limit,))
+        parsed_results = []
+        for row in rows:
+            try:
+                metadata = json.loads(row.get("metadata", "{}"))
+            except (json.JSONDecodeError, TypeError):
+                metadata = {}
+            parsed_results.append({
+                "id": row.get("id"),
+                "task_description": row.get("task_description"),
+                "metadata": metadata,
+                "datetime": row.get("datetime"),
+                "score": float(row.get("score", 0)),
+            })
+        return parsed_results
 
     def load_memories(
         self, task_description: str, latest_n: int = 5

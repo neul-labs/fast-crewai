@@ -78,11 +78,13 @@ def run_command(
         raise
 
 
-def setup_benchmark_environment(test_dir: Path, skip_install: bool = False) -> Path:
+def setup_benchmark_environment(
+    test_dir: Path, skip_install: bool = False
+) -> tuple[Path, Path]:
     """Set up the benchmark environment.
 
     Returns:
-        Path to virtual environment
+        Tuple of (resolved test_dir, venv_dir)
     """
     # Step 1: Create test directory
     log_info("Step 1/5: Creating test directory")
@@ -114,7 +116,7 @@ def setup_benchmark_environment(test_dir: Path, skip_install: bool = False) -> P
         log_info("Using existing virtual environment")
     print()
 
-    return venv_dir
+    return test_dir, venv_dir
 
 
 def get_venv_python(venv_dir: Path) -> Path:
@@ -181,6 +183,7 @@ def run_benchmarks(
     python_only: bool = False,
     rust_only: bool = False,
     report_file: Optional[Path] = None,
+    report_output: Optional[Path] = None,
 ) -> int:
     """
     Run performance benchmarks.
@@ -199,6 +202,10 @@ def run_benchmarks(
     os.environ["FAST_CREWAI_DATABASE"] = "true"
     os.environ["ITERATIONS"] = str(iterations)
 
+    # Set report output path in environment for the runner script
+    if report_output:
+        os.environ["BENCHMARK_REPORT_OUTPUT"] = str(report_output.resolve())
+
     # Build benchmark runner script
     benchmark_runner_content = f'''
 #!/usr/bin/env python3
@@ -209,40 +216,48 @@ import os
 import sys
 import json
 from datetime import datetime
+from pathlib import Path
 
 def run_benchmarks():
     """Run the Fast-CrewAI benchmark suite."""
     try:
         # Import benchmark module
         from fast_crewai.benchmark import PerformanceBenchmark
-        
+
         print("="*80)
         print("Fast-CrewAI Performance Benchmark")
         print("="*80)
         print(f"Benchmark started: {{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}}")
         print(f"Iterations: {{os.environ.get('ITERATIONS', '{iterations}')}}")
         print()
-        
+
         # Print rust availability
         from fast_crewai import is_acceleration_available
         print(f"Rust acceleration available: {{is_acceleration_available()}}")
         print()
-        
+
         # Configure benchmark with specified iterations
         iterations = int(os.environ.get('ITERATIONS', '{iterations}'))
         benchmark = PerformanceBenchmark(iterations=iterations)
-        
+
         # Run all benchmarks
         results = benchmark.run_all_benchmarks()
-        
+
         # Print detailed summary
         benchmark.print_summary()
-        
+
+        # Generate BENCHMARK.md report if requested
+        report_output = os.environ.get('BENCHMARK_REPORT_OUTPUT')
+        if report_output:
+            print()
+            print("Generating BENCHMARK.md report...")
+            benchmark.generate_benchmark_report(Path(report_output))
+
         # Print raw results
         print()
         print("Raw Results:")
         print(json.dumps(results, indent=2))
-        
+
         return results
     except ImportError as e:
         print(f"Error importing benchmark module: {{e}}")
@@ -346,7 +361,12 @@ def main() -> int:
         help="Number of iterations for benchmarks (default: 1000)",
     )
     parser.add_argument(
-        "--report-file", type=Path, help="Save benchmark report to file"
+        "--report-file", type=Path, help="Save raw benchmark output to file"
+    )
+    parser.add_argument(
+        "--report-output",
+        type=Path,
+        help="Output path for BENCHMARK.md report (default: ./BENCHMARK.md)",
     )
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Enable verbose output"
@@ -361,20 +381,21 @@ def main() -> int:
         log_info("Starting Fast-CrewAI benchmarking")
         print()
 
-        # Setup environment
-        venv_dir = setup_benchmark_environment(args.test_dir)
+        # Setup environment (returns resolved absolute paths)
+        test_dir, venv_dir = setup_benchmark_environment(args.test_dir)
 
         # Build Rust extension if requested
         rust_built = build_rust_extension(fast_crewai_dir, not args.no_rust_build)
 
         # Run benchmarks
         exit_code = run_benchmarks(
-            args.test_dir,
+            test_dir,
             venv_dir,
             args.iterations,
             args.python_only,
             args.rust_only,
             args.report_file,
+            args.report_output,
         )
 
         print()
@@ -402,12 +423,12 @@ def main() -> int:
             )
             if response not in ["y", "yes"]:
                 log_info("Cleaning up benchmark environment...")
-                shutil.rmtree(args.test_dir)
+                shutil.rmtree(test_dir)
                 log_success("Cleanup complete")
             else:
-                log_info(f"Benchmark environment kept at: {args.test_dir}")
+                log_info(f"Benchmark environment kept at: {test_dir}")
         else:
-            log_info(f"Benchmark environment kept at: {args.test_dir}")
+            log_info(f"Benchmark environment kept at: {test_dir}")
 
         return exit_code
 

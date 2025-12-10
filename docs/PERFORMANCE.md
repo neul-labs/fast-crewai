@@ -1,16 +1,27 @@
 # Performance Guide
 
-Comprehensive benchmarks and optimization strategies for CrewAI Rust.
+Comprehensive benchmarks and optimization strategies for Fast-CrewAI.
 
 ## Performance Overview
 
 | Component | Speedup | Use Case | Optimization |
 |-----------|---------|----------|--------------|
-| **Memory Storage** | 2-5x | Document search, RAG operations | TF-IDF similarity |
-| **Tool Execution** | 1.5-3x | Heavy tool usage, recursive calls | Stack safety |
-| **Task Execution** | 2-4x | Parallel task workflows | Tokio async runtime |
-| **Serialization** | 3-8x | Event processing, logging | Zero-copy JSON |
-| **Database Operations** | 2-4x | Memory persistence | Connection pooling |
+| **Serialization** | 🚀 **34.5x** | Agent messages, event processing | serde JSON |
+| **Tool Execution** | 🚀 **17.3x** | Heavy tool usage, repeated calls | Result caching + serde validation |
+| **Database Search (FTS5)** | 🚀 **11.2x** | Memory search, full-text queries | FTS5 + BM25 ranking |
+| **Database Query** | 🚀 **1.3x** | Memory persistence | Connection pooling (r2d2) |
+| **Memory Storage** | ✅ **TF-IDF** | Document search, RAG operations | Cosine similarity |
+| **Task Execution** | ✅ **Dependency tracking** | Parallel workflows | Topological sort + Tokio |
+
+### Memory Usage Savings
+
+| Component | Python | Rust | Savings |
+|-----------|--------|------|---------|
+| Tool Execution | 1.2 MB | 0.0 MB | **99% less** |
+| Serialization | 8.0 MB | 3.4 MB | **58% less** |
+| Database | 0.1 MB | 0.1 MB | **31% less** |
+
+*See [BENCHMARK.md](../BENCHMARK.md) for full benchmark data.*
 
 *Note: Performance improvements vary based on workload characteristics and system configuration.*
 
@@ -18,48 +29,67 @@ Comprehensive benchmarks and optimization strategies for CrewAI Rust.
 
 ### Run Built-in Benchmarks
 
+```bash
+# Run the full benchmark suite
+uv run python scripts/test_benchmarking.py --iterations 500 --report-output BENCHMARK.md
+
+# Or using make
+make benchmark
+```
+
+### Quick Python Benchmark
+
 ```python
 # Simple performance test
-from fast_crewai import RustMemoryStorage, RustToolExecutor, RustTaskExecutor, AgentMessage
+from fast_crewai import AcceleratedMemoryStorage, AcceleratedToolExecutor, AcceleratedTaskExecutor, AgentMessage
 import time
 
 def benchmark_memory():
-    storage = RustMemoryStorage()
-    
+    storage = AcceleratedMemoryStorage(use_rust=True)
+
     # Test save performance
     start = time.time()
     for i in range(1000):
-        storage.save(f"Document {i} with content")
+        storage.save(f"Document {i} with content about machine learning and AI")
     save_time = time.time() - start
-    
-    # Test search performance
+
+    # Test search performance (TF-IDF semantic search)
     start = time.time()
     for i in range(100):
-        results = storage.search("Document", limit=10)
+        results = storage.search("machine learning", limit=10)
     search_time = time.time() - start
-    
+
     print(f"Save: {1000/save_time:.1f} docs/sec")
     print(f"Search: {100/search_time:.1f} queries/sec")
     return save_time, search_time
 
 def benchmark_tools():
-    executor = RustToolExecutor(max_recursion_depth=1000)
-    
+    # Tool executor with caching (17x faster for repeated calls)
+    executor = AcceleratedToolExecutor(
+        max_recursion_depth=1000,
+        cache_ttl_seconds=300,
+        use_rust=True
+    )
+
     start = time.time()
     for i in range(1000):
-        result = executor.execute_tool("test", f"args_{i}")
+        result = executor.execute_tool("test", {"query": f"args_{i}"})
     tool_time = time.time() - start
-    
+
+    # Check cache stats
+    stats = executor.get_stats()
     print(f"Tools: {1000/tool_time:.1f} executions/sec")
+    print(f"Cache hits: {stats.get('cache_hits', 0)}")
     return tool_time
 
 def benchmark_serialization():
+    # serde-based serialization (34x faster)
     start = time.time()
     for i in range(10000):
-        msg = AgentMessage(str(i), "sender", "recipient", f"content_{i}", i)
+        msg = AgentMessage(str(i), "sender", "recipient", f"content_{i}", i, use_rust=True)
         json_str = msg.to_json()
     serialization_time = time.time() - start
-    
+
     print(f"Serialization: {10000/serialization_time:.1f} messages/sec")
     return serialization_time
 
@@ -74,14 +104,14 @@ benchmark_serialization()
 
 ```python
 import time
-from fast_crewai import RustMemoryStorage
+from fast_crewai import AcceleratedMemoryStorage
 
 # Benchmark memory operations
 def benchmark_memory():
-    storage = RustMemoryStorage()
+    storage = AcceleratedMemoryStorage(use_rust=True)
 
     # Test data
-    documents = [f"Document {i} with substantial content" for i in range(1000)]
+    documents = [f"Document {i} with substantial content about AI and machine learning" for i in range(1000)]
 
     # Benchmark saves
     start = time.time()
@@ -89,15 +119,15 @@ def benchmark_memory():
         storage.save(doc, {"index": i})
     save_time = time.time() - start
 
-    # Benchmark searches
+    # Benchmark searches (TF-IDF semantic search)
     start = time.time()
     for i in range(100):
-        results = storage.search("Document", limit=5)
+        results = storage.search("machine learning AI", limit=5)
     search_time = time.time() - start
 
     print(f"Save: {len(documents)/save_time:.1f} docs/sec")
     print(f"Search: {100/search_time:.1f} queries/sec")
-    
+
     return save_time, search_time
 
 # Run benchmark
@@ -110,17 +140,17 @@ benchmark_memory()
 
 **Optimal Usage:**
 ```python
-from fast_crewai import RustMemoryStorage
+from fast_crewai import AcceleratedMemoryStorage
 
 # Large batch operations
-storage = RustMemoryStorage()
+storage = AcceleratedMemoryStorage(use_rust=True)
 documents = load_large_dataset()  # 10k+ documents
 
 for doc in documents:
-    storage.save(doc, metadata)  # Vectorized internally
+    storage.save(doc, metadata)  # TF-IDF indexed internally
 
-# Batch searching
-queries = ["query1", "query2", "query3"]
+# Semantic search (TF-IDF with cosine similarity)
+queries = ["machine learning analysis", "data processing pipeline", "error handling"]
 for query in queries:
     results = storage.search(query, limit=10)
 ```
@@ -129,7 +159,7 @@ for query in queries:
 ```python
 # Too many small storage instances
 for doc in documents:
-    storage = RustMemoryStorage()  # Don't recreate
+    storage = AcceleratedMemoryStorage()  # Don't recreate
     storage.save(doc)
 ```
 
@@ -137,116 +167,232 @@ for doc in documents:
 
 ```python
 # Optimize for your use case
-storage = RustMemoryStorage(
-    use_rust=True,  # Force Rust implementation
-    # Additional config via environment
+storage = AcceleratedMemoryStorage(
+    use_rust=True,  # Force Rust implementation (TF-IDF search)
 )
 
 # Environment tuning
 import os
-os.environ['FAST_CREWAI_MEMORY_THREADS'] = '4'  # Parallel processing
-os.environ['FAST_CREWAI_MEMORY_BATCH_SIZE'] = '100'  # Batch operations
+os.environ['FAST_CREWAI_MEMORY'] = 'true'  # Enable memory acceleration
 ```
 
 ## Tool Execution Optimization
 
-### Recursion Safety
+### Result Caching (17x faster)
 
 ```python
-from fast_crewai import RustToolExecutor
+from fast_crewai import AcceleratedToolExecutor
 
-# Configure for deep tool chains
-executor = RustToolExecutor(max_recursion_depth=10000)
+# Configure for result caching (major speedup for repeated calls)
+executor = AcceleratedToolExecutor(
+    max_recursion_depth=10000,
+    cache_ttl_seconds=300,  # Cache results for 5 minutes
+    use_rust=True
+)
 
-# This is now safe and fast
-def recursive_tool(depth):
-    if depth <= 0:
-        return "base case"
-    return executor.execute_tool("recursive_tool", {"depth": depth - 1})
+# First call: executes tool
+result1 = executor.execute_tool("search", {"query": "AI trends"})
 
-result = recursive_tool(5000)  # No stack overflow
+# Second call with same args: instant cache hit (17x faster!)
+result2 = executor.execute_tool("search", {"query": "AI trends"})
+
+# Check cache statistics
+stats = executor.get_stats()
+print(f"Cache hits: {stats['cache_hits']}")
+print(f"Cache misses: {stats['cache_misses']}")
+```
+
+### JSON Validation (serde-based)
+
+```python
+# Fast JSON argument validation using serde
+executor = AcceleratedToolExecutor(use_rust=True)
+
+# Validate before executing (much faster than Python json)
+is_valid = executor.validate_args({"query": "test", "options": {"limit": 10}})
+
+# Batch validation for multiple argument sets
+args_list = [
+    {"query": "test1"},
+    {"query": "test2"},
+    {"invalid": None}  # Will be caught
+]
+results = executor.batch_validate(args_list)  # [True, True, False]
 ```
 
 ### Tool Performance Patterns
 
 **Optimized Tool Usage:**
 ```python
-# Batch tool executions
-tools = ["tool1", "tool2", "tool3"]
+# Batch tool executions with caching
+tools = ["search", "analyze", "summarize"]
 args_list = [{"param": i} for i in range(100)]
 
-# Execute in parallel
 results = []
 for tool, args in zip(tools, args_list):
-    result = executor.execute_tool(tool, args)
+    result = executor.execute_tool(tool, args, use_cache=True)
     results.append(result)
+
+# Clear cache when needed
+cleared = executor.clear_cache()
 ```
 
 ## Task Execution Optimization
 
-### Concurrent Task Design
+### Dependency Tracking & Topological Sort
 
 ```python
-from fast_crewai import RustTaskExecutor
+from fast_crewai import AcceleratedTaskExecutor
 
-executor = RustTaskExecutor()
+executor = AcceleratedTaskExecutor(use_rust=True)
 
-# Design for parallelism
-tasks = [
-    "Analyze dataset A",
-    "Process files B",
-    "Generate report C"
-]
+# Register tasks with dependencies
+executor.register_task("fetch_data", dependencies=[])
+executor.register_task("clean_data", dependencies=["fetch_data"])
+executor.register_task("analyze", dependencies=["clean_data"])
+executor.register_task("visualize", dependencies=["clean_data"])
+executor.register_task("report", dependencies=["analyze", "visualize"])
 
-# True concurrency with work-stealing
-results = executor.execute_concurrent_tasks(tasks)
+# Get optimal execution order (topological sort)
+order = executor.get_execution_order()
+print(f"Execution order: {order}")
+# ['fetch_data', 'clean_data', 'analyze', 'visualize', 'report']
+
+# Get tasks ready for execution
+ready = executor.get_ready_tasks()
+print(f"Ready to run: {ready}")  # ['fetch_data']
+
+# Mark task completion
+executor.mark_started("fetch_data")
+executor.mark_completed("fetch_data", "data loaded")
+
+# Now more tasks are ready
+ready = executor.get_ready_tasks()
+print(f"Ready to run: {ready}")  # ['clean_data']
 ```
 
-### Task Configuration
+### Cycle Detection
 
 ```python
-# Environment tuning for task execution
-import os
-os.environ['FAST_CREWAI_TASK_THREADS'] = '8'  # Match CPU cores
-os.environ['FAST_CREWAI_TASK_QUEUE_SIZE'] = '1000'
+# Automatically detects circular dependencies
+executor = AcceleratedTaskExecutor(use_rust=True)
+executor.register_task("A", dependencies=["B"])
+executor.register_task("B", dependencies=["A"])
+
+try:
+    order = executor.get_execution_order()
+except ValueError as e:
+    print(f"Error: {e}")  # "Circular dependency detected in tasks"
+```
+
+### Concurrent Task Execution
+
+```python
+# Execute independent tasks in parallel via Tokio runtime
+executor = AcceleratedTaskExecutor(use_rust=True)
+
+# Get ready tasks and execute them concurrently
+ready_tasks = executor.get_ready_tasks()
+results = executor.execute_concurrent(ready_tasks)
+
+# Get execution statistics
+stats = executor.get_stats()
+print(f"Tasks scheduled: {stats['tasks_scheduled']}")
+print(f"Tasks completed: {stats['tasks_completed']}")
 ```
 
 ## Serialization Optimization
 
-### Efficient Message Handling
+### serde-based Serialization (34x faster)
 
 ```python
-from fast_crewai.serialization import AgentMessage, RustSerializer
+from fast_crewai import AgentMessage
 
-# Batch serialization for best performance
-serializer = RustSerializer()
-messages = [
-    {"id": str(i), "content": f"Message {i}"}
-    for i in range(1000)
+# Create messages with Rust acceleration
+msg = AgentMessage(
+    id="msg-001",
+    sender="agent_1",
+    recipient="agent_2",
+    content="This is a test message with lots of content...",
+    timestamp=1700000000,
+    use_rust=True  # Use serde for 34x faster serialization
+)
+
+# Serialize (34x faster than json.dumps)
+json_str = msg.to_json()
+
+# Deserialize (14x faster than json.loads)
+msg_restored = AgentMessage.from_json(json_str, use_rust=True)
+```
+
+### Batch Serialization
+
+```python
+from fast_crewai import AgentMessage
+import time
+
+# Benchmark: serde vs json
+messages_data = [
+    {"id": str(i), "sender": "agent", "recipient": "user", "content": f"Message {i}", "timestamp": i}
+    for i in range(10000)
 ]
 
-# Zero-copy batch operation
-json_strings = serializer.serialize_batch(messages)
+# With Rust (serde): ~80,000 ops/sec
+start = time.time()
+for data in messages_data:
+    msg = AgentMessage(**data, use_rust=True)
+    json_str = msg.to_json()
+rust_time = time.time() - start
+print(f"Rust: {len(messages_data)/rust_time:.0f} ops/sec")
 ```
 
 ## Database Operations
 
+### FTS5 Full-Text Search (11x faster)
+
+```python
+from fast_crewai import AcceleratedSQLiteWrapper
+
+# Configure with connection pooling
+db = AcceleratedSQLiteWrapper(
+    "database.db",
+    pool_size=20,  # r2d2 connection pool
+    use_rust=True
+)
+
+# Insert memories (triggers auto-update FTS5 index)
+db.save_memory(
+    task_description="Analyze machine learning model performance metrics",
+    metadata={"agent": "analyst", "priority": 1},
+    datetime="2024-01-01 10:00:00",
+    score=0.95
+)
+
+# FTS5 search with BM25 ranking (11x faster than LIKE)
+results = db.search_memories_fts("machine learning performance", limit=10)
+for result in results:
+    print(f"Match: {result['task_description'][:50]}... (rank: {result['rank']:.2f})")
+
+# Get all memories
+all_memories = db.get_all_memories(limit=100)
+```
+
 ### Connection Pool Optimization
 
 ```python
-from fast_crewai.database import RustSQLiteWrapper
+from fast_crewai import AcceleratedSQLiteWrapper
 
-# Configure connection pool
-db = RustSQLiteWrapper(
+# Configure connection pool for high concurrency
+db = AcceleratedSQLiteWrapper(
     "database.db",
     pool_size=20,  # Adjust based on concurrency needs
+    use_rust=True
 )
 
 # Batch operations for best performance
 memories = [
-    ("task1", {"data": "value1"}, "2023-01-01", 0.95),
-    ("task2", {"data": "value2"}, "2023-01-02", 0.89),
-    # ... more entries
+    ("Analyze dataset A", {"agent": "analyst"}, "2024-01-01", 0.95),
+    ("Process results B", {"agent": "processor"}, "2024-01-02", 0.89),
 ]
 
 for task, metadata, date, score in memories:
@@ -338,13 +484,14 @@ print(f"Components: {status['components']}")
 
 ```python
 # Check what's actually being used
-from fast_crewai import get_environment_info
+from fast_crewai import get_environment_info, is_acceleration_available
 info = get_environment_info()
 print(info)
+print(f"Rust available: {is_acceleration_available()}")
 
 # Verify Rust components are active
-from fast_crewai import RustMemoryStorage
-storage = RustMemoryStorage()
+from fast_crewai import AcceleratedMemoryStorage
+storage = AcceleratedMemoryStorage(use_rust=True)
 assert storage.implementation == "rust", "Using Python fallback!"
 ```
 

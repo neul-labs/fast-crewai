@@ -89,32 +89,31 @@ Each component has both Rust and Python implementations with automatic fallback:
 ### Component Replacement Targets
 
 ```python
-# Memory components (2-5x faster) - ✅ FULLY IMPLEMENTED
+# Memory components - ✅ FULLY IMPLEMENTED (TF-IDF semantic search)
 'crewai.memory.storage.rag_storage' → AcceleratedMemoryStorage
 'crewai.memory.short_term.short_term_memory' → AcceleratedMemoryStorage
 'crewai.memory.long_term.long_term_memory' → AcceleratedMemoryStorage
 'crewai.memory.entity.entity_memory' → AcceleratedMemoryStorage
+# Features: TF-IDF with cosine similarity for semantic search
 
-# Database operations (2-4x faster) - ✅ FULLY IMPLEMENTED
+# Database operations - ✅ FULLY IMPLEMENTED (FTS5 + connection pooling)
 'crewai.memory.storage.ltm_sqlite_storage' → AcceleratedSQLiteWrapper
 'crewai.memory.storage.kickoff_task_outputs_storage' → AcceleratedSQLiteWrapper
+# Features: FTS5 full-text search (11x faster), BM25 ranking, r2d2 connection pooling
 
-# Tool execution - ✅ IMPLEMENTED (Dynamic Inheritance)
+# Tool execution - ✅ FULLY IMPLEMENTED (17x faster with caching)
 'crewai.tools.base_tool.BaseTool' → AcceleratedBaseTool (inherits from BaseTool)
-'crewai.tools.structured_tool.CrewStructuredTool' → AcceleratedStructuredTool (inherits from CrewStructuredTool)
-# Note: Uses dynamic inheritance pattern - creates subclasses at runtime that override
-# performance-critical methods while maintaining full API compatibility
+'crewai.tools.structured_tool.CrewStructuredTool' → AcceleratedStructuredTool
+# Features: Result caching with TTL, serde JSON validation, execution statistics
 
-# Task execution - ✅ IMPLEMENTED (Dynamic Inheritance)
+# Task execution - ✅ FULLY IMPLEMENTED (dependency tracking)
 'crewai.task.Task' → AcceleratedTask (inherits from Task)
 'crewai.crew.Crew' → AcceleratedCrew (inherits from Crew)
-# Note: Uses dynamic inheritance pattern - overrides execute/kickoff methods with
-# acceleration hooks while preserving all original functionality
+# Features: Topological sort, cycle detection, parallel scheduling via Tokio
 
-# Serialization - ⚠️ PARTIAL (Available but not auto-patched)
-# AgentMessage class available for direct use with Rust-accelerated JSON serialization
-# System-wide JSON patching not implemented to avoid compatibility issues
-# Future: Could patch json.dumps/loads or integrate orjson for global acceleration
+# Serialization - ✅ FULLY IMPLEMENTED (34x faster)
+# AgentMessage class with serde-based JSON serialization
+# 34.5x faster serialization, 58% less memory usage
 ```
 
 ## Development Patterns
@@ -240,11 +239,11 @@ except Exception as e:
 - **Error Handling**: Rust `Result<T, E>` converted to Python exceptions
 
 ### Performance Optimizations
-- **Memory Operations**: SIMD-accelerated vector operations
-- **Tool Execution**: Zero-cost abstractions, stack safety
-- **Task Execution**: Tokio async runtime with work-stealing
-- **Serialization**: Zero-copy operations with serde
-- **Database**: Connection pooling with r2d2
+- **Memory Operations**: TF-IDF with cosine similarity for semantic search
+- **Tool Execution**: Result caching with TTL, serde JSON validation (17x faster)
+- **Task Execution**: Tokio async runtime, topological sort, dependency tracking
+- **Serialization**: serde-based JSON (34x faster, 58% less memory)
+- **Database**: FTS5 full-text search (11x faster), BM25 ranking, r2d2 connection pooling
 
 ### Configuration System
 Environment variables provide fine-grained control:
@@ -285,19 +284,49 @@ def test_large_dataset():
 
 ## Performance Expectations
 
-When working with this codebase, expect these performance characteristics:
+When working with this codebase, expect these performance characteristics (see [BENCHMARK.md](BENCHMARK.md) for latest numbers):
 
-### Currently Implemented:
-- **Memory Operations**: 2-5x improvement (Rust backend with SIMD acceleration) ✅
-- **Database Operations**: 2-4x improvement (connection pooling with r2d2) ✅
-- **Tool Execution**: Acceleration hooks enabled via dynamic inheritance ✅
-- **Task Execution**: Acceleration hooks enabled via dynamic inheritance ✅
+### Benchmark Results (as of latest run):
 
-### Partial/Future:
-- **Serialization**: AgentMessage class available with Rust acceleration, but not auto-patched system-wide
+| Component | Improvement | Details |
+|-----------|-------------|---------|
+| **Serialization** | 🚀 **34.5x faster** | serde vs Python json (80,525 vs 2,333 ops/s) |
+| **Tool Execution** | 🚀 **17.3x faster** | Result caching with configurable TTL |
+| **FTS Database Search** | 🚀 **11.2x faster** | FTS5 with BM25 vs LIKE queries |
+| **Database Query** | 🚀 **1.3x faster** | Connection pooling with r2d2 |
+| **Memory Storage** | ✅ **TF-IDF search** | Semantic search using cosine similarity |
+
+### Memory Usage Savings:
+- **Tool Execution**: 99% less memory
+- **Serialization**: 58% less memory
+- **Database**: 31% less memory
 
 ### Implementation Status:
-- Storage and database operations provide the largest performance gains
-- Tool and task acceleration use dynamic inheritance to maintain compatibility
-- Rust acceleration is automatically used when available, with Python fallback
-- All components work whether or not Rust extension is built
+
+| Component | Status | Key Features |
+|-----------|--------|--------------|
+| **RustMemoryStorage** | ✅ Fully implemented | TF-IDF with cosine similarity for semantic search |
+| **RustSQLiteWrapper** | ✅ Fully implemented | FTS5 full-text search, connection pooling, BM25 ranking |
+| **RustToolExecutor** | ✅ Fully implemented | Result caching, JSON validation with serde, execution stats |
+| **RustTaskExecutor** | ✅ Fully implemented | Dependency tracking, topological sort, cycle detection, Tokio runtime |
+| **AgentMessage** | ✅ Fully implemented | serde-based serialization (34x faster) |
+
+### Key Implementation Details:
+
+**Database (RustSQLiteWrapper)**
+- Real SQL query execution (not stubbed)
+- FTS5 virtual table with automatic sync triggers
+- `insert_memory()`, `search_memories()`, `get_all_memories()` methods
+- Connection pooling via r2d2
+
+**Tool Executor (RustToolExecutor)**
+- `validate_args()` - Fast JSON validation
+- `get_cached()` / `cache_result()` - Result caching with TTL
+- `batch_validate()` - Batch validation
+- `get_stats()` - Execution statistics
+
+**Task Executor (RustTaskExecutor)**
+- `register_task()` - Register with dependencies
+- `get_execution_order()` - Topological sort (Kahn's algorithm)
+- `get_ready_tasks()` - Get tasks with satisfied dependencies
+- `mark_started/completed/failed()` - State management

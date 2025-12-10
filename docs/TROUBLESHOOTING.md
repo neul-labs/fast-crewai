@@ -61,8 +61,8 @@ sudo apt install build-essential python3-dev
 
 **Check implementation:**
 ```python
-from fast_crewai import RustMemoryStorage
-storage = RustMemoryStorage()
+from fast_crewai import AcceleratedMemoryStorage
+storage = AcceleratedMemoryStorage()
 print(f"Implementation: {storage.implementation}")
 
 if storage.implementation != "rust":
@@ -72,7 +72,7 @@ if storage.implementation != "rust":
 **Enable verbose logging:**
 ```python
 import fast_crewai.shim
-fast_crewai.shim.enable_rust_acceleration(verbose=True)
+fast_crewai.shim.enable_acceleration(verbose=True)
 ```
 
 ### Memory Issues
@@ -80,7 +80,7 @@ fast_crewai.shim.enable_rust_acceleration(verbose=True)
 **Large dataset handling:**
 ```python
 # For very large datasets, consider batching
-storage = RustMemoryStorage()
+storage = AcceleratedMemoryStorage()
 batch_size = 1000
 
 for i in range(0, len(documents), batch_size):
@@ -103,7 +103,7 @@ print(f"Memory usage: {process.memory_info().rss / 1024 / 1024:.1f} MB")
 **Recursion depth exceeded:**
 ```python
 # Increase recursion limit
-executor = RustToolExecutor(max_recursion_depth=10000)
+executor = AcceleratedToolExecutor(max_recursion_depth=10000)
 ```
 
 **Tool execution errors:**
@@ -120,8 +120,8 @@ except Exception as e:
 **Concurrent task failures:**
 ```python
 try:
-    executor = RustTaskExecutor()
-    results = executor.execute_concurrent_tasks(tasks)
+    executor = AcceleratedTaskExecutor()
+    results = executor.execute_concurrent(tasks)
 except Exception as e:
     print(f"Task execution failed: {e}")
     # Fall back to sequential execution
@@ -155,8 +155,8 @@ export FAST_CREWAI_ACCELERATION=1
 
 **Programmatic configuration:**
 ```python
-from fast_crewai.utils import configure_rust_components
-configure_rust_components(memory=True, tools=True, tasks=False)
+from fast_crewai import configure_accelerated_components
+configure_accelerated_components(memory=True, tools=True, tasks=False)
 ```
 
 ### Shimming Issues
@@ -165,7 +165,7 @@ configure_rust_components(memory=True, tools=True, tasks=False)
 ```python
 # Check if shimming is enabled
 import fast_crewai.shim
-result = fast_crewai.shim.enable_rust_acceleration(verbose=True)
+result = fast_crewai.shim.enable_acceleration(verbose=True)
 print(f"Shimming enabled: {result}")
 ```
 
@@ -186,26 +186,26 @@ logging.basicConfig(level=logging.DEBUG)
 
 # Enable verbose Rust acceleration
 import fast_crewai.shim
-fast_crewai.shim.enable_rust_acceleration(verbose=True)
+fast_crewai.shim.enable_acceleration(verbose=True)
 ```
 
 ### Check Component Status
 
 ```python
-from fast_crewai.utils import get_rust_status, is_rust_available
+from fast_crewai import get_acceleration_status, is_acceleration_available
 
-print(f"Rust available: {is_rust_available()}")
-print(f"Status: {get_rust_status()}")
+print(f"Rust available: {is_acceleration_available()}")
+print(f"Status: {get_acceleration_status()}")
 ```
 
 ### Performance Debugging
 
 ```python
 import time
-from fast_crewai import RustMemoryStorage
+from fast_crewai import AcceleratedMemoryStorage
 
 # Time individual operations
-storage = RustMemoryStorage()
+storage = AcceleratedMemoryStorage()
 
 # Test save performance
 start = time.time()
@@ -250,7 +250,7 @@ print(f"Search time: {search_time:.3f}s")
 
 ```python
 # Use appropriate batch sizes
-storage = RustMemoryStorage()
+storage = AcceleratedMemoryStorage()
 batch_size = 1000  # Adjust based on available memory
 
 # Monitor memory usage
@@ -263,7 +263,7 @@ def check_memory():
 
 ```python
 # Set appropriate recursion limits
-executor = RustToolExecutor(max_recursion_depth=1000)  # Adjust as needed
+executor = AcceleratedToolExecutor(max_recursion_depth=1000)  # Adjust as needed
 
 # Batch tool executions when possible
 tools = ["tool1", "tool2", "tool3"]
@@ -275,12 +275,12 @@ for tool in tools:
 
 ```python
 # Use appropriate task sizes
-executor = RustTaskExecutor()
+executor = AcceleratedTaskExecutor()
 tasks = ["task1", "task2", "task3"]  # Keep reasonable batch sizes
 
 # Monitor task execution
 start = time.time()
-results = executor.execute_concurrent_tasks(tasks)
+results = executor.execute_concurrent(tasks)
 execution_time = time.time() - start
 print(f"Task execution time: {execution_time:.3f}s")
 ```
@@ -340,10 +340,10 @@ pip list | grep crew
 ### Error Handling
 
 ```python
-from fast_crewai import RustMemoryStorage
+from fast_crewai import AcceleratedMemoryStorage
 
 try:
-    storage = RustMemoryStorage()
+    storage = AcceleratedMemoryStorage()
     storage.save("data")
     results = storage.search("data")
 except Exception as e:
@@ -355,18 +355,19 @@ except Exception as e:
 
 ```python
 # Use context managers when available
-with RustSQLiteWrapper("db.db", pool_size=10) as db:
-    results = db.execute_query("SELECT * FROM table", {})
+from fast_crewai import AcceleratedSQLiteWrapper
+db = AcceleratedSQLiteWrapper("db.db", pool_size=10)
+results = db.execute_query("SELECT * FROM table")
 ```
 
 ### Performance Monitoring
 
 ```python
 import time
-from fast_crewai import RustMemoryStorage
+from fast_crewai import AcceleratedMemoryStorage
 
 def benchmark_operation():
-    storage = RustMemoryStorage()
+    storage = AcceleratedMemoryStorage()
     
     # Benchmark save
     start = time.time()

@@ -42,11 +42,13 @@ if os.environ.get("FAST_CREWAI_ACCELERATION") == "1":
 
 # Check if acceleration implementation is available
 try:
-    from ._core import AcceleratedMemoryStorage as _CoreMemoryStorage
-    from ._core import AcceleratedMessage as _CoreMessage
-    from ._core import AcceleratedSQLiteWrapper as _CoreSQLiteWrapper
-    from ._core import AcceleratedTaskExecutor as _CoreTaskExecutor
-    from ._core import AcceleratedToolExecutor as _CoreToolExecutor
+    from ._core import (  # noqa: F401
+        AgentMessage as _CoreMessage,
+        RustMemoryStorage as _CoreMemoryStorage,
+        RustSQLiteWrapper as _CoreSQLiteWrapper,
+        RustTaskExecutor as _CoreTaskExecutor,
+        RustToolExecutor as _CoreToolExecutor,
+    )
 
     HAS_ACCELERATION_IMPLEMENTATION = True
     # These are available but we prefer the wrapper classes from submodules

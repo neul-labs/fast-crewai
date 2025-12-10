@@ -91,7 +91,7 @@ impl RustMemoryStorage {
 Each component implements automatic fallback:
 
 ```python
-class RustMemoryStorage:
+class AcceleratedMemoryStorage:
     def __init__(self, use_rust: Optional[bool] = None):
         # Auto-detect Rust availability
         if use_rust is None:
@@ -101,7 +101,7 @@ class RustMemoryStorage:
 
         if self._use_rust:
             try:
-                self._storage = _RustMemoryStorage()
+                self._storage = _CoreMemoryStorage()
                 self._implementation = "rust"
             except Exception:
                 # Graceful fallback to Python
