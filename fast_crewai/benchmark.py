@@ -106,8 +106,18 @@ class PerformanceBenchmark:
                     + " Keywords: "
                     + ", ".join(
                         random.choices(
-                            ["AI", "task", "result", "error", "success",
-                             "pending", "analysis", "data", "report", "user"],
+                            [
+                                "AI",
+                                "task",
+                                "result",
+                                "error",
+                                "success",
+                                "pending",
+                                "analysis",
+                                "data",
+                                "report",
+                                "user",
+                            ],
                             k=5,
                         )
                     )
@@ -365,12 +375,8 @@ class PerformanceBenchmark:
                     # Nested configuration
                     "config": {
                         "api_key": "sk-"
-                        + "".join(
-                            random.choices(string.ascii_letters + string.digits, k=32)
-                        ),
-                        "endpoint": (
-                            f"https://api.example.com/v{random.randint(1, 3)}/resource"
-                        ),
+                        + "".join(random.choices(string.ascii_letters + string.digits, k=32)),
+                        "endpoint": (f"https://api.example.com/v{random.randint(1, 3)}/resource"),
                         "headers": {
                             "Authorization": "Bearer "
                             + "".join(random.choices(string.ascii_letters, k=64)),
