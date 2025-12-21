@@ -1,6 +1,6 @@
 # Fast-CrewAI Compatibility Report
 
-> Generated: 2025-12-14 01:10:03 UTC
+> Generated: 2025-12-21 01:08:56 UTC
 
 ## Summary
 
@@ -21,7 +21,7 @@
 | Python | 3.12.12 |
 | Platform | Linux-6.11.0-1018-azure-x86_64-with-glibc2.39 |
 | Fast-CrewAI | 0.1.0 |
-| CrewAI | 1.7.0 |
+| CrewAI | 1.7.2 |
 | CrewAI Branch | main |
 | Rust Extension | available |
 
