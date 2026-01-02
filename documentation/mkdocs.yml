@@ -1,0 +1,97 @@
+site_name: Fast-CrewAI
+site_description: Drop-in performance acceleration for CrewAI - Get up to 34x faster serialization with zero code changes
+site_url: https://neul-labs.github.io/fast-crewai
+repo_url: https://github.com/neul-labs/fast-crewai
+repo_name: neul-labs/fast-crewai
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+  logo: assets/logo.svg
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/neul-labs/fast-crewai
+  generator: false
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+      - How It Works: getting-started/how-it-works.md
+  - User Guide:
+      - Configuration: user-guide/configuration.md
+      - Memory Acceleration: user-guide/memory.md
+      - Tool Acceleration: user-guide/tools.md
+      - Task Acceleration: user-guide/tasks.md
+      - Database Acceleration: user-guide/database.md
+      - Serialization: user-guide/serialization.md
+      - Performance Tuning: user-guide/performance.md
+  - API Reference:
+      - Overview: api/index.md
+      - AcceleratedMemoryStorage: api/memory.md
+      - AcceleratedToolExecutor: api/tools.md
+      - AcceleratedTaskExecutor: api/tasks.md
+      - AcceleratedSQLiteWrapper: api/database.md
+      - AgentMessage: api/serialization.md
+      - Utilities: api/utilities.md
+  - Contributing:
+      - Development Setup: contributing/development.md
+      - Architecture: contributing/architecture.md
+      - Troubleshooting: contributing/troubleshooting.md
