@@ -107,8 +107,7 @@ jobs:
     needs: [test, lint]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
-      contents: read
-      actions: write
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
@@ -156,22 +155,10 @@ jobs:
         echo "current=$current_version" >> "$GITHUB_OUTPUT"
         echo "changed=$changed" >> "$GITHUB_OUTPUT"
 
-    - name: Dispatch publish workflow
+    - name: Create git tag for release
       if: steps.cargo_version.outputs.changed == 'true'
-      uses: actions/github-script@v7
-      env:
-        PREVIOUS_VERSION: ${{ steps.cargo_version.outputs.previous }}
-        CURRENT_VERSION: ${{ steps.cargo_version.outputs.current }}
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          core.info(`Triggering publish workflow for version ${process.env.CURRENT_VERSION} (previous ${process.env.PREVIOUS_VERSION}).`)
-          await github.rest.actions.createWorkflowDispatch({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            workflow_id: 'publish.yml',
-            ref: context.ref,
-            inputs: {
-              dry_run: 'false'
-            }
-          })
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git tag "v${{ steps.cargo_version.outputs.current }}"
+        git push origin "v${{ steps.cargo_version.outputs.current }}"

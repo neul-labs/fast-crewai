@@ -1,8 +1,5 @@
 name: CrewAI Compatibility Tests
 
-permissions:
-  contents: write
-
 on:
   # Run on pushes to main
   push:
