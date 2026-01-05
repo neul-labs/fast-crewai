@@ -12,6 +12,9 @@ on:
   schedule:
     - cron: '0 0 * * 0'  # Every Sunday at midnight
 
+permissions:
+  contents: write
+
 jobs:
   compatibility-test:
     name: Test with CrewAI (Python ${{ matrix.python-version }})

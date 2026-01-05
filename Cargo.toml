@@ -1,6 +1,6 @@
 [package]
 name = "fast-crewai"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "High-performance acceleration layer for CrewAI with Rust-backed memory, tool, and task execution"
 license = "MIT"
