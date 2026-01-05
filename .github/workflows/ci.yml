@@ -100,3 +100,78 @@ jobs:
     - name: Type check with mypy
       run: uv run mypy fast_crewai --ignore-missing-imports
       continue-on-error: true
+
+  trigger-publish:
+    name: Trigger publish workflow
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Detect Cargo.toml package version change
+      id: cargo_version
+      run: |
+        set -eo pipefail
+
+        extract_version() {
+          awk '
+            /^\[package\]/ { pkg = 1; next }
+            /^\[/ { pkg = 0 }
+            pkg && match($0, /^version\s*=\s*"(.*)"/, m) { print m[1]; exit }
+          '
+        }
+
+        current_version=$(extract_version < Cargo.toml)
+
+        before_sha=${{ github.event.before }}
+        zero_ref="0000000000000000000000000000000000000000"
+        if [ -z "$before_sha" ] || [ "$before_sha" = "$zero_ref" ]; then
+          before_sha=$(git rev-list --max-count=1 HEAD^ || echo "")
+        fi
+
+        previous_version=""
+        if [ -n "$before_sha" ]; then
+          previous_content=$(git show "$before_sha:Cargo.toml" 2>/dev/null || true)
+          if [ -n "$previous_content" ]; then
+            previous_version=$(printf '%s\n' "$previous_content" | extract_version || true)
+          fi
+        fi
+
+        if [ -z "$previous_version" ] || [ "$current_version" != "$previous_version" ]; then
+          changed=true
+          echo "Detected Cargo.toml version change: ${previous_version:-none} -> $current_version"
+        else
+          changed=false
+          echo "Cargo.toml version unchanged: $current_version"
+        fi
+
+        echo "previous=${previous_version:-unknown}" >> "$GITHUB_OUTPUT"
+        echo "current=$current_version" >> "$GITHUB_OUTPUT"
+        echo "changed=$changed" >> "$GITHUB_OUTPUT"
+
+    - name: Dispatch publish workflow
+      if: steps.cargo_version.outputs.changed == 'true'
+      uses: actions/github-script@v7
+      env:
+        PREVIOUS_VERSION: ${{ steps.cargo_version.outputs.previous }}
+        CURRENT_VERSION: ${{ steps.cargo_version.outputs.current }}
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          core.info(`Triggering publish workflow for version ${process.env.CURRENT_VERSION} (previous ${process.env.PREVIOUS_VERSION}).`)
+          await github.rest.actions.createWorkflowDispatch({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            workflow_id: 'publish.yml',
+            ref: context.ref,
+            inputs: {
+              dry_run: 'false'
+            }
+          })

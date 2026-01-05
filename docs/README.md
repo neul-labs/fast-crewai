@@ -15,3 +15,8 @@ Welcome to the Fast-CrewAI documentation.
 - [Main README](../README.md) - Getting started and installation
 - [GitHub Repository](https://github.com/neul-labs/fast-crewai)
 - [Issue Tracker](https://github.com/neul-labs/fast-crewai/issues)
+
+## Maintainers
+
+- **Author**: Dipankar Sarkar (<me@dipankar.name>)
+- **Organization**: Neul Labs

@@ -1,10 +1,10 @@
 # Architecture Guide
 
-Technical deep-dive into CrewAI Rust's architecture and implementation.
+Technical deep-dive into Fast-CrewAI's architecture and implementation maintained by Neul Labs.
 
 ## Overview
 
-CrewAI Rust uses a **hybrid architecture** combining Python's flexibility with Rust's performance through strategic monkey patching and PyO3 bindings.
+Fast-CrewAI uses a **hybrid architecture** combining Python's flexibility with Rust's performance through strategic monkey patching and PyO3 bindings.
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐

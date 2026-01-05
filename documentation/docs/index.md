@@ -97,3 +97,11 @@ result = crew.kickoff()  # Now accelerated with Rust!
 - [Installation](getting-started/installation.md) - Install Fast-CrewAI
 - [Quick Start](getting-started/quickstart.md) - Get up and running in seconds
 - [How It Works](getting-started/how-it-works.md) - Understand the acceleration system
+- [Contributing](contributing/development.md) - Build Fast-CrewAI with us
+
+## Maintainers & Support
+
+- **Author**: Dipankar Sarkar (<me@dipankar.name>)
+- **Organization**: [Neul Labs](https://github.com/neul-labs)
+- **Issues**: [github.com/neul-labs/fast-crewai/issues](https://github.com/neul-labs/fast-crewai/issues)
+- **Discussions**: [github.com/neul-labs/fast-crewai/discussions](https://github.com/neul-labs/fast-crewai/discussions)

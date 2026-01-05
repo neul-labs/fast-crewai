@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Common issues and solutions for CrewAI Rust integration.
+Common issues and solutions for Fast-CrewAI acceleration maintained by Neul Labs.
 
 ## Installation Issues
 
@@ -333,7 +333,7 @@ pip list | grep crew
 
 - **GitHub Issues**: [Report bugs and request features](https://github.com/neul-labs/fast-crewai/issues)
 - **GitHub Discussions**: [Ask questions and share solutions](https://github.com/neul-labs/fast-crewai/discussions)
-- **Discord**: [CrewAI Community](https://discord.gg/crewai)
+- **Email**: [me@dipankar.name](mailto:me@dipankar.name) (Dipankar Sarkar, Neul Labs)
 
 ## Best Practices
 

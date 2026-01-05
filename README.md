@@ -6,6 +6,8 @@
 [![Python 3.10-3.13](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](https://www.python.org/downloads/)
 [![Rust](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org/)
 
+Fast-CrewAI is authored by [Dipankar Sarkar](mailto:me@dipankar.name) and maintained by [Neul Labs](https://github.com/neul-labs) to bring production-ready acceleration to CrewAI workloads.
+
 ## 🚀 Quick Start
 
 Get your CrewAI code running faster in seconds:
@@ -243,6 +245,11 @@ Contributions are welcome! Check out our development guide for setup instruction
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) file for details.
+
+## 👥 Maintainers
+
+- **Author**: Dipankar Sarkar (<me@dipankar.name>)
+- **Organization**: Neul Labs
 
 ## 🔧 Support
 

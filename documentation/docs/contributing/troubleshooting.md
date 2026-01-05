@@ -305,3 +305,4 @@ When reporting issues, include:
 
 - **GitHub Issues**: [Report bugs](https://github.com/neul-labs/fast-crewai/issues)
 - **GitHub Discussions**: [Ask questions](https://github.com/neul-labs/fast-crewai/discussions)
+- **Email**: [me@dipankar.name](mailto:me@dipankar.name) (Dipankar Sarkar, Neul Labs)
