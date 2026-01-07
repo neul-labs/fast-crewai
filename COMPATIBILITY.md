@@ -1,6 +1,6 @@
 # Fast-CrewAI Compatibility Report
 
-> Generated: 2026-01-05 23:32:54 UTC
+> Generated: 2026-01-07 09:03:33 UTC
 
 ## Summary
 
@@ -12,7 +12,7 @@
 | Tests Skipped | 0 |
 | Tests Errors | 0 |
 | Total Tests | 101 |
-| Duration | 14.07s |
+| Duration | 15.03s |
 
 ## Environment
 
