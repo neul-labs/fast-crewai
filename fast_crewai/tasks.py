@@ -6,10 +6,17 @@ and Crew classes with performance optimizations while maintaining full API compa
 """
 
 import asyncio
+import logging
 import os
 from typing import Any, Optional
 
 from ._constants import HAS_ACCELERATION_IMPLEMENTATION
+
+# Configure module logger
+_logger = logging.getLogger(__name__)
+
+# Constants for configuration
+DEFAULT_MAX_CONCURRENT_TASKS = 10
 
 # Try to import the Rust implementation
 if HAS_ACCELERATION_IMPLEMENTATION:
@@ -63,7 +70,6 @@ def create_accelerated_task():
                     self._execution_count += 1
                     try:
                         # Call the original implementation
-                        # Future: add Rust-accelerated execution here
                         return super().execute(*args, **kwargs)
                     finally:
                         self._execution_count -= 1
@@ -87,9 +93,11 @@ def create_accelerated_task():
     except ImportError:
         # If we can't import Task, return None
         # This happens when CrewAI is not installed
+        _logger.debug("Cannot import Task from CrewAI")
         return None
-    except Exception:
+    except Exception as e:
         # On any other error, return None
+        _logger.warning("Failed to create accelerated Task: %s", e)
         return None
 
 
@@ -150,9 +158,11 @@ def create_accelerated_crew():
 
     except ImportError:
         # If we can't import Crew, return None
+        _logger.debug("Cannot import Crew from CrewAI")
         return None
-    except Exception:
+    except Exception as e:
         # On any other error, return None
+        _logger.warning("Failed to create accelerated Crew: %s", e)
         return None
 
 
@@ -207,7 +217,8 @@ class AcceleratedTaskExecutor:
             try:
                 self._executor = _RustTaskExecutor()
                 self._implementation = "rust"
-            except Exception:
+            except Exception as e:
+                _logger.warning("Failed to initialize Rust task executor, using Python: %s", e)
                 # Fallback to Python implementation
                 self._use_rust = False
                 self._executor = None
@@ -244,7 +255,7 @@ class AcceleratedTaskExecutor:
             try:
                 self._executor.register_task(task_id, dependencies)
             except Exception as e:
-                print(f"Warning: Rust register_task failed, using Python fallback: {e}")
+                _logger.debug("Rust register_task failed, using Python fallback: %s", e)
                 self._use_rust = False
                 self._python_register_task(task_id, dependencies)
         else:
@@ -272,7 +283,7 @@ class AcceleratedTaskExecutor:
             try:
                 return self._executor.get_ready_tasks()
             except Exception as e:
-                print(f"Warning: Rust get_ready_tasks failed, using Python fallback: {e}")
+                _logger.debug("Rust get_ready_tasks failed, using Python fallback: %s", e)
                 self._use_rust = False
                 return self._python_get_ready_tasks()
         else:
@@ -307,7 +318,7 @@ class AcceleratedTaskExecutor:
             except Exception as e:
                 if "Circular dependency" in str(e):
                     raise ValueError("Circular dependency detected in tasks")
-                print(f"Warning: Rust get_execution_order failed, using Python fallback: {e}")
+                _logger.debug("Rust get_execution_order failed, using Python fallback: %s", e)
                 self._use_rust = False
                 return self._python_get_execution_order()
         else:
@@ -347,7 +358,7 @@ class AcceleratedTaskExecutor:
             try:
                 self._executor.mark_started(task_id)
             except Exception as e:
-                print(f"Warning: Rust mark_started failed: {e}")
+                _logger.debug("Rust mark_started failed: %s", e)
                 self._use_rust = False
                 self._python_mark_started(task_id)
         else:
@@ -363,7 +374,7 @@ class AcceleratedTaskExecutor:
             try:
                 self._executor.mark_completed(task_id, result)
             except Exception as e:
-                print(f"Warning: Rust mark_completed failed: {e}")
+                _logger.debug("Rust mark_completed failed: %s", e)
                 self._use_rust = False
                 self._python_mark_completed(task_id, result)
         else:
@@ -381,7 +392,7 @@ class AcceleratedTaskExecutor:
             try:
                 self._executor.mark_failed(task_id, error)
             except Exception as e:
-                print(f"Warning: Rust mark_failed failed: {e}")
+                _logger.debug("Rust mark_failed failed: %s", e)
                 self._use_rust = False
                 self._python_mark_failed(task_id, error)
         else:
@@ -398,7 +409,8 @@ class AcceleratedTaskExecutor:
         if self._use_rust:
             try:
                 return self._executor.get_result(task_id)
-            except Exception:
+            except Exception as e:
+                _logger.debug("Failed to get task result from Rust: %s", e)
                 return None
         else:
             task = self._tasks.get(task_id)
@@ -418,7 +430,7 @@ class AcceleratedTaskExecutor:
             try:
                 return self._executor.execute_concurrent_tasks(task_ids)
             except Exception as e:
-                print(f"Warning: Rust execute_concurrent failed, using Python fallback: {e}")
+                _logger.debug("Rust execute_concurrent failed, using Python fallback: %s", e)
                 self._use_rust = False
                 return task_ids  # Just return the IDs
         else:
@@ -429,7 +441,8 @@ class AcceleratedTaskExecutor:
         if self._use_rust:
             try:
                 return self._executor.get_stats()
-            except Exception:
+            except Exception as e:
+                _logger.debug("Failed to get stats from Rust: %s", e)
                 return self._stats.copy()
         else:
             return self._stats.copy()
@@ -439,7 +452,8 @@ class AcceleratedTaskExecutor:
         if self._use_rust:
             try:
                 self._executor.clear()
-            except Exception:
+            except Exception as e:
+                _logger.debug("Failed to clear Rust executor: %s", e)
                 pass
         self._tasks.clear()
         self._stats = {

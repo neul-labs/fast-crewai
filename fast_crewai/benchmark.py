@@ -724,9 +724,9 @@ class PerformanceBenchmark:
         import os
         import tempfile
 
-        # Create temporary database files
-        python_db_path = tempfile.mktemp(suffix=".db")
-        rust_db_path = tempfile.mktemp(suffix=".db")
+        # Create temporary database files in /tmp (allowed by path validation)
+        python_db_path = os.path.join(tempfile.gettempdir(), f"python_benchmark_{os.getpid()}.db")
+        rust_db_path = os.path.join(tempfile.gettempdir(), f"rust_benchmark_{os.getpid()}.db")
 
         try:
             # Generate large, complex test data - simulating real long-term memory storage
@@ -933,6 +933,282 @@ class PerformanceBenchmark:
                 "fts_search_time": 0,
                 "memory_mb": 0,
                 "operations_per_second": {"insert": 0, "query": 0, "fts_search": 0},
+            }
+
+    def benchmark_crewai_workflow(self, iterations: int = 10) -> Dict[str, Any]:
+        """
+        Benchmark actual CrewAI workflow with and without shim.
+
+        This benchmark creates a complete CrewAI crew with agents and tasks,
+        then measures execution performance with and without the fast-crewai shim.
+
+        Returns:
+            Dictionary with benchmark results comparing Python vs Shimmed execution
+        """
+        # Benchmark without shim (baseline)
+        python_results = self._benchmark_crewai_workflow_python(iterations)
+
+        # Benchmark with shim
+        shim_results = self._benchmark_crewai_workflow_with_shim(iterations)
+
+        # Calculate improvements
+        improvements = self._calculate_improvements(python_results, shim_results)
+
+        return {
+            "python": python_results,
+            "shim": shim_results,
+            "improvements": improvements,
+        }
+
+    def _benchmark_crewai_workflow_python(self, iterations: int) -> Dict[str, float]:
+        """Benchmark CrewAI workflow WITHOUT shim (pure Python baseline)."""
+        try:
+            # Force garbage collection and start memory tracking
+            gc.collect()
+            tracemalloc.start()
+
+            # Import CrewAI WITHOUT fast-crewai shim for baseline
+            import subprocess
+            import sys
+
+            benchmark_code = '''
+import gc
+import tracemalloc
+import time
+import random
+import string
+import sys
+
+# Disable fast-crewai
+import os
+os.environ["FAST_CREWAI_ACCELERATION"] = "false"
+os.environ["CREWAI_TRACING_ENABLED"] = "false"
+os.environ["OPENAI_API_KEY"] = "sk-mock-key-for-testing"
+
+gc.collect()
+tracemalloc.start()
+
+# Import CrewAI fresh (without shim)
+from crewai import Agent, Crew, Task
+from crewai.llm import LLM
+from crewai.tools import tool
+
+# Create a mock LLM
+mock_llm = LLM(model="gpt-4o-mini", api_key="sk-mock-key")
+
+@tool
+def search_tool(query: str) -> str:
+    """Search for information."""
+    return f"Results for: {query}"
+
+@tool
+def analysis_tool(data: str) -> str:
+    """Analyze the given data."""
+    return f"Analysis of: {data[:50]}"
+
+# Measure agent creation time
+start_time = time.time()
+
+agents = []
+for i in range(3):
+    agent = Agent(
+        role=f"Agent{i}",
+        goal=f"Goal for agent {i}",
+        backstory=f"Backstory for agent {i}",
+        llm=mock_llm,
+        tools=[search_tool, analysis_tool],
+        verbose=False
+    )
+    agents.append(agent)
+
+# Measure task creation time
+tasks = []
+for i in range(5):
+    task = Task(
+        description=f"Task {i}: {' '.join(random.choices(string.ascii_letters, k=20))}",
+        expected_output=f"Output for task {i}",
+        agent=agents[i % len(agents)],
+        verbose=False
+    )
+    tasks.append(task)
+
+# Measure crew creation
+crew = Crew(
+    agents=agents,
+    tasks=tasks,
+    verbose=False,
+    planning=True  # Enable planning to stress test the system
+)
+
+execution_time = time.time() - start_time
+
+# Get memory usage
+_, peak_mb = tracemalloc.get_traced_memory()
+tracemalloc.stop()
+
+print(f"{{{{EXECUTION_TIME}}}}:{execution_time}")
+print(f"{{{{OPS_PER_SECOND}}}}:{1.0 / execution_time if execution_time > 0 else 0}")
+print(f"{{{{MEMORY_MB}}}}:{peak_mb / 1024 / 1024}")
+'''
+
+            result = subprocess.run(
+                [sys.executable, "-c", benchmark_code],
+                capture_output=True,
+                text=True,
+                cwd="/Users/dipankarsarkar/Code/fast-crewai"
+            )
+
+            # Parse output (f-string {{ becomes { after .format())
+            output = result.stdout + result.stderr
+            exec_time = 0.0
+            ops_per_sec = 0.0
+            memory_mb = 0.0
+
+            for line in output.split("\n"):
+                if "{{EXECUTION_TIME}}:" in line:
+                    exec_time = float(line.split(":")[1].strip())
+                elif "{{OPS_PER_SECOND}}:" in line:
+                    ops_per_sec = float(line.split(":")[1].strip())
+                elif "{{MEMORY_MB}}:" in line:
+                    memory_mb = float(line.split(":")[1].strip())
+
+            return {
+                "execution_time": exec_time,
+                "operations_per_second": ops_per_sec,
+                "memory_mb": round(memory_mb, 2),
+            }
+        except Exception as e:
+            return {
+                "execution_time": 0,
+                "operations_per_second": 0,
+                "memory_mb": 0,
+                "error": str(e),
+            }
+
+    def _benchmark_crewai_workflow_with_shim(self, iterations: int) -> Dict[str, float]:
+        """Benchmark CrewAI workflow WITH shim (accelerated)."""
+        try:
+            # Force garbage collection and start memory tracking
+            gc.collect()
+            tracemalloc.start()
+
+            # Import CrewAI WITH fast-crewai shim
+            import subprocess
+            import sys
+
+            benchmark_code = '''
+import gc
+import tracemalloc
+import time
+import random
+import string
+import sys
+
+gc.collect()
+tracemalloc.start()
+
+# Set mock API key for CrewAI
+import os
+os.environ["CREWAI_TRACING_ENABLED"] = "false"
+os.environ["OPENAI_API_KEY"] = "sk-mock-key-for-testing"
+
+# Import CrewAI WITH fast-crewai shim
+import fast_crewai.shim  # noqa: F401
+
+from crewai import Agent, Crew, Task
+from crewai.llm import LLM
+from crewai.tools import tool
+
+# Create a mock LLM
+mock_llm = LLM(model="gpt-4o-mini", api_key="sk-mock-key")
+
+@tool
+def search_tool(query: str) -> str:
+    """Search for information."""
+    return f"Results for: {query}"
+
+@tool
+def analysis_tool(data: str) -> str:
+    """Analyze the given data."""
+    return f"Analysis of: {data[:50]}"
+
+# Measure agent creation time
+start_time = time.time()
+
+agents = []
+for i in range(3):
+    agent = Agent(
+        role=f"Agent{i}",
+        goal=f"Goal for agent {i}",
+        backstory=f"Backstory for agent {i}",
+        llm=mock_llm,
+        tools=[search_tool, analysis_tool],
+        verbose=False
+    )
+    agents.append(agent)
+
+# Measure task creation time
+tasks = []
+for i in range(5):
+    task = Task(
+        description=f"Task {i}: {' '.join(random.choices(string.ascii_letters, k=20))}",
+        expected_output=f"Output for task {i}",
+        agent=agents[i % len(agents)],
+        verbose=False
+    )
+    tasks.append(task)
+
+# Measure crew creation
+crew = Crew(
+    agents=agents,
+    tasks=tasks,
+    verbose=False,
+    planning=True  # Enable planning to stress test the system
+)
+
+execution_time = time.time() - start_time
+
+# Get memory usage
+_, peak_mb = tracemalloc.get_traced_memory()
+tracemalloc.stop()
+
+print(f"{{{{EXECUTION_TIME}}}}:{execution_time}")
+print(f"{{{{OPS_PER_SECOND}}}}:{1.0 / execution_time if execution_time > 0 else 0}")
+print(f"{{{{MEMORY_MB}}}}:{peak_mb / 1024 / 1024}")
+'''
+
+            result = subprocess.run(
+                [sys.executable, "-c", benchmark_code],
+                capture_output=True,
+                text=True,
+                cwd="/Users/dipankarsarkar/Code/fast-crewai"
+            )
+
+            # Parse output (f-string {{ becomes { after .format())
+            output = result.stdout + result.stderr
+            exec_time = 0.0
+            ops_per_sec = 0.0
+            memory_mb = 0.0
+
+            for line in output.split("\n"):
+                if "{{EXECUTION_TIME}}:" in line:
+                    exec_time = float(line.split(":")[1].strip())
+                elif "{{OPS_PER_SECOND}}:" in line:
+                    ops_per_sec = float(line.split(":")[1].strip())
+                elif "{{MEMORY_MB}}:" in line:
+                    memory_mb = float(line.split(":")[1].strip())
+
+            return {
+                "execution_time": exec_time,
+                "operations_per_second": ops_per_sec,
+                "memory_mb": round(memory_mb, 2),
+            }
+        except Exception as e:
+            return {
+                "execution_time": 0,
+                "operations_per_second": 0,
+                "memory_mb": 0,
+                "error": str(e),
             }
 
     def run_all_benchmarks(self) -> Dict[str, Any]:

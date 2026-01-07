@@ -7,11 +7,23 @@ with performance optimizations while maintaining full API compatibility.
 
 import functools
 import json
+import logging
 import os
+import threading
 import time
 from typing import Any, Callable, Optional
 
 from ._constants import HAS_ACCELERATION_IMPLEMENTATION
+
+# Configure module logger
+_logger = logging.getLogger(__name__)
+
+# Constants for configuration
+DEFAULT_MAX_RECURSION_DEPTH = 100
+DEFAULT_TIMEOUT_SECONDS = 30
+DEFAULT_CACHE_TTL_SECONDS = 300
+DEFAULT_CACHE_MAX_SIZE = 1000
+DEFAULT_CACHE_CLEANUP_THRESHOLD = 0.8  # Clean when 80% full
 
 # Try to import the Rust implementation
 if HAS_ACCELERATION_IMPLEMENTATION:
@@ -44,11 +56,9 @@ def accelerate_tool_execution(func: Callable) -> Callable:
         if use_acceleration and _RUST_AVAILABLE:
             try:
                 # Try to use Rust acceleration
-                # For now, fall back to original implementation
-                # Future: implement actual Rust-accelerated tool execution
                 return func(self, *args, **kwargs)
-            except Exception:
-                # Fall back to original implementation on error
+            except Exception as e:
+                _logger.debug("Rust acceleration failed, using Python fallback: %s", e)
                 return func(self, *args, **kwargs)
         else:
             return func(self, *args, **kwargs)
@@ -120,9 +130,11 @@ def create_accelerated_base_tool():
     except ImportError:
         # If we can't import BaseTool, return None
         # This happens when CrewAI is not installed
+        _logger.debug("Cannot import BaseTool from CrewAI")
         return None
-    except Exception:
+    except Exception as e:
         # On any other error, return None
+        _logger.warning("Failed to create accelerated BaseTool: %s", e)
         return None
 
 
@@ -165,9 +177,11 @@ def create_accelerated_structured_tool():
 
     except ImportError:
         # If we can't import CrewStructuredTool, return None
+        _logger.debug("Cannot import CrewStructuredTool from CrewAI")
         return None
-    except Exception:
+    except Exception as e:
         # On any other error, return None
+        _logger.warning("Failed to create accelerated CrewStructuredTool: %s", e)
         return None
 
 
@@ -194,9 +208,10 @@ class AcceleratedToolExecutor:
 
     def __init__(
         self,
-        max_recursion_depth: int = 100,
-        timeout_seconds: int = 30,
-        cache_ttl_seconds: int = 300,
+        max_recursion_depth: int = DEFAULT_MAX_RECURSION_DEPTH,
+        timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+        cache_ttl_seconds: int = DEFAULT_CACHE_TTL_SECONDS,
+        cache_max_size: int = DEFAULT_CACHE_MAX_SIZE,
         use_rust: Optional[bool] = None,
     ):
         """
@@ -206,6 +221,7 @@ class AcceleratedToolExecutor:
             max_recursion_depth: Maximum recursion depth allowed
             timeout_seconds: Timeout for tool execution in seconds
             cache_ttl_seconds: Time-to-live for cached results in seconds
+            cache_max_size: Maximum number of entries in the cache
             use_rust: Whether to use the Rust implementation. If None,
                      automatically detects based on availability and
                      environment variables.
@@ -213,6 +229,7 @@ class AcceleratedToolExecutor:
         self.max_recursion_depth = max_recursion_depth
         self.timeout_seconds = timeout_seconds
         self.cache_ttl_seconds = cache_ttl_seconds
+        self._cache_max_size = cache_max_size
 
         # Check if Rust implementation should be used
         if use_rust is None:
@@ -232,30 +249,31 @@ class AcceleratedToolExecutor:
             try:
                 self._executor = _RustToolExecutor(max_recursion_depth, cache_ttl_seconds)
                 self._implementation = "rust"
-            except Exception:
+            except Exception as e:
+                _logger.warning("Failed to initialize Rust executor, using Python: %s", e)
                 # Fallback to Python implementation
                 self._use_rust = False
                 self._executor = None
                 self._implementation = "python"
-                self._execution_count = 0
-                self._cache = {}
-                self._stats = {
-                    "total_executions": 0,
-                    "cache_hits": 0,
-                    "cache_misses": 0,
-                    "validation_failures": 0,
-                }
+                self._init_python_fallback()
         else:
             self._executor = None
             self._implementation = "python"
-            self._execution_count = 0
-            self._cache = {}
-            self._stats = {
-                "total_executions": 0,
-                "cache_hits": 0,
-                "cache_misses": 0,
-                "validation_failures": 0,
-            }
+            self._init_python_fallback()
+
+    def _init_python_fallback(self):
+        """Initialize Python fallback state with thread safety."""
+        self._execution_count = 0
+        self._cache = {}
+        self._cache_lock = threading.Lock()
+        self._cleanup_counter = 0
+        self._cleanup_frequency = 10  # Cleanup every 10 operations
+        self._stats = {
+            "total_executions": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "validation_failures": 0,
+        }
 
     def validate_args(self, arguments: Any) -> bool:
         """
@@ -285,8 +303,9 @@ class AcceleratedToolExecutor:
                 else:
                     json.loads(arguments)
                 return True
-            except Exception as e:
-                self._stats["validation_failures"] += 1
+            except (json.JSONDecodeError, TypeError) as e:
+                with self._cache_lock:
+                    self._stats["validation_failures"] += 1
                 raise ValueError(f"Invalid arguments: {e}")
 
     def execute_tool(
@@ -350,9 +369,11 @@ class AcceleratedToolExecutor:
                     )
                 else:
                     # Fallback to Python implementation
+                    _logger.debug("Rust execution failed, falling back to Python: %s", e)
                     self._use_rust = False
                     return self._python_execute_tool(tool_name, arguments, use_cache)
-            except Exception:
+            except Exception as e:
+                _logger.debug("Rust execution failed, falling back to Python: %s", e)
                 # Fallback to Python implementation
                 self._use_rust = False
                 return self._python_execute_tool(tool_name, arguments, use_cache)
@@ -371,15 +392,26 @@ class AcceleratedToolExecutor:
             json.dumps(arguments, default=str) if not isinstance(arguments, str) else arguments
         )
         cache_key = f"{tool_name}:{args_str}"
+        current_time = time.time()
 
-        # Check cache
-        if use_cache and cache_key in self._cache:
-            cache_entry = self._cache[cache_key]
-            if time.time() - cache_entry["timestamp"] < self.cache_ttl_seconds:
-                self._stats["cache_hits"] += 1
-                return cache_entry["result"]
+        # Check cache with thread safety
+        if use_cache:
+            with self._cache_lock:
+                if cache_key in self._cache:
+                    cache_entry = self._cache[cache_key]
+                    if current_time - cache_entry["timestamp"] < self.cache_ttl_seconds:
+                        self._stats["cache_hits"] += 1
+                        return cache_entry["result"]
+                    # Remove expired entry
+                    del self._cache[cache_key]
 
-        self._stats["cache_misses"] += 1
+        with self._cache_lock:
+            self._stats["cache_misses"] += 1
+            self._cleanup_counter += 1
+            # Periodic cleanup of expired entries
+            if self._cleanup_counter >= self._cleanup_frequency:
+                self._cleanup_counter = 0
+                self._cleanup_expired_cache(current_time)
 
         # Check recursion limit
         if self._execution_count >= self.max_recursion_depth:
@@ -389,9 +421,11 @@ class AcceleratedToolExecutor:
 
         # Increment execution count
         self._execution_count += 1
-        self._stats["total_executions"] += 1
 
         try:
+            with self._cache_lock:
+                self._stats["total_executions"] += 1
+
             # Simulate tool execution
             if isinstance(arguments, dict):
                 args_display = ", ".join([f"{k}={v}" for k, v in arguments.items()])
@@ -401,32 +435,57 @@ class AcceleratedToolExecutor:
             result = f"Executed {tool_name} with args: {args_display}"
             time.sleep(0.001)
 
-            # Cache result
+            # Cache result with thread safety and cleanup
             if use_cache:
-                self._cache[cache_key] = {
-                    "result": result,
-                    "timestamp": time.time(),
-                }
+                with self._cache_lock:
+                    # Check if cleanup is needed
+                    if len(self._cache) >= self._cache_max_size:
+                        self._cleanup_expired_cache(current_time)
+
+                    self._cache[cache_key] = {
+                        "result": result,
+                        "timestamp": current_time,
+                    }
 
             return result
         finally:
             self._execution_count -= 1
+
+    def _cleanup_expired_cache(self, current_time: float) -> int:
+        """
+        Remove expired entries from cache.
+
+        Args:
+            current_time: Current timestamp for TTL comparison
+
+        Returns:
+            Number of entries removed
+        """
+        expired_keys = [
+            key for key, entry in self._cache.items()
+            if current_time - entry["timestamp"] >= self.cache_ttl_seconds
+        ]
+        for key in expired_keys:
+            del self._cache[key]
+        return len(expired_keys)
 
     def get_stats(self) -> dict:
         """Get execution statistics."""
         if self._use_rust:
             return self._executor.get_stats()
         else:
-            return self._stats.copy()
+            with self._cache_lock:
+                return self._stats.copy()
 
     def clear_cache(self) -> int:
         """Clear the result cache. Returns number of entries cleared."""
         if self._use_rust:
             return self._executor.clear_cache()
         else:
-            count = len(self._cache)
-            self._cache.clear()
-            return count
+            with self._cache_lock:
+                count = len(self._cache)
+                self._cache.clear()
+                return count
 
     def batch_validate(self, args_list: list) -> list:
         """
@@ -454,7 +513,7 @@ class AcceleratedToolExecutor:
                     else:
                         json.loads(args)
                     results.append(True)
-                except Exception:
+                except (json.JSONDecodeError, TypeError):
                     results.append(False)
             return results
 

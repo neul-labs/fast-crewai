@@ -6,10 +6,18 @@ systems with zero-copy optimizations and performance improvements.
 """
 
 import json
+import logging
 import os
 from typing import Optional
 
 from ._constants import HAS_ACCELERATION_IMPLEMENTATION
+
+# Configure module logger
+_logger = logging.getLogger(__name__)
+
+# Constants for configuration
+MAX_JSON_SIZE = 10 * 1024 * 1024  # 10 MB limit
+MAX_BATCH_SIZE = 1000
 
 # Try to import the Rust implementation
 if HAS_ACCELERATION_IMPLEMENTATION:
@@ -83,9 +91,8 @@ class AgentMessage:
                 self._use_rust = False
                 self._message = None
                 self._implementation = "python"
-                print(
-                    f"Warning: Failed to initialize Rust message serialization, "
-                    f"falling back to Python: {e}"
+                _logger.warning(
+                    "Failed to initialize Rust message serialization, falling back to Python: %s", e
                 )
         else:
             self._message = None
@@ -103,7 +110,7 @@ class AgentMessage:
                 return self._message.to_json()
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(f"Warning: Rust serialization failed, using Python fallback: {e}")
+                _logger.debug("Rust serialization failed, using Python fallback: %s", e)
                 self._use_rust = False
                 return self._python_to_json()
         else:
@@ -131,7 +138,16 @@ class AgentMessage:
 
         Returns:
             Deserialized AgentMessage instance
+
+        Raises:
+            ValueError: If json_str exceeds maximum allowed size
         """
+        # Validate input size
+        if len(json_str) > MAX_JSON_SIZE:
+            raise ValueError(
+                f"JSON string exceeds maximum allowed size ({MAX_JSON_SIZE} bytes)"
+            )
+
         # Check if Rust implementation should be used
         if use_rust is None:
             # Check environment variable
@@ -156,9 +172,14 @@ class AgentMessage:
                 )
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(f"Warning: Rust deserialization failed, using Python fallback: {e}")
+                _logger.debug("Rust deserialization failed, using Python fallback: %s", e)
+
         # Python implementation
-        data = json.loads(json_str)
+        try:
+            data = json.loads(json_str)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON: {e}")
+
         return cls(
             id=data["id"],
             sender=data["sender"],
@@ -235,7 +256,7 @@ class RustSerializer:
                 return serialized_messages
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(f"Warning: Rust batch serialization failed, using Python fallback: {e}")
+                _logger.debug("Rust batch serialization failed, using Python fallback: %s", e)
                 self._use_rust = False
                 return self._python_serialize_batch(messages)
         else:
@@ -282,7 +303,7 @@ class RustSerializer:
                 return deserialized_messages
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(f"Warning: Rust batch deserialization failed, using Python fallback: {e}")
+                _logger.debug("Rust batch deserialization failed, using Python fallback: %s", e)
                 self._use_rust = False
                 return self._python_deserialize_batch(json_strings)
         else:

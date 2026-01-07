@@ -6,11 +6,20 @@ systems with significant performance improvements.
 """
 
 import json
+import logging
 import os
 import time
 from typing import Any, Dict, List, Optional
 
 from ._constants import HAS_ACCELERATION_IMPLEMENTATION
+
+# Configure module logger
+_logger = logging.getLogger(__name__)
+
+# Constants for configuration
+DEFAULT_SCORE_THRESHOLD = 0.35
+DEFAULT_MEMORY_MAX_SIZE = 10000
+MAX_MEMORY_VALUE_SIZE = 1024 * 1024  # 1 MB limit for value field
 
 # Try to import the Rust implementation
 if HAS_ACCELERATION_IMPLEMENTATION:
@@ -33,15 +42,35 @@ class AcceleratedMemoryStorage:
     API compatibility.
     """
 
-    def __init__(self, use_rust: Optional[bool] = None):
+    def __init__(
+        self,
+        type: str = "short_term",
+        allow_reset: bool = True,
+        embedder_config: Optional[Any] = None,
+        crew: Optional[Any] = None,
+        path: Optional[str] = None,
+        use_rust: Optional[bool] = None,
+    ):
         """
         Initialize the memory storage.
 
         Args:
+            type: Memory type (for CrewAI compatibility)
+            allow_reset: Whether to allow reset (for CrewAI compatibility)
+            embedder_config: Embedder configuration (for CrewAI compatibility)
+            crew: Crew reference (for CrewAI compatibility)
+            path: Storage path (for CrewAI compatibility)
             use_rust: Whether to use the Rust implementation. If None,
                      automatically detects based on availability and
                      environment variables.
         """
+        # Store CrewAI-compatible attributes
+        self._type = type
+        self._allow_reset = allow_reset
+        self._embedder_config = embedder_config
+        self._crew = crew
+        self._path = path
+
         # Check if Rust implementation should be used
         if use_rust is None:
             # Check environment variable
@@ -65,9 +94,8 @@ class AcceleratedMemoryStorage:
                 self._use_rust = False
                 self._storage = []
                 self._implementation = "python"
-                print(
-                    f"Warning: Failed to initialize Rust memory storage, "
-                    f"falling back to Python: {e}"
+                _logger.warning(
+                    "Failed to initialize Rust memory storage, falling back to Python: %s", e
                 )
         else:
             self._storage = []
@@ -80,7 +108,17 @@ class AcceleratedMemoryStorage:
         Args:
             value: The value to save
             metadata: Optional metadata associated with the value
+
+        Raises:
+            ValueError: If value exceeds maximum allowed size
         """
+        # Validate input size
+        value_str = str(value)
+        if len(value_str) > MAX_MEMORY_VALUE_SIZE:
+            raise ValueError(
+                f"Value exceeds maximum allowed size ({MAX_MEMORY_VALUE_SIZE} bytes)"
+            )
+
         if self._use_rust:
             try:
                 # Serialize data for Rust storage
@@ -93,7 +131,7 @@ class AcceleratedMemoryStorage:
                 self._storage.save(serialized)
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(f"Warning: Rust memory save failed, using Python fallback: {e}")
+                _logger.debug("Rust memory save failed, using Python fallback: %s", e)
                 self._use_rust = False
                 self._storage.append(
                     {
@@ -120,7 +158,26 @@ class AcceleratedMemoryStorage:
 
         Returns:
             List of matching items with their metadata
+
+        Raises:
+            ValueError: If limit or score_threshold are out of valid range
         """
+        # Validate parameters
+        if not isinstance(limit, int):
+            raise ValueError("limit must be an integer")
+        if limit < 1:
+            limit = 1
+        if limit > DEFAULT_MEMORY_MAX_SIZE:
+            limit = DEFAULT_MEMORY_MAX_SIZE
+
+        if not isinstance(score_threshold, (int, float)):
+            raise ValueError("score_threshold must be a number")
+        score_threshold = float(score_threshold)
+        if score_threshold < 0.0:
+            score_threshold = 0.0
+        if score_threshold > 1.0:
+            score_threshold = 1.0
+
         if self._use_rust:
             try:
                 # Use Rust implementation for search (with semantic similarity)
@@ -137,7 +194,7 @@ class AcceleratedMemoryStorage:
                 return results
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(f"Warning: Rust memory search failed, using Python fallback: {e}")
+                _logger.debug("Rust memory search failed, using Python fallback: %s", e)
                 self._use_rust = False
                 return self._python_search(query, limit, score_threshold)
         else:
@@ -181,7 +238,7 @@ class AcceleratedMemoryStorage:
                 return items
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(f"Warning: Rust memory get_all failed, using Python fallback: {e}")
+                _logger.debug("Rust memory get_all failed, using Python fallback: %s", e)
                 self._use_rust = False
                 return self._storage
         else:
@@ -196,7 +253,7 @@ class AcceleratedMemoryStorage:
                 self._storage = _AcceleratedMemoryStorage()
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(f"Warning: Rust memory reset failed, using Python fallback: {e}")
+                _logger.debug("Rust memory reset failed, using Python fallback: %s", e)
                 self._use_rust = False
                 self._storage = []
         else:
@@ -212,7 +269,8 @@ class AcceleratedMemoryStorage:
         if self._use_rust:
             try:
                 return len(self._storage.get_all())
-            except Exception:
+            except Exception as e:
+                _logger.debug("Failed to get storage length from Rust: %s", e)
                 return len(self._storage)  # Fallback
         else:
             return len(self._storage)

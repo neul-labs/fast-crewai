@@ -6,11 +6,21 @@ operations with connection pooling and performance improvements.
 """
 
 import json
+import logging
 import os
+import pathlib
 import sqlite3
 from typing import Any, Dict, List, Optional, Union
 
 from ._constants import HAS_ACCELERATION_IMPLEMENTATION
+
+# Configure module logger
+_logger = logging.getLogger(__name__)
+
+# Constants for configuration
+DEFAULT_POOL_SIZE = 5
+DEFAULT_QUERY_LIMIT = 1000
+MAX_QUERY_LIMIT = 10000
 
 # Try to import the Rust implementation
 if HAS_ACCELERATION_IMPLEMENTATION:
@@ -24,6 +34,50 @@ else:
     _RUST_AVAILABLE = False
 
 
+def _validate_db_path(db_path: str) -> None:
+    """
+    Validate database path to prevent path traversal attacks.
+
+    Args:
+        db_path: Path to validate
+
+    Raises:
+        ValueError: If path contains traversal sequences or is absolute outside allowed directory
+    """
+    import platform
+
+    # Resolve the path to handle relative paths
+    resolved = pathlib.Path(db_path).resolve()
+
+    # Check for path traversal sequences
+    if ".." in db_path or "\\" in db_path and ".." in db_path:
+        raise ValueError(f"Invalid database path: contains path traversal sequence")
+
+    # Ensure the resolved path is within the current working directory or allowed locations
+    cwd = pathlib.Path.cwd().resolve()
+    allowed_prefixes = [
+        cwd,
+        pathlib.Path("/tmp"),
+        pathlib.Path.home(),
+    ]
+
+    # On macOS, tempfile uses /var/folders/... so we need to allow that
+    system = platform.system()
+    if system == "Darwin":
+        allowed_prefixes.append(pathlib.Path("/var/folders"))
+
+    is_allowed = any(
+        str(resolved).startswith(str(prefix.resolve())) or resolved == prefix.resolve()
+        for prefix in allowed_prefixes
+    )
+
+    if not is_allowed:
+        raise ValueError(
+            f"Database path must be within allowed directories. "
+            f"Allowed prefixes: {[str(p) for p in allowed_prefixes]}"
+        )
+
+
 class AcceleratedSQLiteWrapper:
     """
     High-performance SQLite wrapper using Rust backend.
@@ -33,7 +87,7 @@ class AcceleratedSQLiteWrapper:
     API compatibility.
     """
 
-    def __init__(self, db_path: str, pool_size: int = 5, use_rust: Optional[bool] = None):
+    def __init__(self, db_path: str, pool_size: int = DEFAULT_POOL_SIZE, use_rust: Optional[bool] = None):
         """
         Initialize the SQLite wrapper.
 
@@ -43,7 +97,13 @@ class AcceleratedSQLiteWrapper:
             use_rust: Whether to use the Rust implementation. If None,
                      automatically detects based on availability and
                      environment variables.
+
+        Raises:
+            ValueError: If db_path contains invalid sequences
         """
+        # Validate the database path
+        _validate_db_path(db_path)
+
         self.db_path = db_path
         self.pool_size = pool_size
 
@@ -71,9 +131,8 @@ class AcceleratedSQLiteWrapper:
                 self._wrapper = None
                 self._implementation = "python"
                 self._initialize_python_db()
-                print(
-                    f"Warning: Failed to initialize Rust SQLite wrapper, "
-                    f"falling back to Python: {e}"
+                _logger.warning(
+                    "Failed to initialize Rust SQLite wrapper, falling back to Python: %s", e
                 )
         else:
             self._wrapper = None
@@ -100,7 +159,7 @@ class AcceleratedSQLiteWrapper:
                 )
                 conn.commit()
         except Exception as e:
-            print(f"Warning: Failed to initialize Python SQLite database: {e}")
+            _logger.warning("Failed to initialize Python SQLite database: %s", e)
 
     def execute_query(self, query: str, params: Optional[Any] = None) -> List[Dict[str, Any]]:
         """
@@ -125,7 +184,7 @@ class AcceleratedSQLiteWrapper:
                 return result_dicts
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(f"Warning: Rust query execution failed, using Python fallback: {e}")
+                _logger.debug("Rust query execution failed, using Python fallback: %s", e)
                 return self._python_execute_query(query, params)
         else:
             return self._python_execute_query(query, params)
@@ -167,7 +226,7 @@ class AcceleratedSQLiteWrapper:
                 return affected_rows
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(f"Warning: Rust update execution failed, using Python fallback: {e}")
+                _logger.debug("Rust update execution failed, using Python fallback: %s", e)
                 self._use_rust = False
                 return self._python_execute_update(query, params)
         else:
@@ -209,7 +268,7 @@ class AcceleratedSQLiteWrapper:
                 return affected_counts
             except Exception as e:
                 # Fallback to Python implementation on error
-                print(f"Warning: Rust batch execution failed, using Python fallback: {e}")
+                _logger.debug("Rust batch execution failed, using Python fallback: %s", e)
                 self._use_rust = False
                 return self._python_execute_batch(queries)
         else:
@@ -261,7 +320,7 @@ class AcceleratedSQLiteWrapper:
                 )
                 return row_id
             except Exception as e:
-                print(f"Warning: Rust insert_memory failed, using Python fallback: {e}")
+                _logger.debug("Rust insert_memory failed, using Python fallback: %s", e)
                 self._use_rust = False
                 return self._python_save_memory(task_description, metadata, datetime, score)
         else:
@@ -320,13 +379,18 @@ class AcceleratedSQLiteWrapper:
                     )
                 return parsed_results
             except Exception as e:
-                print(f"Warning: Rust FTS5 search failed, using Python fallback: {e}")
+                _logger.debug("Rust FTS5 search failed, using Python fallback: %s", e)
                 return self._python_search_memories(query, limit)
         else:
             return self._python_search_memories(query, limit)
 
     def _python_search_memories(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """Python implementation of search using LIKE queries."""
+        # Validate and sanitize the limit parameter
+        if not isinstance(limit, int):
+            limit = 10
+        limit = max(1, min(limit, MAX_QUERY_LIMIT))
+
         search_query = """
             SELECT id, task_description, metadata, datetime, score
             FROM long_term_memories
@@ -364,6 +428,10 @@ class AcceleratedSQLiteWrapper:
         Returns:
             List of memory entries
         """
+        # Validate and sanitize the limit parameter
+        if not isinstance(limit, int):
+            limit = 100
+        limit = max(1, min(limit, MAX_QUERY_LIMIT))
         if self._use_rust:
             try:
                 results = self._wrapper.get_all_memories(limit)
@@ -384,13 +452,18 @@ class AcceleratedSQLiteWrapper:
                     )
                 return parsed_results
             except Exception as e:
-                print(f"Warning: Rust get_all_memories failed, using Python fallback: {e}")
+                _logger.debug("Rust get_all_memories failed, using Python fallback: %s", e)
                 return self._python_get_all_memories(limit)
         else:
             return self._python_get_all_memories(limit)
 
     def _python_get_all_memories(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Python implementation of get_all_memories."""
+        # Validate and sanitize the limit parameter
+        if not isinstance(limit, int):
+            limit = 100
+        limit = max(1, min(limit, MAX_QUERY_LIMIT))
+
         query = """
             SELECT id, task_description, metadata, datetime, score
             FROM long_term_memories
@@ -427,15 +500,26 @@ class AcceleratedSQLiteWrapper:
 
         Returns:
             List of memory entries or None if not found
+
+        Raises:
+            ValueError: If latest_n is out of valid range
         """
-        query = f"""
+        # Validate and sanitize the limit parameter
+        if not isinstance(latest_n, int):
+            raise ValueError("latest_n must be an integer")
+        if latest_n < 1:
+            latest_n = 1
+        if latest_n > MAX_QUERY_LIMIT:
+            latest_n = MAX_QUERY_LIMIT
+
+        query = """
             SELECT metadata, datetime, score
             FROM long_term_memories
             WHERE task_description = ?
             ORDER BY datetime DESC, score ASC
-            LIMIT {latest_n}
+            LIMIT ?
         """
-        params = (task_description,)
+        params = (task_description, latest_n)
         rows = self.execute_query(query, params)
 
         if rows:

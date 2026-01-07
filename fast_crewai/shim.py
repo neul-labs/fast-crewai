@@ -11,11 +11,17 @@ Or:
 """
 
 import importlib
+import logging
 import sys
+import threading
 from typing import Any
+
+# Configure module logger
+_logger = logging.getLogger(__name__)
 
 # Track original classes to allow restoration
 _original_classes = {}
+_original_classes_lock = threading.Lock()
 
 
 def _monkey_patch_class(module_path: str, class_name: str, new_class: Any) -> bool:
@@ -40,18 +46,25 @@ def _monkey_patch_class(module_path: str, class_name: str, new_class: Any) -> bo
         # Save original class if it exists
         if hasattr(module, class_name):
             original_class = getattr(module, class_name)
-            _original_classes[f"{module_path}.{class_name}"] = original_class
+            with _original_classes_lock:
+                _original_classes[f"{module_path}.{class_name}"] = original_class
 
         # Replace the class
         setattr(module, class_name, new_class)
         return True
 
-    except Exception:
-        # Only print debug info if in verbose mode
+    except ImportError as e:
+        _logger.debug(f"Could not import module {module_path}: {e}")
+        return False
+    except AttributeError as e:
+        _logger.debug(f"Class {class_name} not found in {module_path}: {e}")
+        return False
+    except Exception as e:
+        _logger.warning(f"Unexpected error patching {module_path}.{class_name}: {e}")
         return False
 
 
-def _patch_memory_components():
+def _patch_memory_components() -> tuple[int, int]:
     """Patch memory-related components."""
     patches_applied = 0
     patches_failed = 0
@@ -90,14 +103,17 @@ def _patch_memory_components():
             else:
                 patches_failed += 1
 
+    except ImportError as e:
+        _logger.debug(f"CrewAI memory modules not available: {e}")
+        patches_failed += 1
     except Exception as e:
-        print(f"⚠️  Memory component patching failed: {e}")
+        _logger.warning(f"Memory component patching failed: {e}")
         patches_failed += 1
 
     return patches_applied, patches_failed
 
 
-def _patch_tool_components():
+def _patch_tool_components() -> tuple[int, int]:
     """
     Patch tool-related components with dynamically inherited accelerated classes.
 
@@ -140,14 +156,14 @@ def _patch_tool_components():
     except ImportError:
         # CrewAI not installed, skip patching
         pass
-    except Exception:
-        # Unexpected error, log and continue
+    except Exception as e:
+        _logger.warning(f"Tool component patching failed: {e}")
         patches_failed += 1
 
     return patches_applied, patches_failed
 
 
-def _patch_task_components():
+def _patch_task_components() -> tuple[int, int]:
     """
     Patch task-related components with dynamically inherited accelerated classes.
 
@@ -186,14 +202,14 @@ def _patch_task_components():
     except ImportError:
         # CrewAI not installed, skip patching
         pass
-    except Exception:
-        # Unexpected error, log and continue
+    except Exception as e:
+        _logger.warning(f"Task component patching failed: {e}")
         patches_failed += 1
 
     return patches_applied, patches_failed
 
 
-def _patch_database_components():
+def _patch_database_components() -> tuple[int, int]:
     """Patch database-related components."""
     patches_applied = 0
     patches_failed = 0
@@ -222,32 +238,23 @@ def _patch_database_components():
                 patches_failed += 1
 
     except Exception as e:
-        print(f"⚠️  Database component patching failed: {e}")
+        _logger.warning(f"Database component patching failed: {e}")
         patches_failed += 1
 
     return patches_applied, patches_failed
 
 
-def _patch_serialization_components():
+def _patch_serialization_components() -> tuple[int, int]:
     """
     Patch serialization-related components.
 
-    Note: Serialization acceleration could patch JSON encoding/decoding functions,
-    but this is not yet implemented. Event classes should not be replaced.
+    Serialization acceleration is provided through the AgentMessage class
+    which can be used directly for message serialization. We do not patch
+    system-wide JSON functions (json.dumps/json.loads) to avoid compatibility
+    issues across the entire CrewAI codebase.
     """
     patches_applied = 0
     patches_failed = 0
-
-    # Serialization patching: Could accelerate json.dumps/json.loads with Rust implementations
-    # However, this is complex and may have compatibility issues, so it's not implemented yet.
-    # Future implementation could:
-    # 1. Monkey-patch json.dumps and json.loads with faster implementations
-    # 2. Use orjson or similar high-performance JSON libraries
-    # 3. Add Rust-based JSON encoding/decoding in the _core module
-
-    # For now, serialization acceleration is provided through the AgentMessage class
-    # which can be used directly for message serialization, but we don't patch
-    # system-wide JSON functions to avoid compatibility issues.
 
     return patches_applied, patches_failed
 
@@ -268,7 +275,7 @@ def enable_acceleration(verbose: bool = False) -> bool:
         total_patches_failed = 0
 
         if verbose:
-            print("🚀 Enabling acceleration for CrewAI...")
+            _logger.info("Enabling acceleration for CrewAI...")
 
         # Patch each component type
         memory_applied, memory_failed = _patch_memory_components()
@@ -292,37 +299,36 @@ def enable_acceleration(verbose: bool = False) -> bool:
         total_patches_failed += serialization_failed
 
         if verbose:
-            print("Acceleration bootstrap completed!")
-            print(f"  - Memory patches applied: {memory_applied}, failed: {memory_failed}")
-            print(f"  - Tool patches applied: {tool_applied}, failed: {tool_failed}")
-            print(f"  - Task patches applied: {task_applied}, failed: {task_failed}")
-            print(f"  - Database patches applied: {db_applied}, failed: {db_failed}")
-            print(f"  - Serialization patches: {serialization_applied} (not yet implemented)")
-            print(f"  - Total patches applied: {total_patches_applied}")
-            print(f"  - Total patches failed: {total_patches_failed}")
+            _logger.info("Acceleration bootstrap completed!")
+            _logger.info("  - Memory patches applied: %d, failed: %d", memory_applied, memory_failed)
+            _logger.info("  - Tool patches applied: %d, failed: %d", tool_applied, tool_failed)
+            _logger.info("  - Task patches applied: %d, failed: %d", task_applied, task_failed)
+            _logger.info("  - Database patches applied: %d, failed: %d", db_applied, db_failed)
+            _logger.info("  - Serialization patches: %d (not yet implemented)", serialization_applied)
+            _logger.info("  - Total patches applied: %d", total_patches_applied)
+            _logger.info("  - Total patches failed: %d", total_patches_failed)
 
         if total_patches_applied > 0 and verbose:
-            print("\n🚀 Performance improvements now active:")
+            _logger.info("Performance improvements now active:")
             if memory_applied > 0:
-                print("  - Memory Storage: 2-5x faster")
+                _logger.info("  - Memory Storage: 2-5x faster")
             if db_applied > 0:
-                print("  - Database Operations: 2-4x faster")
+                _logger.info("  - Database Operations: 2-4x faster")
             if tool_applied > 0:
-                print("  - Tool Execution: Acceleration hooks enabled")
+                _logger.info("  - Tool Execution: Acceleration hooks enabled")
             if task_applied > 0:
-                print("  - Task Execution: Acceleration hooks enabled")
+                _logger.info("  - Task Execution: Acceleration hooks enabled")
             if serialization_applied > 0:
-                print("  - Serialization: Accelerated JSON processing")
+                _logger.info("  - Serialization: Accelerated JSON processing")
 
         return total_patches_applied > 0
 
     except ImportError as e:
         if verbose:
-            print(f"⚠️  Acceleration components not available: {e}")
+            _logger.warning("Acceleration components not available: %s", e)
         return False
     except Exception as e:
-        if verbose:
-            print(f"❌ Failed to enable acceleration: {e}")
+        _logger.warning("Failed to enable acceleration: %s", e)
         return False
 
 
@@ -335,22 +341,27 @@ def disable_acceleration() -> bool:
     """
     try:
         restored = 0
-        for full_path, original_class in _original_classes.items():
+        with _original_classes_lock:
+            classes_to_restore = dict(_original_classes)
+            _original_classes.clear()
+
+        for full_path, original_class in classes_to_restore.items():
             try:
                 module_path, class_name = full_path.rsplit(".", 1)
                 if module_path in sys.modules:
                     module = sys.modules[module_path]
                     setattr(module, class_name, original_class)
                     restored += 1
-            except Exception:
-                continue
+            except (AttributeError, ValueError) as e:
+                _logger.debug(f"Could not restore {full_path}: {e}")
+            except Exception as e:
+                _logger.warning(f"Unexpected error restoring {full_path}: {e}")
 
-        _original_classes.clear()
-        print(f"✅ Restored {restored} original classes")
+        _logger.info("Restored %d original classes", restored)
         return True
 
     except Exception as e:
-        print(f"❌ Failed to restore original classes: {e}")
+        _logger.error("Failed to restore original classes: %s", e)
         return False
 
 

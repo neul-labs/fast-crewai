@@ -5,12 +5,16 @@ This module provides seamless integration between existing CrewAI
 components and the new Rust implementations.
 """
 
+import logging
 from typing import Any, Dict, List, Optional
 
 from .database import AcceleratedSQLiteWrapper
 from .memory import AcceleratedMemoryStorage
 from .tasks import AcceleratedTaskExecutor
 from .tools import AcceleratedToolExecutor
+
+# Configure module logger
+_logger = logging.getLogger(__name__)
 
 
 class AcceleratedMemoryIntegration:
@@ -44,7 +48,8 @@ class AcceleratedMemoryIntegration:
         try:
             rust_memory = AcceleratedMemoryStorage()
             return RustEnhancedMemoryProxy(rust_memory, crew, embedder_config, storage, path)
-        except Exception:
+        except Exception as e:
+            _logger.debug("Failed to create Rust-enhanced memory, using original: %s", e)
             # Fallback to original implementation
             from crewai.memory.short_term.short_term_memory import ShortTermMemory
 
@@ -79,7 +84,8 @@ class AcceleratedMemoryIntegration:
                 return RustEnhancedLongTermMemoryProxy(
                     rust_db, crew, embedder_config, storage, path
                 )
-        except Exception:
+        except Exception as e:
+            _logger.debug("Failed to create Rust-enhanced long-term memory: %s", e)
             pass
 
         # Fallback to original implementation
@@ -117,7 +123,8 @@ class RustEnhancedMemoryProxy:
         """Save a value to memory."""
         try:
             self.rust_memory.save(value, metadata)
-        except Exception:
+        except Exception as e:
+            _logger.debug("Rust memory save failed, using original: %s", e)
             # Fallback to original implementation
             self.original_memory.save(value, metadata)
 
@@ -127,7 +134,8 @@ class RustEnhancedMemoryProxy:
         """Search memory for items matching the query."""
         try:
             return self.rust_memory.search(query, limit, score_threshold)
-        except Exception:
+        except Exception as e:
+            _logger.debug("Rust memory search failed, using original: %s", e)
             # Fallback to original implementation
             return self.original_memory.search(query, limit, score_threshold)
 
@@ -135,7 +143,8 @@ class RustEnhancedMemoryProxy:
         """Reset memory storage."""
         try:
             self.rust_memory.reset()
-        except Exception:
+        except Exception as e:
+            _logger.debug("Rust memory reset failed, using original: %s", e)
             # Fallback to original implementation
             self.original_memory.reset()
 
@@ -200,7 +209,8 @@ class RustEnhancedLongTermMemoryProxy:
             score = float(metadata.get("score", 0.0)) if metadata else 0.0
 
             self.rust_db.save_memory(task_description, metadata or {}, datetime_str, score)
-        except Exception:
+        except Exception as e:
+            _logger.debug("Rust DB save failed, using original: %s", e)
             # Fallback to original implementation
             self.original_memory.save(value, metadata)
 
@@ -215,7 +225,8 @@ class RustEnhancedLongTermMemoryProxy:
             results = self.rust_db.load_memories(query, limit)
             if results:
                 return results
-        except Exception:
+        except Exception as e:
+            _logger.debug("Rust DB search failed, using original: %s", e)
             pass
 
         # Fallback to original implementation
@@ -225,7 +236,8 @@ class RustEnhancedLongTermMemoryProxy:
         """Reset memory storage."""
         try:
             self.rust_db.reset()
-        except Exception:
+        except Exception as e:
+            _logger.debug("Rust DB reset failed, using original: %s", e)
             # Fallback to original implementation
             self.original_memory.reset()
 
@@ -249,7 +261,8 @@ class AcceleratedToolIntegration:
         try:
             rust_executor = AcceleratedToolExecutor(max_recursion_depth=max_iterations)
             return rust_executor
-        except Exception:
+        except Exception as e:
+            _logger.debug("Failed to create Rust tool executor, using Python: %s", e)
             # Return a compatible Python implementation
             return PythonToolExecutor(max_iterations)
 
@@ -297,7 +310,8 @@ class AcceleratedTaskIntegration:
         try:
             rust_executor = AcceleratedTaskExecutor()
             return rust_executor
-        except Exception:
+        except Exception as e:
+            _logger.debug("Failed to create Rust task executor, using Python: %s", e)
             # Return a compatible Python implementation
             return PythonTaskExecutor()
 

@@ -16,7 +16,11 @@ The components automatically fall back to Python implementations when
 acceleration is not available, ensuring zero breaking changes.
 """
 
+import logging
 import os
+
+# Configure module logger
+_logger = logging.getLogger(__name__)
 
 # Version information
 __version__ = "0.1.0"
@@ -32,12 +36,14 @@ if os.environ.get("FAST_CREWAI_ACCELERATION") == "1":
                 from .shim import enable_acceleration
 
                 return enable_acceleration()
-            except Exception:
+            except Exception as e:
+                _logger.debug("Failed to enable acceleration: %s", e)
                 return False
 
         _enable_acceleration()
-    except Exception:
+    except Exception as e:
         # Silently fail if shimming doesn't work
+        _logger.debug("Acceleration initialization failed: %s", e)
         pass
 
 # Check if acceleration implementation is available

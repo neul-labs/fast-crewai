@@ -176,6 +176,8 @@ pub struct RustToolExecutor {
     result_cache: Arc<Mutex<HashMap<String, CachedResult>>>,
     /// Cache TTL in seconds
     cache_ttl_secs: u64,
+    /// Maximum cache size (0 = unlimited) - using AtomicUsize for thread-safe interior mutability
+    max_cache_size: std::sync::atomic::AtomicUsize,
     /// Execution statistics
     stats: Arc<Mutex<ExecutionStats>>,
 }
@@ -198,8 +200,20 @@ impl RustToolExecutor {
             execution_count: Arc::new(Mutex::new(0)),
             result_cache: Arc::new(Mutex::new(HashMap::new())),
             cache_ttl_secs,
+            max_cache_size: std::sync::atomic::AtomicUsize::new(1000), // Default max cache size
             stats: Arc::new(Mutex::new(ExecutionStats::default())),
         }
+    }
+
+    /// Set the maximum cache size (0 = unlimited)
+    pub fn set_max_cache_size(&self, max_size: usize) -> PyResult<()> {
+        self.max_cache_size.store(max_size, std::sync::atomic::Ordering::SeqCst);
+        Ok(())
+    }
+
+    /// Get the current maximum cache size
+    pub fn get_max_cache_size(&self) -> usize {
+        self.max_cache_size.load(std::sync::atomic::Ordering::SeqCst)
     }
 
     /// Validate JSON arguments - returns parsed JSON or error message
@@ -294,7 +308,7 @@ impl RustToolExecutor {
     pub fn get_cached(&self, tool_name: &str, args: &str) -> PyResult<Option<String>> {
         let cache_key = format!("{}:{}", tool_name, args);
 
-        let cache = self.result_cache.lock().map_err(|e| {
+        let mut cache = self.result_cache.lock().map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
                 "Failed to acquire cache lock: {}",
                 e
@@ -310,6 +324,8 @@ impl RustToolExecutor {
                 stats.cache_hits += 1;
                 return Ok(Some(cached.result.clone()));
             }
+            // Entry expired - remove it from cache
+            cache.remove(&cache_key);
         }
 
         let mut stats = self.stats.lock().map_err(|e| {
@@ -330,6 +346,30 @@ impl RustToolExecutor {
             ))
         })?;
 
+        // Enforce cache size limit if set
+        let max_size = self.max_cache_size.load(std::sync::atomic::Ordering::SeqCst);
+        if max_size > 0 && cache.len() >= max_size {
+            // First, remove all expired entries
+            let expired_keys: Vec<_> = cache
+                .iter()
+                .filter(|(_, v)| v.timestamp.elapsed().as_secs() >= self.cache_ttl_secs)
+                .map(|(k, _)| k.clone())
+                .collect();
+            for key in expired_keys {
+                cache.remove(&key);
+            }
+
+            // If still over limit, remove oldest entries (first N entries in hashmap order)
+            // This is a simple eviction strategy; a true LRU would require ordered structure
+            if cache.len() >= max_size {
+                let to_remove = cache.len() - max_size + 1;
+                let keys_to_remove: Vec<_> = cache.keys().take(to_remove).cloned().collect();
+                for key in keys_to_remove {
+                    cache.remove(&key);
+                }
+            }
+        }
+
         cache.insert(
             cache_key,
             CachedResult {
@@ -339,6 +379,17 @@ impl RustToolExecutor {
         );
 
         Ok(())
+    }
+
+    /// Get current cache size
+    pub fn get_cache_size(&self) -> PyResult<usize> {
+        let cache = self.result_cache.lock().map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to acquire cache lock: {}",
+                e
+            ))
+        })?;
+        Ok(cache.len())
     }
 
     /// Clear the result cache
@@ -353,6 +404,28 @@ impl RustToolExecutor {
         let count = cache.len();
         cache.clear();
         Ok(count)
+    }
+
+    /// Remove all expired entries from the cache
+    pub fn cleanup_expired(&self) -> PyResult<usize> {
+        let mut cache = self.result_cache.lock().map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(format!(
+                "Failed to acquire cache lock: {}",
+                e
+            ))
+        })?;
+
+        let expired_keys: Vec<_> = cache
+            .iter()
+            .filter(|(_, v)| v.timestamp.elapsed().as_secs() >= self.cache_ttl_secs)
+            .map(|(k, _)| k.clone())
+            .collect();
+
+        for key in &expired_keys {
+            cache.remove(key);
+        }
+
+        Ok(expired_keys.len())
     }
 
     /// Get execution statistics
@@ -463,9 +536,23 @@ struct TaskInfo {
 /// A concurrent task executor with dependency tracking
 #[pyclass]
 pub struct RustTaskExecutor {
-    runtime: Arc<tokio::runtime::Runtime>,
+    // Use Box wrapped in Option - allows us to take ownership in Drop
+    // PyO3 manages the Python object lifetime
+    runtime: Option<Box<tokio::runtime::Runtime>>,
     tasks: Arc<Mutex<HashMap<String, TaskInfo>>>,
     stats: Arc<Mutex<TaskExecutionStats>>,
+}
+
+impl Drop for RustTaskExecutor {
+    fn drop(&mut self) {
+        // Explicitly shutdown the runtime to clean up worker threads
+        // This prevents memory leaks when many executors are created
+        // By taking the Box and letting it go out of scope, the Runtime's destructor
+        // will properly shutdown all worker threads
+        if let Some(runtime) = self.runtime.take() {
+            drop(runtime);
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default)]
@@ -491,7 +578,7 @@ impl RustTaskExecutor {
             })?;
 
         Ok(RustTaskExecutor {
-            runtime: Arc::new(runtime),
+            runtime: Some(Box::new(runtime)),
             tasks: Arc::new(Mutex::new(HashMap::new())),
             stats: Arc::new(Mutex::new(TaskExecutionStats::default())),
         })
@@ -724,7 +811,7 @@ impl RustTaskExecutor {
 
     /// Execute multiple independent tasks concurrently and aggregate results
     pub fn execute_concurrent_tasks(&self, tasks: Vec<String>) -> PyResult<Vec<String>> {
-        let runtime = self.runtime.clone();
+        let runtime = self.runtime.as_ref().expect("Runtime not initialized");
         let start_time = std::time::Instant::now();
 
         let results: Result<Vec<String>, PyErr> = Python::with_gil(|py| {

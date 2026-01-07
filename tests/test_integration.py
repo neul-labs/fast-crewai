@@ -19,18 +19,11 @@ import pytest
 # Add current directory to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Check if CrewAI is available - skip entire module if not
-try:
-    import crewai  # noqa: F401
+# Use pytest.importorskip to skip the entire module if CrewAI is not available
+# This is the recommended approach for module-level skipping
+crewai = pytest.importorskip("crewai", minversion="0.5.0")
 
-    CREWAI_AVAILABLE = True
-except ImportError:
-    CREWAI_AVAILABLE = False
-
-# Skip entire module if CrewAI is not installed
-pytestmark = pytest.mark.skipif(
-    not CREWAI_AVAILABLE, reason="CrewAI not installed - skipping integration tests"
-)
+CREWAI_AVAILABLE = True
 
 
 @pytest.mark.integration
@@ -118,7 +111,7 @@ class TestFastCrewAIIntegration:
         """Test that memory components work correctly."""
         from fast_crewai.memory import AcceleratedMemoryStorage
 
-        memory = AcceleratedMemoryStorage(embedder=None)
+        memory = AcceleratedMemoryStorage()
         assert memory is not None
         assert hasattr(memory, "implementation")
 
