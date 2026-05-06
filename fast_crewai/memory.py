@@ -115,9 +115,7 @@ class AcceleratedMemoryStorage:
         # Validate input size
         value_str = str(value)
         if len(value_str) > MAX_MEMORY_VALUE_SIZE:
-            raise ValueError(
-                f"Value exceeds maximum allowed size ({MAX_MEMORY_VALUE_SIZE} bytes)"
-            )
+            raise ValueError(f"Value exceeds maximum allowed size ({MAX_MEMORY_VALUE_SIZE} bytes)")
 
         if self._use_rust:
             try:

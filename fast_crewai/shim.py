@@ -300,11 +300,15 @@ def enable_acceleration(verbose: bool = False) -> bool:
 
         if verbose:
             _logger.info("Acceleration bootstrap completed!")
-            _logger.info("  - Memory patches applied: %d, failed: %d", memory_applied, memory_failed)
+            _logger.info(
+                "  - Memory patches applied: %d, failed: %d", memory_applied, memory_failed
+            )
             _logger.info("  - Tool patches applied: %d, failed: %d", tool_applied, tool_failed)
             _logger.info("  - Task patches applied: %d, failed: %d", task_applied, task_failed)
             _logger.info("  - Database patches applied: %d, failed: %d", db_applied, db_failed)
-            _logger.info("  - Serialization patches: %d (not yet implemented)", serialization_applied)
+            _logger.info(
+                "  - Serialization patches: %d (not yet implemented)", serialization_applied
+            )
             _logger.info("  - Total patches applied: %d", total_patches_applied)
             _logger.info("  - Total patches failed: %d", total_patches_failed)
 

@@ -51,7 +51,7 @@ def _validate_db_path(db_path: str) -> None:
 
     # Check for path traversal sequences
     if ".." in db_path or "\\" in db_path and ".." in db_path:
-        raise ValueError(f"Invalid database path: contains path traversal sequence")
+        raise ValueError("Invalid database path: contains path traversal sequence")
 
     # Ensure the resolved path is within the current working directory or allowed locations
     cwd = pathlib.Path.cwd().resolve()
@@ -87,7 +87,9 @@ class AcceleratedSQLiteWrapper:
     API compatibility.
     """
 
-    def __init__(self, db_path: str, pool_size: int = DEFAULT_POOL_SIZE, use_rust: Optional[bool] = None):
+    def __init__(
+        self, db_path: str, pool_size: int = DEFAULT_POOL_SIZE, use_rust: Optional[bool] = None
+    ):
         """
         Initialize the SQLite wrapper.
 
@@ -146,8 +148,7 @@ class AcceleratedSQLiteWrapper:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 # Create tables if they don't exist
-                cursor.execute(
-                    """
+                cursor.execute("""
                     CREATE TABLE IF NOT EXISTS long_term_memories (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         task_description TEXT,
@@ -155,8 +156,7 @@ class AcceleratedSQLiteWrapper:
                         datetime TEXT,
                         score REAL
                     )
-                """
-                )
+                """)
                 conn.commit()
         except Exception as e:
             _logger.warning("Failed to initialize Python SQLite database: %s", e)

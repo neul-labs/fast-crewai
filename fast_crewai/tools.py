@@ -462,7 +462,8 @@ class AcceleratedToolExecutor:
             Number of entries removed
         """
         expired_keys = [
-            key for key, entry in self._cache.items()
+            key
+            for key, entry in self._cache.items()
             if current_time - entry["timestamp"] >= self.cache_ttl_seconds
         ]
         for key in expired_keys:

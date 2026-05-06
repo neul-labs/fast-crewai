@@ -144,9 +144,7 @@ class AgentMessage:
         """
         # Validate input size
         if len(json_str) > MAX_JSON_SIZE:
-            raise ValueError(
-                f"JSON string exceeds maximum allowed size ({MAX_JSON_SIZE} bytes)"
-            )
+            raise ValueError(f"JSON string exceeds maximum allowed size ({MAX_JSON_SIZE} bytes)")
 
         # Check if Rust implementation should be used
         if use_rust is None:

@@ -65,17 +65,17 @@ except ImportError:
 
 
 # Import public API from submodules (these provide Python fallbacks)
-from .database import AcceleratedSQLiteWrapper
-from .integration import (
+from .database import AcceleratedSQLiteWrapper  # noqa: E402
+from .integration import (  # noqa: E402
     AcceleratedMemoryIntegration,
     AcceleratedTaskIntegration,
     AcceleratedToolIntegration,
 )
-from .memory import AcceleratedMemoryStorage
-from .serialization import AgentMessage, RustSerializer
-from .tasks import AcceleratedTaskExecutor
-from .tools import AcceleratedToolExecutor
-from .utils import (
+from .memory import AcceleratedMemoryStorage  # noqa: E402
+from .serialization import AgentMessage, RustSerializer  # noqa: E402
+from .tasks import AcceleratedTaskExecutor  # noqa: E402
+from .tools import AcceleratedToolExecutor  # noqa: E402
+from .utils import (  # noqa: E402
     configure_accelerated_components,
     get_acceleration_status,
     get_environment_info,

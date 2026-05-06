@@ -7,6 +7,9 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test:
     name: Test on ${{ matrix.os }} - Python ${{ matrix.python-version }}
@@ -16,13 +19,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12', '3.13']
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install uv
-      uses: astral-sh/setup-uv@v4
+      uses: astral-sh/setup-uv@v8.1.0
       with:
         enable-cache: true
         cache-dependency-glob: "pyproject.toml"
@@ -36,7 +39,7 @@ jobs:
         toolchain: stable
 
     - name: Cache Rust build
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cargo/registry
@@ -62,7 +65,7 @@ jobs:
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v6
       with:
         file: ./coverage.xml
         flags: unittests
@@ -74,10 +77,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Install uv
-      uses: astral-sh/setup-uv@v4
+      uses: astral-sh/setup-uv@v8.1.0
       with:
         enable-cache: true
         cache-dependency-glob: "pyproject.toml"
@@ -110,7 +113,7 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -160,5 +163,10 @@ jobs:
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        git tag "v${{ steps.cargo_version.outputs.current }}"
-        git push origin "v${{ steps.cargo_version.outputs.current }}"
+        tag_name="v${{ steps.cargo_version.outputs.current }}"
+        if git rev-parse "$tag_name" >/dev/null 2>&1; then
+          echo "Tag $tag_name already exists, skipping"
+        else
+          git tag "$tag_name"
+          git push origin "$tag_name"
+        fi

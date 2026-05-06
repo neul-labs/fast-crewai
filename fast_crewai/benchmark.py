@@ -1055,7 +1055,7 @@ print(f"{{{{MEMORY_MB}}}}:{peak_mb / 1024 / 1024}")
                 [sys.executable, "-c", benchmark_code],
                 capture_output=True,
                 text=True,
-                cwd="/Users/dipankarsarkar/Code/fast-crewai"
+                cwd="/Users/dipankarsarkar/Code/fast-crewai",
             )
 
             # Parse output (f-string {{ becomes { after .format())
@@ -1181,7 +1181,7 @@ print(f"{{{{MEMORY_MB}}}}:{peak_mb / 1024 / 1024}")
                 [sys.executable, "-c", benchmark_code],
                 capture_output=True,
                 text=True,
-                cwd="/Users/dipankarsarkar/Code/fast-crewai"
+                cwd="/Users/dipankarsarkar/Code/fast-crewai",
             )
 
             # Parse output (f-string {{ becomes { after .format())
