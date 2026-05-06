@@ -23,7 +23,7 @@ import os
 _logger = logging.getLogger(__name__)
 
 # Version information
-__version__ = "0.1.0"
+__version__ = "0.1.5"
 __author__ = "CrewAI"
 
 # Auto-enable acceleration if environment variable is set
