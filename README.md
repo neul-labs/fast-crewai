@@ -4,7 +4,8 @@
 
 [![CI](https://github.com/neul-labs/fast-crewai/workflows/CI/badge.svg)](https://github.com/neul-labs/fast-crewai/actions)
 [![Compatibility](https://github.com/neul-labs/fast-crewai/workflows/CrewAI%20Compatibility%20Tests/badge.svg)](https://github.com/neul-labs/fast-crewai/blob/main/COMPATIBILITY.md)
-[![Python 3.10-3.13](https://img.shields.io/badge/python-3.10--3.13-blue.svg)](https://www.python.org/downloads/)
+[![PyPI](https://img.shields.io/pypi/v/fast-crewai.svg)](https://pypi.org/project/fast-crewai/)
+[![Python 3.11-3.13](https://img.shields.io/badge/python-3.11--3.13-blue.svg)](https://www.python.org/downloads/)
 [![Rust](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org/)
 
 Fast-CrewAI is authored by [Dipankar Sarkar](mailto:me@dipankar.name) and maintained by [Neul Labs](https://github.com/neul-labs) to bring production-ready acceleration to CrewAI workloads.
