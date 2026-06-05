@@ -1,7 +1,7 @@
 site_name: Fast-CrewAI
 site_description: Drop-in performance acceleration for CrewAI - Get up to 34x faster serialization with zero code changes
 site_author: Dipankar Sarkar
-site_url: https://fast-crewai.docs.neullabs.com/
+site_url: https://docs.neullabs.com/fast-crewai/
 repo_url: https://github.com/neul-labs/fast-crewai
 repo_name: neul-labs/fast-crewai
 edit_uri: edit/main/documentation/docs/
