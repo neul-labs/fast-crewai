@@ -8,7 +8,9 @@
 [![Python 3.11-3.13](https://img.shields.io/badge/python-3.11--3.13-blue.svg)](https://www.python.org/downloads/)
 [![Rust](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org/)
 
-Fast-CrewAI is authored by [Dipankar Sarkar](mailto:me@dipankar.name) and maintained by [Neul Labs](https://github.com/neul-labs) to bring production-ready acceleration to CrewAI workloads.
+Built and maintained by [Neul Labs](https://www.neullabs.com) to bring production-ready acceleration to CrewAI workloads.
+
+**Links:** [Website](https://fast-crewai.neullabs.com) · [Docs](https://docs.neullabs.com/fast-crewai) · [GitHub](https://github.com/neul-labs/fast-crewai)
 
 ## 🚀 Quick Start
 
@@ -63,6 +65,14 @@ uv add fast-crewai
 
 # Or with pip
 pip install fast-crewai
+```
+
+### Rust crate
+
+`fast-crewai` is also published to [crates.io](https://crates.io/crates/fast-crewai) as the PyO3 extension module that powers the Python wheel. The Python package above is the intended interface for most users. To build against the Rust crate directly:
+
+```bash
+cargo add fast-crewai
 ```
 
 ### For Development
@@ -250,8 +260,8 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 👥 Maintainers
 
-- **Author**: Dipankar Sarkar (<me@dipankar.name>)
-- **Organization**: Neul Labs
+- **Maintainer**: Neul Labs (<contact@neullabs.com>)
+- **Website**: https://fast-crewai.neullabs.com
 
 ## 🔧 Support
 
@@ -259,3 +269,14 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **Discussions**: [GitHub Discussions](https://github.com/neul-labs/fast-crewai/discussions)
 
 Fast-CrewAI is in **active development**. Memory and database acceleration are production-ready, with ongoing optimization for tools and tasks.
+
+## Part of the Neul Labs toolchain
+
+Fast-CrewAI is part of the Neul Labs accelerators family. Explore the rest of the toolchain from [Neul Labs](https://www.neullabs.com):
+
+| Project | What it does |
+|---------|--------------|
+| [fast-litellm](https://fast-litellm.neullabs.com) | Drop-in Rust acceleration for LiteLLM. |
+| [fast-langgraph](https://fast-langgraph.neullabs.com) | Rust accelerators for LangGraph — up to 700x faster checkpoints. |
+| [fast-axolotl](https://fast-axolotl.neullabs.com) | Rust extensions for Axolotl fine-tuning — no OOM on large datasets. |
+| [fastagentic](https://fastagentic.neullabs.com) | Build agents with any framework; ship them with FastAgentic. |

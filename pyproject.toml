@@ -5,9 +5,6 @@ build-backend = "maturin"
 [project]
 name = "fast-crewai"
 requires-python = ">=3.11"
-homepage = "https://github.com/neul-labs/fast-crewai"
-repository = "https://github.com/neul-labs/fast-crewai"
-documentation = "https://neul-labs.github.io/fast-crewai"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -21,14 +18,14 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 dynamic = ["version"]
-description = "High-performance acceleration for CrewAI - 2-5x faster memory, tools, and task execution with zero code changes"
+description = "Drop-in Rust acceleration for CrewAI."
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
-  { name = "Dipankar Sarkar", email = "me@dipankar.name" },
+  { name = "Neul Labs", email = "contact@neullabs.com" },
 ]
 maintainers = [
-  { name = "Neul Labs" },
+  { name = "Neul Labs", email = "contact@neullabs.com" },
 ]
 keywords = ["crewai", "acceleration", "performance", "ai", "agents", "optimization"]
 dependencies = [
@@ -65,8 +62,8 @@ fast-crewai = "fast_crewai.__main__:main"
 fast-crewai-bootstrap = "fast_crewai.bootstrap:main"
 
 [project.urls]
-Homepage = "https://github.com/neul-labs/fast-crewai"
-Documentation = "https://neul-labs.github.io/fast-crewai"
+Homepage = "https://fast-crewai.neullabs.com"
+Documentation = "https://docs.neullabs.com/fast-crewai"
 Repository = "https://github.com/neul-labs/fast-crewai"
 "Bug Tracker" = "https://github.com/neul-labs/fast-crewai/issues"
 

@@ -2,12 +2,12 @@
 name = "fast-crewai"
 version = "0.1.5"
 edition = "2021"
-description = "High-performance acceleration layer for CrewAI with Rust-backed memory, tool, and task execution"
+description = "Drop-in Rust acceleration for CrewAI."
 license = "MIT"
-authors = ["Dipankar Sarkar <me@dipankar.name>"]
-homepage = "https://neul-labs.github.io/fast-crewai"
+authors = ["Neul Labs <contact@neullabs.com>"]
+homepage = "https://fast-crewai.neullabs.com"
 repository = "https://github.com/neul-labs/fast-crewai"
-documentation = "https://neul-labs.github.io/fast-crewai"
+documentation = "https://docs.neullabs.com/fast-crewai"
 readme = "README.md"
 keywords = ["crewai", "agents", "ai", "performance", "rust"]
 
