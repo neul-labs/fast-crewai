@@ -69,7 +69,7 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/neul-labs/fast-crewai
     - icon: fontawesome/solid/envelope
-      link: mailto:me@dipankar.name
+      link: mailto:contact@neullabs.com
   generator: false
 
 nav:
